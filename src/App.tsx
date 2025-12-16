@@ -1,15 +1,13 @@
-import { useState } from 'react'
+import { Routes, Route } from 'react-router-dom'
 import Home from './Home'
 import Login from './Login'
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<'home' | 'login'>('home')
-
   return (
-    <>
-      {currentPage === 'home' && <Home onNavigateToLogin={() => setCurrentPage('login')} />}
-      {currentPage === 'login' && <Login onNavigateToHome={() => setCurrentPage('home')} />}
-    </>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+    </Routes>
   )
 }
 

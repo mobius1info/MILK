@@ -1,11 +1,8 @@
 import { useState, FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import './Login.css'
 
-interface LoginProps {
-  onNavigateToHome: () => void
-}
-
-function Login({ onNavigateToHome }: LoginProps) {
+function Login() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
@@ -19,8 +16,8 @@ function Login({ onNavigateToHome }: LoginProps) {
   return (
     <div className="login-container">
       <div className="login-card">
-        <button
-          onClick={onNavigateToHome}
+        <Link
+          to="/"
           style={{
             position: 'absolute',
             top: '20px',
@@ -29,11 +26,12 @@ function Login({ onNavigateToHome }: LoginProps) {
             border: 'none',
             color: '#666',
             cursor: 'pointer',
-            fontSize: '14px'
+            fontSize: '14px',
+            textDecoration: 'none'
           }}
         >
           ← Back to Home
-        </button>
+        </Link>
         <h1 className="login-title">Welcome Back</h1>
         <p className="login-subtitle">Please sign in to your account</p>
 
