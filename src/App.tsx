@@ -375,15 +375,6 @@ function App() {
                 <Wallet className="w-4 sm:w-5 h-4 sm:h-5" />
                 <span className="hidden sm:inline text-sm md:text-base">Dashboard</span>
               </button>
-              {profile.role === 'admin' && (
-                <button
-                  onClick={() => navigateTo('/admin')}
-                  className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 md:px-4 py-2 rounded-lg bg-[#f5b04c] text-white hover:bg-[#e09f3a] transition-colors"
-                >
-                  <UserIcon className="w-4 sm:w-5 h-4 sm:h-5" />
-                  <span className="hidden md:inline text-sm">Admin</span>
-                </button>
-              )}
               <button
                 onClick={handleLogout}
                 className="flex items-center space-x-1 sm:space-x-2 text-gray-700 hover:text-red-600 transition-colors"
