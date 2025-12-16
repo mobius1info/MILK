@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Eye, EyeOff } from 'lucide-react';
 
@@ -16,12 +16,6 @@ export default function Register({ onSuccess, onNavigate, isAuthenticated }: Reg
   const [referralCode, setReferralCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      onNavigate('/');
-    }
-  }, [isAuthenticated, onNavigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,9 +60,8 @@ export default function Register({ onSuccess, onNavigate, isAuthenticated }: Reg
 
         setError('');
         alert('Registration successful! Welcome to MK MALL!');
+        await onSuccess();
       }
-
-      onSuccess();
     } catch (err: any) {
       setError(err.message || 'Failed to register');
       setLoading(false);

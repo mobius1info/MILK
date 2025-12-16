@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Eye, EyeOff } from 'lucide-react';
 
@@ -15,12 +15,6 @@ export default function Login({ onSuccess, onNavigate, isAuthenticated }: LoginP
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      onNavigate('/');
-    }
-  }, [isAuthenticated, onNavigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,8 +40,7 @@ export default function Login({ onSuccess, onNavigate, isAuthenticated }: LoginP
         } else {
           localStorage.removeItem('rememberMe');
         }
-        onSuccess();
-        onNavigate('/');
+        await onSuccess();
       }
     } catch (err: any) {
       console.error('Login error:', err);

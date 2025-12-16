@@ -62,9 +62,8 @@ export default function RegisterForm({ onSuccess, onToggleForm }: RegisterFormPr
         // Show success message
         setError('');
         alert('Registration successful! Welcome to MK MALL!');
+        await onSuccess();
       }
-
-      onSuccess();
     } catch (err: any) {
       setError(err.message || 'Failed to register');
     } finally {

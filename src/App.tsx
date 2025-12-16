@@ -60,8 +60,10 @@ function App() {
   useEffect(() => {
     if (!user && currentPath !== '/login' && currentPath !== '/register') {
       navigateTo('/login');
+    } else if (user && profile && (currentPath === '/login' || currentPath === '/register')) {
+      navigateTo('/');
     }
-  }, [currentPath, user]);
+  }, [currentPath, user, profile]);
 
   const checkUser = async () => {
     try {

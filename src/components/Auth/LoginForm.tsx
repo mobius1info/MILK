@@ -32,7 +32,7 @@ export default function LoginForm({ onSuccess, onToggleForm }: LoginFormProps) {
       }
 
       if (data.session) {
-        onSuccess();
+        await onSuccess();
       }
     } catch (err: any) {
       console.error('Login error:', err);
