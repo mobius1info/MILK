@@ -1,7 +1,11 @@
 import { useState, FormEvent } from 'react'
 import './Login.css'
 
-function Login() {
+interface LoginProps {
+  onNavigateToHome: () => void
+}
+
+function Login({ onNavigateToHome }: LoginProps) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
@@ -15,6 +19,21 @@ function Login() {
   return (
     <div className="login-container">
       <div className="login-card">
+        <button
+          onClick={onNavigateToHome}
+          style={{
+            position: 'absolute',
+            top: '20px',
+            left: '20px',
+            background: 'transparent',
+            border: 'none',
+            color: '#666',
+            cursor: 'pointer',
+            fontSize: '14px'
+          }}
+        >
+          ← Back to Home
+        </button>
         <h1 className="login-title">Welcome Back</h1>
         <p className="login-subtitle">Please sign in to your account</p>
 

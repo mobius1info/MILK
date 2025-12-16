@@ -1,15 +1,16 @@
-import { Link } from 'react-router-dom'
 import './App.css'
 
-function Home() {
+interface HomeProps {
+  onNavigateToLogin: () => void
+}
+
+function Home({ onNavigateToLogin }: HomeProps) {
   return (
     <div className="app">
       <h1>Welcome to Your App</h1>
       <div className="card">
         <p>This is the home page</p>
-        <Link to="/login">
-          <button>Go to Login</button>
-        </Link>
+        <button onClick={onNavigateToLogin}>Go to Login</button>
       </div>
       <p className="info">
         Edit src/App.tsx and save to test hot module replacement
