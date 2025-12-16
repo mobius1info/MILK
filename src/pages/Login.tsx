@@ -12,7 +12,6 @@ export default function Login({ onSuccess, onNavigate, isAuthenticated }: LoginP
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -35,11 +34,6 @@ export default function Login({ onSuccess, onNavigate, isAuthenticated }: LoginP
       }
 
       if (data.session) {
-        if (rememberMe) {
-          localStorage.setItem('rememberMe', 'true');
-        } else {
-          localStorage.removeItem('rememberMe');
-        }
         await onSuccess();
       }
     } catch (err: any) {
@@ -112,19 +106,6 @@ export default function Login({ onSuccess, onNavigate, isAuthenticated }: LoginP
                   )}
                 </button>
               </div>
-            </div>
-
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 text-[#f5b04c] border-gray-300 rounded focus:ring-[#f5b04c]"
-              />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                Remember me
-              </label>
             </div>
           </div>
 
