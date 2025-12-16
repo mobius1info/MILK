@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase, Profile, Product as DBProduct } from './lib/supabase';
 import LoadingScreen from './components/LoadingScreen';
-import LoginForm from './components/Auth/LoginForm';
-import RegisterForm from './components/Auth/RegisterForm';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import AdminPanel from './components/Admin/AdminPanel';
 import Dashboard from './components/Client/Dashboard';
 import CategoryFilter from './components/CategoryFilter';
@@ -16,7 +16,6 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [showLogin, setShowLogin] = useState(true);
   const [view, setView] = useState<'shop' | 'dashboard'>('shop');
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [products, setProducts] = useState<Product[]>([]);
@@ -63,7 +62,11 @@ function App() {
       alert('Access denied. Admin privileges required.');
       navigateTo('/');
     }
-  }, [currentPath, profile]);
+
+    if (!user && currentPath !== '/login' && currentPath !== '/register' && currentPath !== '/admin') {
+      navigateTo('/login');
+    }
+  }, [currentPath, profile, user]);
 
   const checkUser = async () => {
     try {
@@ -280,7 +283,18 @@ function App() {
 
   if (!user || !profile) {
     const isAdminPath = currentPath === '/admin';
-    return showLogin ? (
+
+    if (currentPath === '/register') {
+      return (
+        <Register
+          onSuccess={checkUser}
+          onNavigate={navigateTo}
+          isAuthenticated={!!user}
+        />
+      );
+    }
+
+    return (
       <div>
         {isAdminPath && (
           <div className="mb-4 p-4 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white text-center">
@@ -288,16 +302,12 @@ function App() {
             <p className="text-sm">Please login with admin credentials</p>
           </div>
         )}
-        <LoginForm
+        <Login
           onSuccess={checkUser}
-          onToggleForm={() => setShowLogin(false)}
+          onNavigate={navigateTo}
+          isAuthenticated={!!user}
         />
       </div>
-    ) : (
-      <RegisterForm
-        onSuccess={checkUser}
-        onToggleForm={() => setShowLogin(true)}
-      />
     );
   }
 
