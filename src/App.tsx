@@ -60,6 +60,7 @@ function App() {
 
   useEffect(() => {
     if (currentPath === '/admin' && profile && profile.role !== 'admin') {
+      alert('Access denied. Admin privileges required.');
       navigateTo('/');
     }
   }, [currentPath, profile]);
@@ -278,11 +279,20 @@ function App() {
   }
 
   if (!user || !profile) {
+    const isAdminPath = currentPath === '/admin';
     return showLogin ? (
-      <LoginForm
-        onSuccess={checkUser}
-        onToggleForm={() => setShowLogin(false)}
-      />
+      <div>
+        {isAdminPath && (
+          <div className="mb-4 p-4 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white text-center">
+            <h2 className="text-xl font-bold">Admin Access</h2>
+            <p className="text-sm">Please login with admin credentials</p>
+          </div>
+        )}
+        <LoginForm
+          onSuccess={checkUser}
+          onToggleForm={() => setShowLogin(false)}
+        />
+      </div>
     ) : (
       <RegisterForm
         onSuccess={checkUser}
