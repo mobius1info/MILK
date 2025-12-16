@@ -58,6 +58,12 @@ function App() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (currentPath === '/admin' && profile && profile.role !== 'admin') {
+      navigateTo('/');
+    }
+  }, [currentPath, profile]);
+
   const checkUser = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
