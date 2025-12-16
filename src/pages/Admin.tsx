@@ -132,7 +132,10 @@ export function Admin() {
               <thead>
                 <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
                   <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: '#374151' }}>
-                    Username
+                    User
+                  </th>
+                  <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: '#374151' }}>
+                    Email
                   </th>
                   <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600', color: '#374151' }}>
                     Role
@@ -149,7 +152,10 @@ export function Admin() {
                 {users.map((user) => (
                   <tr key={user.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
                     <td style={{ padding: '1rem', color: '#1f2937' }}>
-                      {user.username || 'N/A'}
+                      {user.full_name || 'N/A'}
+                    </td>
+                    <td style={{ padding: '1rem', color: '#6b7280' }}>
+                      {user.email}
                     </td>
                     <td style={{ padding: '1rem' }}>
                       <span style={{

@@ -9,8 +9,8 @@ interface AuthContextType {
   user: User | null
   profile: Profile | null
   loading: boolean
-  signUp: (username: string, password: string, confirmPassword: string, invitationCode: string) => Promise<{ error: Error | null }>
-  signIn: (username: string, password: string, rememberMe?: boolean) => Promise<{ error: Error | null }>
+  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null }>
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
 }
 
@@ -63,105 +63,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signUp = async (username: string, password: string, confirmPassword: string, invitationCode: string) => {
+  const signUp = async (email: string, password: string, fullName?: string) => {
     try {
-      if (password !== confirmPassword) {
-        return { error: new Error('Passwords do not match') }
-      }
-
-      if (password.length < 6) {
-        return { error: new Error('Password must be at least 6 characters') }
-      }
-
-      if (!username || username.length < 3) {
-        return { error: new Error('Username must be at least 3 characters') }
-      }
-
-      const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('username', username)
-        .maybeSingle()
-
-      if (existingProfile) {
-        return { error: new Error('Username already taken') }
-      }
-
-      const { data: inviteData, error: inviteError } = await supabase
-        .from('invitation_codes')
-        .select('*')
-        .eq('code', invitationCode)
-        .eq('is_used', false)
-        .maybeSingle()
-
-      if (inviteError || !inviteData) {
-        return { error: new Error('Invalid or already used invitation code') }
-      }
-
-      const email = `${username.toLowerCase()}@internal.app`
-
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            username
+            full_name: fullName || ''
           }
         }
       })
-
-      if (authError) {
-        return { error: authError as Error }
-      }
-
-      if (authData.user) {
-        await supabase
-          .from('profiles')
-          .update({ username })
-          .eq('id', authData.user.id)
-
-        await supabase
-          .from('invitation_codes')
-          .update({
-            is_used: true,
-            used_by: authData.user.id,
-            used_at: new Date().toISOString()
-          })
-          .eq('code', invitationCode)
-      }
-
-      return { error: null }
+      return { error: error as Error | null }
     } catch (error) {
       return { error: error as Error }
     }
   }
 
-  const signIn = async (username: string, password: string, rememberMe: boolean = false) => {
+  const signIn = async (email: string, password: string) => {
     try {
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('username', username)
-        .maybeSingle()
-
-      if (profileError || !profileData) {
-        return { error: new Error('Invalid username or password') }
-      }
-
       const { error } = await supabase.auth.signInWithPassword({
-        email: profileData.email,
+        email,
         password,
       })
-
-      if (error) {
-        return { error: new Error('Invalid username or password') }
-      }
-
-      if (!rememberMe) {
-        await supabase.auth.updateUser({ data: { remember_me: false } })
-      }
-
-      return { error: null }
+      return { error: error as Error | null }
     } catch (error) {
       return { error: error as Error }
     }
