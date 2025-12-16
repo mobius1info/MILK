@@ -58,15 +58,10 @@ function App() {
   }, [user]);
 
   useEffect(() => {
-    if (currentPath === '/admin' && user && profile && profile.role !== 'admin') {
-      alert('Access denied. Admin privileges required.');
-      navigateTo('/');
-    }
-
-    if (!user && currentPath !== '/login' && currentPath !== '/register' && currentPath !== '/admin') {
+    if (!user && currentPath !== '/login' && currentPath !== '/register') {
       navigateTo('/login');
     }
-  }, [currentPath, profile, user]);
+  }, [currentPath, user]);
 
   const checkUser = async () => {
     try {
@@ -281,18 +276,6 @@ function App() {
     return <LoadingScreen />;
   }
 
-  if (currentPath === '/admin') {
-    return (
-      <Admin
-        onNavigate={navigateTo}
-        currentUser={user}
-        currentProfile={profile}
-        onLogout={handleLogout}
-        onCheckUser={checkUser}
-      />
-    );
-  }
-
   if (!user || !profile) {
     if (currentPath === '/register') {
       return (
@@ -309,6 +292,35 @@ function App() {
         onSuccess={checkUser}
         onNavigate={navigateTo}
         isAuthenticated={!!user}
+      />
+    );
+  }
+
+  if (currentPath === '/admin') {
+    if (profile.role !== 'admin') {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-800 mb-4">Access Denied</h1>
+            <p className="text-gray-600 mb-4">Admin privileges required.</p>
+            <button
+              onClick={() => navigateTo('/')}
+              className="px-4 py-2 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white rounded-lg"
+            >
+              Go to Home
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <Admin
+        onNavigate={navigateTo}
+        currentUser={user}
+        currentProfile={profile}
+        onLogout={handleLogout}
+        onCheckUser={checkUser}
       />
     );
   }
