@@ -3,9 +3,12 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
 export function Register() {
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [fullName, setFullName] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [invitationCode, setInvitationCode] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { signUp, user } = useAuth()
@@ -20,13 +23,7 @@ export function Register() {
     setError('')
     setLoading(true)
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long')
-      setLoading(false)
-      return
-    }
-
-    const { error } = await signUp(email, password, fullName)
+    const { error } = await signUp(username, password, confirmPassword, invitationCode)
 
     if (error) {
       setError(error.message)
@@ -43,41 +40,35 @@ export function Register() {
       alignItems: 'center',
       justifyContent: 'center',
       padding: '1rem',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      background: '#f5f5f5'
     }}>
       <div style={{
         width: '100%',
         maxWidth: '400px',
         background: 'white',
-        padding: '2rem',
-        borderRadius: '1rem',
-        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)'
+        padding: '2.5rem',
+        borderRadius: '8px',
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)'
       }}>
         <h2 style={{
-          fontSize: '2rem',
-          fontWeight: '700',
-          marginBottom: '0.5rem',
-          color: '#1f2937',
-          textAlign: 'center'
-        }}>
-          Sign Up
-        </h2>
-        <p style={{
-          color: '#6b7280',
+          fontSize: '1.75rem',
+          fontWeight: '600',
           marginBottom: '2rem',
+          color: '#1a1a1a',
           textAlign: 'center'
         }}>
-          Create your account to get started.
-        </p>
+          Create Account
+        </h2>
 
         {error && (
           <div style={{
             padding: '0.75rem',
-            background: '#fee2e2',
-            color: '#dc2626',
-            borderRadius: '0.5rem',
+            background: '#fee',
+            color: '#c33',
+            borderRadius: '4px',
             marginBottom: '1rem',
-            fontSize: '0.875rem'
+            fontSize: '0.875rem',
+            border: '1px solid #fcc'
           }}>
             {error}
           </div>
@@ -89,26 +80,42 @@ export function Register() {
               display: 'block',
               marginBottom: '0.5rem',
               fontWeight: '500',
-              color: '#374151'
+              color: '#333',
+              fontSize: '0.875rem'
             }}>
-              Full Name
+              Username
             </label>
-            <input
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '2px solid #e5e7eb',
-                borderRadius: '0.5rem',
-                fontSize: '1rem',
-                transition: 'border-color 0.2s',
-                boxSizing: 'border-box'
-              }}
-              onFocus={(e) => e.target.style.borderColor = '#667eea'}
-              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-            />
+            <div style={{ position: 'relative' }}>
+              <span style={{
+                position: 'absolute',
+                left: '0.75rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#000',
+                fontSize: '1rem'
+              }}>
+                👤
+              </span>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  paddingLeft: '2.5rem',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '1rem',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box',
+                  outline: 'none'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#666'}
+                onBlur={(e) => e.target.style.borderColor = '#ddd'}
+              />
+            </div>
           </div>
 
           <div style={{ marginBottom: '1rem' }}>
@@ -116,27 +123,123 @@ export function Register() {
               display: 'block',
               marginBottom: '0.5rem',
               fontWeight: '500',
-              color: '#374151'
+              color: '#333',
+              fontSize: '0.875rem'
             }}>
-              Email
+              Password
             </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '2px solid #e5e7eb',
-                borderRadius: '0.5rem',
-                fontSize: '1rem',
-                transition: 'border-color 0.2s',
-                boxSizing: 'border-box'
-              }}
-              onFocus={(e) => e.target.style.borderColor = '#667eea'}
-              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-            />
+            <div style={{ position: 'relative' }}>
+              <span style={{
+                position: 'absolute',
+                left: '0.75rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#000',
+                fontSize: '1rem'
+              }}>
+                🔒
+              </span>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  paddingLeft: '2.5rem',
+                  paddingRight: '2.5rem',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '1rem',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box',
+                  outline: 'none'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#666'}
+                onBlur={(e) => e.target.style.borderColor = '#ddd'}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '0.75rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '0.25rem',
+                  fontSize: '1.25rem',
+                  color: '#666'
+                }}
+              >
+                {showPassword ? '👁️' : '👁️‍🗨️'}
+              </button>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '0.5rem',
+              fontWeight: '500',
+              color: '#333',
+              fontSize: '0.875rem'
+            }}>
+              Confirm Password
+            </label>
+            <div style={{ position: 'relative' }}>
+              <span style={{
+                position: 'absolute',
+                left: '0.75rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#000',
+                fontSize: '1rem'
+              }}>
+                🔒
+              </span>
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  paddingLeft: '2.5rem',
+                  paddingRight: '2.5rem',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '1rem',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box',
+                  outline: 'none'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#666'}
+                onBlur={(e) => e.target.style.borderColor = '#ddd'}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '0.75rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '0.25rem',
+                  fontSize: '1.25rem',
+                  color: '#666'
+                }}
+              >
+                {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
+              </button>
+            </div>
           </div>
 
           <div style={{ marginBottom: '1.5rem' }}>
@@ -144,34 +247,42 @@ export function Register() {
               display: 'block',
               marginBottom: '0.5rem',
               fontWeight: '500',
-              color: '#374151'
+              color: '#333',
+              fontSize: '0.875rem'
             }}>
-              Password
+              Invitation Code
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '2px solid #e5e7eb',
-                borderRadius: '0.5rem',
-                fontSize: '1rem',
-                transition: 'border-color 0.2s',
-                boxSizing: 'border-box'
-              }}
-              onFocus={(e) => e.target.style.borderColor = '#667eea'}
-              onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-            />
-            <p style={{
-              marginTop: '0.25rem',
-              fontSize: '0.875rem',
-              color: '#6b7280'
-            }}>
-              Must be at least 6 characters
-            </p>
+            <div style={{ position: 'relative' }}>
+              <span style={{
+                position: 'absolute',
+                left: '0.75rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#000',
+                fontSize: '1rem'
+              }}>
+                🎟️
+              </span>
+              <input
+                type="text"
+                value={invitationCode}
+                onChange={(e) => setInvitationCode(e.target.value)}
+                required
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  paddingLeft: '2.5rem',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '1rem',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box',
+                  outline: 'none'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#666'}
+                onBlur={(e) => e.target.style.borderColor = '#ddd'}
+              />
+            </div>
           </div>
 
           <button
@@ -179,21 +290,21 @@ export function Register() {
             disabled={loading}
             style={{
               width: '100%',
-              padding: '0.75rem',
-              background: loading ? '#9ca3af' : '#667eea',
+              padding: '0.875rem',
+              background: loading ? '#999' : '#1a1a1a',
               color: 'white',
               border: 'none',
-              borderRadius: '0.5rem',
+              borderRadius: '4px',
               fontSize: '1rem',
               fontWeight: '600',
               cursor: loading ? 'not-allowed' : 'pointer',
               transition: 'background 0.2s'
             }}
             onMouseEnter={(e) => {
-              if (!loading) e.currentTarget.style.background = '#5568d3'
+              if (!loading) e.currentTarget.style.background = '#333'
             }}
             onMouseLeave={(e) => {
-              if (!loading) e.currentTarget.style.background = '#667eea'
+              if (!loading) e.currentTarget.style.background = '#1a1a1a'
             }}
           >
             {loading ? 'Creating account...' : 'Sign Up'}
@@ -203,13 +314,14 @@ export function Register() {
         <p style={{
           marginTop: '1.5rem',
           textAlign: 'center',
-          color: '#6b7280'
+          color: '#666',
+          fontSize: '0.875rem'
         }}>
           Already have an account?{' '}
           <Link
             to="/login"
             style={{
-              color: '#667eea',
+              color: '#1a1a1a',
               fontWeight: '600',
               textDecoration: 'none'
             }}
