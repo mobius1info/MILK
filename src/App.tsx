@@ -157,7 +157,7 @@ function App() {
         id: p.id,
         name: p.name,
         price: p.price,
-        image: p.image_url,
+        image_url: p.image_url,
         category: p.category,
         description: p.description,
         rating: p.rating,

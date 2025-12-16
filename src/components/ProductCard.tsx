@@ -11,7 +11,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
     <div className="bg-white rounded-lg shadow-md overflow-hidden group hover:shadow-xl transition-shadow duration-300">
       <div className="relative overflow-hidden aspect-square">
         <img
-          src={product.image}
+          src={product.image_url}
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
         />

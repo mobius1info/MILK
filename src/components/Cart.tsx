@@ -84,7 +84,7 @@ export default function Cart({
               {items.map((item) => (
                 <div key={item.id} className="flex space-x-3 bg-gray-50 p-3 rounded-lg">
                   <img
-                    src={item.image}
+                    src={item.image_url}
                     alt={item.name}
                     className="w-20 h-20 object-cover rounded"
                   />
