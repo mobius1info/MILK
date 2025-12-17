@@ -17,6 +17,7 @@ import ProductCard from './components/ProductCard';
 import Cart from './components/Cart';
 
 function App() {
+  console.log('App component rendering');
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -69,8 +70,10 @@ function App() {
   }, [user, profile]);
 
   const checkUser = async () => {
+    console.log('checkUser called');
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('Session:', session);
 
       if (session?.user) {
         setUser(session.user);
@@ -84,12 +87,17 @@ function App() {
       setUser(null);
       setProfile(null);
     } finally {
+      console.log('Setting isLoading to false');
       setIsLoading(false);
     }
   };
 
   const fetchProfile = async (userId: string, retryCount = 0): Promise<void> => {
-    if (isFetchingProfile) return;
+    console.log('fetchProfile called for userId:', userId);
+    if (isFetchingProfile) {
+      console.log('Already fetching profile, skipping');
+      return;
+    }
 
     setIsFetchingProfile(true);
     try {
@@ -98,6 +106,8 @@ function App() {
         .select('*')
         .eq('id', userId)
         .maybeSingle();
+
+      console.log('Profile data:', data, 'error:', error);
 
       if (error) {
         console.error('Error fetching profile:', error);
@@ -115,6 +125,7 @@ function App() {
       }
 
       if (data) {
+        console.log('Profile found, setting profile');
         setProfile(data);
         setIsLoading(false);
         setIsFetchingProfile(false);
@@ -404,11 +415,15 @@ function App() {
     }
   };
 
+  console.log('Render state - isLoading:', isLoading, 'user:', user, 'profile:', profile);
+
   if (isLoading) {
+    console.log('Rendering LoadingScreen');
     return <LoadingScreen />;
   }
 
   if (!user || !profile) {
+    console.log('Rendering Login/Register forms');
     return (
       <>
         {showLogin ? (
@@ -425,6 +440,8 @@ function App() {
       </>
     );
   }
+
+  console.log('Rendering main app');
 
   if (profile.role === 'admin' && currentPath === '/admin') {
     return (
