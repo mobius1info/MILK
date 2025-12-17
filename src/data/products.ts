@@ -1,12 +1,11 @@
 import { Product, Category } from '../types';
 
 export const categories: Category[] = [
-  { id: 'electronics', name: 'Electronics', icon: 'Smartphone' },
-  { id: 'fashion', name: 'Fashion', icon: 'Shirt' },
+  { id: 'sports', name: 'Sports Equipment', icon: 'Dumbbell' },
+  { id: 'fashion', name: 'Clothing', icon: 'Shirt' },
   { id: 'home', name: 'Home & Living', icon: 'Home' },
-  { id: 'beauty', name: 'Beauty', icon: 'Sparkles' },
-  { id: 'sports', name: 'Sports', icon: 'Dumbbell' },
-  { id: 'books', name: 'Books', icon: 'Book' },
+  { id: 'electronics', name: 'Electronics', icon: 'Smartphone' },
+  { id: 'crypto', name: 'Crypto Mining Equipment', icon: 'Cpu' },
 ];
 
 export const products: Product[] = [
@@ -109,16 +108,6 @@ export const products: Product[] = [
     description: 'Lightweight running shoes with cushioned sole',
     rating: 4.9,
     reviews: 1124
-  },
-  {
-    id: '11',
-    name: 'Bestseller Novel Collection',
-    price: 34.99,
-    image: 'https://images.pexels.com/photos/1030979/pexels-photo-1030979.jpeg?auto=compress&cs=tinysrgb&w=800',
-    category: 'books',
-    description: 'Set of 3 award-winning novels',
-    rating: 4.8,
-    reviews: 892
   },
   {
     id: '12',

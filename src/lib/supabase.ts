@@ -32,6 +32,7 @@ export interface Product {
   image_url: string;
   rating: number;
   reviews: number;
+  vip_level: number;
   created_at: string;
   updated_at: string;
 }
@@ -43,6 +44,25 @@ export interface Transaction {
   amount: number;
   status: 'pending' | 'approved' | 'rejected';
   rejection_reason: string;
+  payment_method_id: string | null;
+  payment_proof_url: string | null;
+  transaction_hash: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PaymentMethod {
+  id: string;
+  name: string;
+  type: 'crypto' | 'bank' | 'other';
+  wallet_address: string;
+  network: string | null;
+  qr_code_url: string | null;
+  min_amount: number;
+  max_amount: number | null;
+  instructions: string | null;
+  is_active: boolean;
+  display_order: number;
   created_at: string;
   updated_at: string;
 }
@@ -73,5 +93,24 @@ export interface Referral {
   referred_id: string;
   bonus_amount: number;
   status: 'pending' | 'paid';
+  created_at: string;
+}
+
+export interface CategoryAccess {
+  id: string;
+  user_id: string;
+  category: string;
+  is_enabled: boolean;
+  product_limit: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Banner {
+  id: string;
+  title: string;
+  image_url: string;
+  order_position: number;
+  is_active: boolean;
   created_at: string;
 }

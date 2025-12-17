@@ -14,6 +14,7 @@ export default function ProductManagement() {
     category: 'electronics',
     rating: '0',
     reviews: '0',
+    vip_level: '0',
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -74,6 +75,7 @@ export default function ProductManagement() {
         category: formData.category,
         rating: parseFloat(formData.rating),
         reviews: parseInt(formData.reviews),
+        vip_level: parseInt(formData.vip_level),
         image_url: imageUrl,
       };
 
@@ -101,6 +103,7 @@ export default function ProductManagement() {
         category: 'electronics',
         rating: '0',
         reviews: '0',
+        vip_level: '0',
       });
       setImageFile(null);
       fetchProducts();
@@ -120,6 +123,7 @@ export default function ProductManagement() {
       category: product.category,
       rating: product.rating.toString(),
       reviews: product.reviews.toString(),
+      vip_level: (product.vip_level || 0).toString(),
     });
     setShowForm(true);
   };
@@ -159,6 +163,7 @@ export default function ProductManagement() {
               category: 'electronics',
               rating: '0',
               reviews: '0',
+              vip_level: '0',
             });
           }}
           className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all"
@@ -201,7 +206,6 @@ export default function ProductManagement() {
                   <option value="home">Home & Living</option>
                   <option value="beauty">Beauty</option>
                   <option value="sports">Sports</option>
-                  <option value="books">Books</option>
                 </select>
               </div>
             </div>
@@ -219,7 +223,7 @@ export default function ProductManagement() {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Price
@@ -233,6 +237,26 @@ export default function ProductManagement() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  VIP Level
+                </label>
+                <select
+                  value={formData.vip_level}
+                  onChange={(e) => setFormData({ ...formData, vip_level: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
+                >
+                  <option value="0">All Users - No Balance Required</option>
+                  <option value="1">VIP 1 - $100 Balance Required</option>
+                  <option value="2">VIP 2 - $500 Balance Required</option>
+                  <option value="3">VIP 3 - $2000 Balance Required</option>
+                  <option value="4">VIP 4 - $5000 Balance Required</option>
+                  <option value="5">VIP 5 - $20000 Balance Required</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Rating
@@ -315,7 +339,20 @@ export default function ProductManagement() {
               className="w-full h-48 object-cover"
             />
             <div className="p-4">
-              <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
+              <div className="flex items-start justify-between mb-2">
+                <h3 className="font-semibold text-lg">{product.name}</h3>
+                {product.vip_level > 0 && (
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    product.vip_level === 1 ? 'bg-blue-100 text-blue-800' :
+                    product.vip_level === 2 ? 'bg-green-100 text-green-800' :
+                    product.vip_level === 3 ? 'bg-yellow-100 text-yellow-800' :
+                    product.vip_level === 4 ? 'bg-orange-100 text-orange-800' :
+                    'bg-purple-100 text-purple-800'
+                  }`}>
+                    VIP {product.vip_level}
+                  </span>
+                )}
+              </div>
               <p className="text-gray-600 text-sm mb-2 line-clamp-2">{product.description}</p>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[#f5b04c] font-bold">${product.price}</span>

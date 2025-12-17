@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
-import { supabase, Profile, Product as DBProduct } from './lib/supabase';
+import { supabase, Profile, Product as DBProduct, CategoryAccess } from './lib/supabase';
 import LoadingScreen from './components/LoadingScreen';
 import LoginForm from './components/Auth/LoginForm';
 import RegisterForm from './components/Auth/RegisterForm';
 import AdminPanel from './components/Admin/AdminPanel';
-import Dashboard from './components/Client/Dashboard';
+import OrderHistory from './components/Client/OrderHistory';
+import TransactionHistory from './components/Client/TransactionHistory';
+import ProfileView from './components/Client/ProfileView';
 import CategoryFilter from './components/CategoryFilter';
+import BannerSection from './components/BannerSection';
+import ActionButtons from './components/ActionButtons';
 import { categories } from './data/products';
 import { CartItem, Product } from './types';
-import { LogOut, User as UserIcon, Wallet, ShoppingBag } from 'lucide-react';
+import { LogOut, User as UserIcon, Wallet, ShoppingBag, Home, TrendingUp, Package, FileText } from 'lucide-react';
 import ProductCard from './components/ProductCard';
 import Cart from './components/Cart';
 
@@ -17,7 +21,7 @@ function App() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [showLogin, setShowLogin] = useState(true);
-  const [view, setView] = useState<'shop' | 'dashboard'>('shop');
+  const [view, setView] = useState<'home' | 'deposit' | 'orders' | 'record' | 'profile'>('home');
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -25,6 +29,11 @@ function App() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isFetchingProfile, setIsFetchingProfile] = useState(false);
+  const [showDepositModal, setShowDepositModal] = useState(false);
+  const [depositAmount, setDepositAmount] = useState('');
+  const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
+  const [withdrawalAmount, setWithdrawalAmount] = useState('');
+  const [categoryAccess, setCategoryAccess] = useState<CategoryAccess[]>([]);
 
   useEffect(() => {
     checkUser();
@@ -53,10 +62,11 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (user) {
+    if (user && profile) {
       fetchProducts();
+      fetchCategoryAccess();
     }
-  }, [user]);
+  }, [user, profile]);
 
   const checkUser = async () => {
     try {
@@ -137,6 +147,22 @@ function App() {
     }
   };
 
+  const fetchCategoryAccess = async () => {
+    if (!profile) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('category_access')
+        .select('*')
+        .eq('user_id', profile.id);
+
+      if (error) throw error;
+      setCategoryAccess(data || []);
+    } catch (error) {
+      console.error('Error fetching category access:', error);
+    }
+  };
+
   const fetchProducts = async () => {
     try {
       const { data, error } = await supabase
@@ -172,7 +198,7 @@ function App() {
     await supabase.auth.signOut();
     setUser(null);
     setProfile(null);
-    setView('shop');
+    setView('home');
     navigateTo('/');
   };
 
@@ -234,12 +260,64 @@ function App() {
     }
   };
 
+  const getAccessibleCategories = () => {
+    if (profile?.role === 'admin') {
+      return categories;
+    }
+
+    const accessibleCategoryIds = categoryAccess
+      .filter((ca) => ca.is_enabled)
+      .map((ca) => ca.category);
+
+    return categories.filter((cat) => accessibleCategoryIds.includes(cat.id));
+  };
+
   const filteredProducts = products.filter((product) => {
+    if (profile?.role === 'admin') {
+      const matchesCategory = !selectedCategory || product.category === selectedCategory;
+      const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           product.description.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    }
+
+    const access = categoryAccess.find((ca) => ca.category === product.category);
+    if (!access || !access.is_enabled) {
+      return false;
+    }
+
     const matchesCategory = !selectedCategory || product.category === selectedCategory;
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          product.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
+  const limitedProducts = (() => {
+    if (profile?.role === 'admin') {
+      return filteredProducts;
+    }
+
+    if (!selectedCategory) {
+      const categoriesWithAccess = categoryAccess.filter(ca => ca.is_enabled);
+      const productsWithLimit: Product[] = [];
+
+      categoriesWithAccess.forEach(access => {
+        const categoryProducts = filteredProducts.filter(p => p.category === access.category);
+        const limited = access.product_limit > 0
+          ? categoryProducts.slice(0, access.product_limit)
+          : categoryProducts;
+        productsWithLimit.push(...limited);
+      });
+
+      return productsWithLimit;
+    }
+
+    const access = categoryAccess.find((ca) => ca.category === selectedCategory);
+    if (!access || access.product_limit === 0) {
+      return filteredProducts;
+    }
+
+    return filteredProducts.slice(0, access.product_limit);
+  })();
 
   const addToCart = (product: Product) => {
     setCartItems((prev) => {
@@ -265,6 +343,65 @@ function App() {
 
   const removeItem = (productId: string) => {
     setCartItems((prev) => prev.filter((item) => item.id !== productId));
+  };
+
+  const handleDeposit = async () => {
+    if (!depositAmount || parseFloat(depositAmount) <= 0) {
+      alert('Please enter a valid amount');
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from('transactions').insert([
+        {
+          user_id: profile!.id,
+          type: 'deposit',
+          amount: parseFloat(depositAmount),
+          status: 'pending',
+        },
+      ]);
+
+      if (error) throw error;
+
+      setShowDepositModal(false);
+      setDepositAmount('');
+      alert('Deposit request submitted successfully!');
+      if (user) fetchProfile(user.id);
+    } catch (error: any) {
+      alert('Error: ' + error.message);
+    }
+  };
+
+  const handleWithdrawal = async () => {
+    if (!withdrawalAmount || parseFloat(withdrawalAmount) <= 0) {
+      alert('Please enter a valid amount');
+      return;
+    }
+
+    if (parseFloat(withdrawalAmount) > profile!.balance) {
+      alert('Insufficient balance');
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from('transactions').insert([
+        {
+          user_id: profile!.id,
+          type: 'withdrawal',
+          amount: parseFloat(withdrawalAmount),
+          status: 'pending',
+        },
+      ]);
+
+      if (error) throw error;
+
+      setShowWithdrawalModal(false);
+      setWithdrawalAmount('');
+      alert('Withdrawal request submitted successfully!');
+      if (user) fetchProfile(user.id);
+    } catch (error: any) {
+      alert('Error: ' + error.message);
+    }
   };
 
   if (isLoading) {
@@ -329,82 +466,68 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20">
       <div className="bg-white shadow-sm border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] bg-clip-text text-transparent">
               MK MALL
             </h1>
-            <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4">
-              <button
-                onClick={() => setView('shop')}
-                className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 md:px-4 py-2 rounded-lg transition-colors ${
-                  view === 'shop'
-                    ? 'bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                <ShoppingBag className="w-4 sm:w-5 h-4 sm:h-5" />
-                <span className="hidden sm:inline text-sm md:text-base">Shop</span>
-              </button>
-              <button
-                onClick={() => setView('dashboard')}
-                className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 md:px-4 py-2 rounded-lg transition-colors ${
-                  view === 'dashboard'
-                    ? 'bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                <Wallet className="w-4 sm:w-5 h-4 sm:h-5" />
-                <span className="hidden sm:inline text-sm md:text-base">Dashboard</span>
-              </button>
+            <div className="flex items-center space-x-2">
               {profile.role === 'admin' && (
                 <button
                   onClick={() => navigateTo('/admin')}
-                  className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 md:px-4 py-2 rounded-lg bg-[#f5b04c] text-white hover:bg-[#e09f3a] transition-colors"
+                  className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-[#f5b04c] text-white hover:bg-[#e09f3a] transition-colors"
                 >
-                  <UserIcon className="w-4 sm:w-5 h-4 sm:h-5" />
-                  <span className="hidden md:inline text-sm">Admin</span>
+                  <UserIcon className="w-5 h-5" />
+                  <span className="hidden sm:inline text-sm">Admin</span>
                 </button>
               )}
               <button
                 onClick={handleLogout}
-                className="flex items-center space-x-1 sm:space-x-2 text-gray-700 hover:text-red-600 transition-colors"
+                className="flex items-center space-x-2 text-gray-700 hover:text-red-600 transition-colors"
               >
-                <LogOut className="w-4 sm:w-5 h-4 sm:h-5" />
-                <span className="hidden md:inline text-sm">Logout</span>
+                <LogOut className="w-5 h-5" />
+                <span className="hidden sm:inline text-sm">Logout</span>
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {view === 'dashboard' ? (
-        <Dashboard profile={profile} onBalanceUpdate={() => fetchProfile(user.id)} />
-      ) : (
-        <>
-          <CategoryFilter
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-          />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {view === 'home' && (
+          <>
+            {profile?.role === 'client' && (
+              <>
+                <BannerSection />
+                <ActionButtons
+                  onDeposit={() => setShowDepositModal(true)}
+                  onWithdrawal={() => setShowWithdrawalModal(true)}
+                />
+              </>
+            )}
 
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <CategoryFilter
+              categories={getAccessibleCategories()}
+              selectedCategory={selectedCategory}
+              onSelectCategory={setSelectedCategory}
+            />
+
             <div className="mb-6 flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-gray-800">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
                   {selectedCategory
                     ? categories.find((c) => c.id === selectedCategory)?.name
                     : 'All Products'}
                 </h2>
-                <p className="text-gray-600 mt-1">
-                  {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} found
+                <p className="text-sm sm:text-base text-gray-600 mt-1">
+                  {limitedProducts.length} {limitedProducts.length === 1 ? 'product' : 'products'} found
                 </p>
               </div>
               <button
                 onClick={() => setIsCartOpen(true)}
-                className="relative p-3 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white rounded-full hover:shadow-lg transition-all"
+                className="flex relative p-3 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white rounded-full hover:shadow-lg transition-all"
               >
                 <ShoppingBag className="w-6 h-6" />
                 {cartItems.length > 0 && (
@@ -415,41 +538,199 @@ function App() {
               </button>
             </div>
 
-            {filteredProducts.length === 0 ? (
+            {limitedProducts.length === 0 ? (
               <div className="text-center py-16">
-                <p className="text-gray-500 text-lg">No products found</p>
+                <p className="text-gray-500 text-lg">
+                  {profile?.role === 'client' && categoryAccess.length === 0
+                    ? 'No categories available. Please contact admin.'
+                    : 'No products found'}
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredProducts.map((product) => (
+                {limitedProducts.map((product) => (
                   <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
                 ))}
               </div>
             )}
-          </main>
+          </>
+        )}
 
-          <Cart
-            isOpen={isCartOpen}
-            onClose={() => setIsCartOpen(false)}
-            items={cartItems}
-            onUpdateQuantity={updateQuantity}
-            onRemoveItem={removeItem}
-            profile={profile}
-            onCheckout={handleCheckout}
-          />
+        {view === 'orders' && <OrderHistory userId={profile.id} />}
 
-          <footer className="bg-white border-t mt-16">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <div className="text-center text-gray-600">
-                <p className="text-lg font-semibold bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] bg-clip-text text-transparent mb-2">
-                  MK MALL
-                </p>
-                <p className="text-sm">Your trusted online shopping destination</p>
+        {view === 'record' && <TransactionHistory userId={profile.id} />}
+
+        {view === 'profile' && <ProfileView profile={profile} />}
+      </main>
+
+      <Cart
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        items={cartItems}
+        onUpdateQuantity={updateQuantity}
+        onRemoveItem={removeItem}
+        profile={profile}
+        onCheckout={handleCheckout}
+      />
+
+      {/* Deposit Modal */}
+      {showDepositModal && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setShowDepositModal(false)}
+          ></div>
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+              <h3 className="text-2xl font-bold mb-4">Deposit Funds</h3>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Amount
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={depositAmount}
+                  onChange={(e) => setDepositAmount(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
+                  placeholder="Enter amount"
+                />
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleDeposit}
+                  className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors"
+                >
+                  Submit Request
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDepositModal(false);
+                    setDepositAmount('');
+                  }}
+                  className="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
               </div>
             </div>
-          </footer>
+          </div>
         </>
       )}
+
+      {/* Withdrawal Modal */}
+      {showWithdrawalModal && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setShowWithdrawalModal(false)}
+          ></div>
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+              <h3 className="text-2xl font-bold mb-4">Withdraw Funds</h3>
+              <div className="mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Amount
+                  </label>
+                  <span className="text-sm text-gray-600">
+                    Balance: ${profile?.balance.toFixed(2)}
+                  </span>
+                </div>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max={profile?.balance}
+                  value={withdrawalAmount}
+                  onChange={(e) => setWithdrawalAmount(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
+                  placeholder="Enter amount"
+                />
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleWithdrawal}
+                  className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors"
+                >
+                  Submit Request
+                </button>
+                <button
+                  onClick={() => {
+                    setShowWithdrawalModal(false);
+                    setWithdrawalAmount('');
+                  }}
+                  className="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Mobile Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+        <div className="flex items-center justify-around py-2">
+          <button
+            onClick={() => setView('home')}
+            className={`flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-all ${
+              view === 'home'
+                ? 'text-[#f5b04c]'
+                : 'text-gray-600'
+            }`}
+          >
+            <Home className="w-6 h-6 mb-1" />
+            <span className="text-xs font-medium">Главная</span>
+          </button>
+
+          <button
+            onClick={() => setShowDepositModal(true)}
+            className="flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-all text-gray-600"
+          >
+            <TrendingUp className="w-6 h-6 mb-1" />
+            <span className="text-xs font-medium">Депозит</span>
+          </button>
+
+          <button
+            onClick={() => setView('orders')}
+            className={`flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-all ${
+              view === 'orders'
+                ? 'text-[#f5b04c]'
+                : 'text-gray-600'
+            }`}
+          >
+            <Package className="w-6 h-6 mb-1" />
+            <span className="text-xs font-medium">Заказы</span>
+          </button>
+
+          <button
+            onClick={() => setView('record')}
+            className={`flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-all ${
+              view === 'record'
+                ? 'text-[#f5b04c]'
+                : 'text-gray-600'
+            }`}
+          >
+            <FileText className="w-6 h-6 mb-1" />
+            <span className="text-xs font-medium">Запись</span>
+          </button>
+
+          <button
+            onClick={() => setView('profile')}
+            className={`flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-all ${
+              view === 'profile'
+                ? 'text-[#f5b04c]'
+                : 'text-gray-600'
+            }`}
+          >
+            <UserIcon className="w-6 h-6 mb-1" />
+            <span className="text-xs font-medium">Профиль</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
