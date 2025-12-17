@@ -7,9 +7,9 @@ import AdminPanel from './components/Admin/AdminPanel';
 import OrderHistory from './components/Client/OrderHistory';
 import TransactionHistory from './components/Client/TransactionHistory';
 import ProfileView from './components/Client/ProfileView';
+import Dashboard from './components/Client/Dashboard';
 import CategoryFilter from './components/CategoryFilter';
 import BannerSection from './components/BannerSection';
-import ActionButtons from './components/ActionButtons';
 import { categories } from './data/products';
 import { CartItem, Product } from './types';
 import { LogOut, User as UserIcon, Wallet, ShoppingBag, Home, TrendingUp, Package, FileText } from 'lucide-react';
@@ -29,8 +29,6 @@ function App() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isFetchingProfile, setIsFetchingProfile] = useState(false);
-  const [showDepositModal, setShowDepositModal] = useState(false);
-  const [depositAmount, setDepositAmount] = useState('');
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
   const [withdrawalAmount, setWithdrawalAmount] = useState('');
   const [categoryAccess, setCategoryAccess] = useState<CategoryAccess[]>([]);
@@ -345,33 +343,6 @@ function App() {
     setCartItems((prev) => prev.filter((item) => item.id !== productId));
   };
 
-  const handleDeposit = async () => {
-    if (!depositAmount || parseFloat(depositAmount) <= 0) {
-      alert('Please enter a valid amount');
-      return;
-    }
-
-    try {
-      const { error } = await supabase.from('transactions').insert([
-        {
-          user_id: profile!.id,
-          type: 'deposit',
-          amount: parseFloat(depositAmount),
-          status: 'pending',
-        },
-      ]);
-
-      if (error) throw error;
-
-      setShowDepositModal(false);
-      setDepositAmount('');
-      alert('Deposit request submitted successfully!');
-      if (user) fetchProfile(user.id);
-    } catch (error: any) {
-      alert('Error: ' + error.message);
-    }
-  };
-
   const handleWithdrawal = async () => {
     if (!withdrawalAmount || parseFloat(withdrawalAmount) <= 0) {
       alert('Please enter a valid amount');
@@ -501,10 +472,6 @@ function App() {
             {profile?.role === 'client' && (
               <>
                 <BannerSection />
-                <ActionButtons
-                  onDeposit={() => setShowDepositModal(true)}
-                  onWithdrawal={() => setShowWithdrawalModal(true)}
-                />
               </>
             )}
 
@@ -556,7 +523,28 @@ function App() {
           </>
         )}
 
-        {view === 'orders' && <OrderHistory userId={profile.id} />}
+        {view === 'dashboard' && (
+          <Dashboard
+            profile={profile}
+            onBalanceUpdate={() => fetchProfile(profile.id)}
+            initialTab="deposit"
+          />
+        )}
+
+        {view === 'deposit' && (
+          <Dashboard
+            profile={profile}
+            onBalanceUpdate={() => fetchProfile(profile.id)}
+            initialTab="deposit"
+          />
+        )}
+
+        {view === 'orders' && (
+          <OrderHistory
+            userId={profile.id}
+            onNavigateToDeposit={() => setView('deposit')}
+          />
+        )}
 
         {view === 'record' && <TransactionHistory userId={profile.id} />}
 
@@ -574,51 +562,6 @@ function App() {
       />
 
       {/* Deposit Modal */}
-      {showDepositModal && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setShowDepositModal(false)}
-          ></div>
-          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
-              <h3 className="text-2xl font-bold mb-4">Deposit Funds</h3>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Amount
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={depositAmount}
-                  onChange={(e) => setDepositAmount(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
-                  placeholder="Enter amount"
-                />
-              </div>
-              <div className="flex space-x-3">
-                <button
-                  onClick={handleDeposit}
-                  className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors"
-                >
-                  Submit Request
-                </button>
-                <button
-                  onClick={() => {
-                    setShowDepositModal(false);
-                    setDepositAmount('');
-                  }}
-                  className="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
       {/* Withdrawal Modal */}
       {showWithdrawalModal && (
         <>
@@ -672,6 +615,7 @@ function App() {
       )}
 
       {/* Mobile Bottom Navigation */}
+      {view !== 'dashboard' && view !== 'deposit' && (
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
         <div className="flex items-center justify-around py-2">
           <button
@@ -687,7 +631,7 @@ function App() {
           </button>
 
           <button
-            onClick={() => setShowDepositModal(true)}
+            onClick={() => setView('dashboard')}
             className="flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-all text-gray-600"
           >
             <TrendingUp className="w-6 h-6 mb-1" />
@@ -731,6 +675,7 @@ function App() {
           </button>
         </div>
       </div>
+      )}
     </div>
   );
 }

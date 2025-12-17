@@ -24,18 +24,15 @@ export default function RegisterForm({ onSuccess, onToggleForm }: RegisterFormPr
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: {
-            full_name: fullName,
-          }
-        }
       });
 
       if (error) throw error;
 
-      if (data.user && data.session) {
+      if (data.user) {
+        // Wait for profile to be created by trigger
         await new Promise(resolve => setTimeout(resolve, 1500));
 
+        // Find referrer if code provided
         let referrerId = null;
         if (referralCode) {
           const { data: referrerData } = await supabase
@@ -49,6 +46,7 @@ export default function RegisterForm({ onSuccess, onToggleForm }: RegisterFormPr
           }
         }
 
+        // Update profile with additional info
         const { error: profileError } = await supabase
           .from('profiles')
           .update({
@@ -61,12 +59,14 @@ export default function RegisterForm({ onSuccess, onToggleForm }: RegisterFormPr
           console.error('Profile update error:', profileError);
         }
 
-        onSuccess();
-      } else {
-        throw new Error('Регистрация не завершена. Проверьте настройки email в Supabase.');
+        // Show success message
+        setError('');
+        alert('Registration successful! Welcome to MK MALL!');
       }
+
+      onSuccess();
     } catch (err: any) {
-      setError(err.message || 'Ошибка при регистрации');
+      setError(err.message || 'Failed to register');
     } finally {
       setLoading(false);
     }

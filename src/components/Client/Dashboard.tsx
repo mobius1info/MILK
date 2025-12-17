@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
 import { supabase, Profile, Transaction, Referral } from '../../lib/supabase';
-import { Wallet, TrendingUp, TrendingDown, Clock, Check, X, Users, Copy, Package, FileText, User, Home } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, Clock, Check, X, Users, Copy, Package, FileText, User, Home, ShoppingBag } from 'lucide-react';
 import OrderHistory from './OrderHistory';
 import DepositPage from './DepositPage';
+import CategoryPurchase from './CategoryPurchase';
 
 interface DashboardProps {
   profile: Profile;
   onBalanceUpdate: () => void;
+  initialTab?: 'overview' | 'deposit' | 'orders' | 'categories' | 'referrals' | 'transactions' | 'profile';
 }
 
-export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'deposit' | 'orders' | 'referrals' | 'transactions' | 'profile'>('overview');
+export default function Dashboard({ profile, onBalanceUpdate, initialTab = 'overview' }: DashboardProps) {
+  const [activeTab, setActiveTab] = useState<'overview' | 'deposit' | 'orders' | 'categories' | 'referrals' | 'transactions' | 'profile'>(initialTab);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [loading, setLoading] = useState(true);
@@ -124,9 +126,18 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
   };
 
   return (
-    <div className={activeTab === 'deposit' ? 'pb-24 md:pb-6' : 'max-w-6xl mx-auto p-4 sm:p-6 pb-24 md:pb-6'}>
-      {activeTab !== 'deposit' && (
-        <>
+    <div className="pb-24 md:pb-6">
+      {activeTab === 'deposit' ? (
+        <DepositPage
+          userId={profile.id}
+          onBack={() => handleTabChange('overview')}
+          onSuccess={() => {
+            fetchTransactions();
+            onBalanceUpdate();
+          }}
+        />
+      ) : (
+        <div className="max-w-6xl mx-auto p-4 sm:p-6">
           <div className="mb-6 sm:mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 break-words">
               Welcome, {profile.full_name || profile.email}
@@ -138,6 +149,7 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
             {[
               { id: 'overview', label: 'Overview', icon: Wallet },
               { id: 'orders', label: 'Orders', icon: Package },
+              { id: 'categories', label: 'Buy Categories', icon: ShoppingBag },
               { id: 'referrals', label: 'Referrals', icon: Users },
             ].map(({ id, label, icon: Icon }) => (
               <button
@@ -154,8 +166,6 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
               </button>
             ))}
           </div>
-        </>
-      )}
 
       {activeTab === 'overview' && (
         <>
@@ -252,18 +262,14 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
         </>
       )}
 
-      {activeTab === 'deposit' && (
-        <DepositPage
+      {activeTab === 'orders' && (
+        <OrderHistory
           userId={profile.id}
-          onBack={() => handleTabChange('overview')}
-          onSuccess={() => {
-            fetchTransactions();
-            onBalanceUpdate();
-          }}
+          onNavigateToDeposit={() => handleTabChange('deposit')}
         />
       )}
 
-      {activeTab === 'orders' && <OrderHistory userId={profile.id} />}
+      {activeTab === 'categories' && <CategoryPurchase />}
 
       {activeTab === 'transactions' && (
         <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
@@ -487,6 +493,9 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
         </>
       )}
 
+        </div>
+      )}
+
       {/* Mobile Bottom Navigation */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
         <div className="flex items-center justify-around py-2">
@@ -524,6 +533,18 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
           >
             <Package className="w-6 h-6 mb-1" />
             <span className="text-xs font-medium">Orders</span>
+          </button>
+
+          <button
+            onClick={() => handleTabChange('categories')}
+            className={`flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-all ${
+              activeTab === 'categories'
+                ? 'text-[#f5b04c]'
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            <ShoppingBag className="w-6 h-6 mb-1" />
+            <span className="text-xs font-medium">Categories</span>
           </button>
 
           <button

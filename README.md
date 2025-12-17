@@ -102,3 +102,23 @@ WHERE email = 'ваш@email.com';
 ## Цветовая схема
 - Основной золотой: #f5b04c
 - Основной бирюзовый: #2a5f64
+
+## Деплой
+
+Проект готов к деплою на Vercel. Подробная инструкция в файле [DEPLOY.md](./DEPLOY.md).
+
+**Быстрый старт:**
+1. Запушьте проект в GitHub
+2. Подключите репозиторий к Vercel
+3. Добавьте переменные окружения из `.env`
+4. Подключите домен mgsouk.com
+5. Каждый `git push` будет автоматически деплоиться
+
+## Технологии
+- **Frontend**: React 18 + TypeScript + Vite
+- **Styling**: Tailwind CSS
+- **Database**: Supabase (PostgreSQL)
+- **Auth**: Supabase Auth
+- **Storage**: Supabase Storage
+- **Icons**: Lucide React
+- **Hosting**: Vercel

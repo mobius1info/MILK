@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase, Transaction, Profile } from '../../lib/supabase';
-import { Check, X, Clock, TrendingUp } from 'lucide-react';
+import { Check, X, Clock, TrendingUp, AlertCircle } from 'lucide-react';
 
 interface TransactionWithProfile extends Transaction {
   profile?: Profile;
@@ -45,12 +45,19 @@ export default function DepositManagement() {
 
   const handleApprove = async (id: string) => {
     try {
+      const transaction = transactions.find((t) => t.id === id);
+
       const { error } = await supabase
         .from('transactions')
         .update({ status: 'approved' })
         .eq('id', id);
 
       if (error) throw error;
+
+      alert(
+        `Deposit approved! $${transaction?.amount.toFixed(2)} has been credited to ${transaction?.profile?.email}`
+      );
+
       fetchTransactions();
     } catch (error: any) {
       alert('Error: ' + error.message);
@@ -100,6 +107,17 @@ export default function DepositManagement() {
 
   return (
     <div>
+      <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200 flex items-start space-x-3">
+        <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+        <div className="flex-1">
+          <h3 className="text-sm font-semibold text-blue-900 mb-1">Auto-Credit Enabled</h3>
+          <p className="text-sm text-blue-800">
+            When you approve a deposit, the balance will be automatically credited to the user's account.
+            A notification will confirm the credit was successful.
+          </p>
+        </div>
+      </div>
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-3 sm:space-y-0">
         <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Deposit Management</h2>
         <div className="flex flex-wrap gap-2">

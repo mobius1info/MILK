@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase, Order, OrderItem, Product } from '../../lib/supabase';
-import { Package, Clock, CheckCircle, XCircle, Crown, Lock } from 'lucide-react';
+import { Package, Clock, CheckCircle, XCircle, Crown, Lock, Wallet } from 'lucide-react';
 
 interface OrderWithItems extends Order {
   items?: Array<OrderItem & { product?: Product }>;
@@ -8,6 +8,7 @@ interface OrderWithItems extends Order {
 
 interface OrderHistoryProps {
   userId: string;
+  onNavigateToDeposit?: () => void;
 }
 
 interface VIPLevel {
@@ -28,13 +29,14 @@ const VIP_LEVELS: VIPLevel[] = [
   { level: 5, name: 'VIP 5', minBalance: 20000, color: 'bg-red-100 text-red-800', category: 'Crypto Mining Equipment', commission: 20 },
 ];
 
-export default function OrderHistory({ userId }: OrderHistoryProps) {
+export default function OrderHistory({ userId, onNavigateToDeposit }: OrderHistoryProps) {
   const [orders, setOrders] = useState<OrderWithItems[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState(0);
   const [userBalance, setUserBalance] = useState(0);
+  const [expandedVIP, setExpandedVIP] = useState<number | null>(null);
 
   useEffect(() => {
     fetchUserBalance();
@@ -202,66 +204,114 @@ export default function OrderHistory({ userId }: OrderHistoryProps) {
           {VIP_LEVELS.filter(vip => vip.level > 0).map((vip) => {
             const isAccessible = userBalance >= vip.minBalance;
             const productsCount = products.filter((p) => p.vip_level === vip.level).length;
+            const vipProducts = products.filter((p) => p.vip_level === vip.level);
+            const isExpanded = expandedVIP === vip.level;
 
             return (
               <div
                 key={vip.level}
-                className={`bg-white rounded-lg shadow-md p-6 border-2 transition-all ${
+                className={`bg-white rounded-lg shadow-md border-2 transition-all ${
                   isAccessible ? 'border-[#f5b04c]' : 'border-gray-200'
                 }`}
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-3 rounded-lg ${vip.color}`}>
-                      {isAccessible ? (
-                        <Crown className="w-6 h-6" />
-                      ) : (
-                        <Lock className="w-6 h-6" />
+                <div className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-3 rounded-lg ${vip.color}`}>
+                        {isAccessible ? (
+                          <Crown className="w-6 h-6" />
+                        ) : (
+                          <Lock className="w-6 h-6" />
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-800">{vip.name}</h3>
+                        <p className="text-sm text-gray-600">{vip.category}</p>
+                      </div>
+                    </div>
+                    <div className={`px-4 py-2 rounded-full font-semibold ${
+                      isAccessible ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {isAccessible ? 'Unlocked' : 'Locked'}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">Unlock Amount</p>
+                      <p className="text-2xl font-bold text-[#f5b04c]">${vip.minBalance.toFixed(2)}</p>
+                    </div>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">Commission</p>
+                      <p className="text-2xl font-bold text-green-600">{vip.commission}%</p>
+                    </div>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">Available Tasks</p>
+                      <p className="text-2xl font-bold text-blue-600">{productsCount}</p>
+                    </div>
+                  </div>
+
+                  {!isAccessible && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                      <p className="text-sm text-gray-700 mb-3">
+                        <span className="font-semibold">Your balance:</span> ${userBalance.toFixed(2)} |
+                        <span className="font-semibold text-red-600"> Need: ${(vip.minBalance - userBalance).toFixed(2)} more</span>
+                      </p>
+                      {onNavigateToDeposit && (
+                        <button
+                          onClick={onNavigateToDeposit}
+                          className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                        >
+                          <Wallet className="w-5 h-5" />
+                          <span>Пополнить счет</span>
+                        </button>
                       )}
                     </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-800">{vip.name}</h3>
-                      <p className="text-sm text-gray-600">{vip.category}</p>
-                    </div>
-                  </div>
-                  <div className={`px-4 py-2 rounded-full font-semibold ${
-                    isAccessible ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {isAccessible ? 'Unlocked' : 'Locked'}
-                  </div>
+                  )}
+
+                  {isAccessible && (
+                    <button
+                      onClick={() => setExpandedVIP(isExpanded ? null : vip.level)}
+                      className="w-full bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                    >
+                      {isExpanded ? 'Скрыть задачи' : `Посмотреть ${productsCount} задач`}
+                    </button>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm text-gray-600 mb-1">Unlock Amount</p>
-                    <p className="text-2xl font-bold text-[#f5b04c]">${vip.minBalance.toFixed(2)}</p>
+                {isExpanded && isAccessible && (
+                  <div className="border-t bg-gray-50 p-4">
+                    {vipProducts.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <Package className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+                        <p>Нет доступных задач</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {vipProducts.map((product) => (
+                          <div key={product.id} className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                            <img
+                              src={product.image_url}
+                              alt={product.name}
+                              className="w-full h-40 object-cover"
+                            />
+                            <div className="p-3">
+                              <h4 className="font-semibold text-gray-800 mb-1 text-sm">{product.name}</h4>
+                              <p className="text-xs text-gray-600 mb-2 line-clamp-2">{product.description}</p>
+                              <div className="flex items-center justify-between">
+                                <span className="text-lg font-bold text-[#f5b04c]">
+                                  ${product.price.toFixed(2)}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  ⭐ {product.rating} ({product.reviews})
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm text-gray-600 mb-1">Commission</p>
-                    <p className="text-2xl font-bold text-green-600">{vip.commission}%</p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm text-gray-600 mb-1">Available Tasks</p>
-                    <p className="text-2xl font-bold text-blue-600">{productsCount}</p>
-                  </div>
-                </div>
-
-                {!isAccessible && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <p className="text-sm text-gray-700">
-                      <span className="font-semibold">Your balance:</span> ${userBalance.toFixed(2)} |
-                      <span className="font-semibold text-red-600"> Need: ${(vip.minBalance - userBalance).toFixed(2)} more</span>
-                    </p>
-                  </div>
-                )}
-
-                {isAccessible && (
-                  <button
-                    onClick={() => setActiveTab(vip.level)}
-                    className="w-full mt-4 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
-                  >
-                    View {productsCount} Available Tasks
-                  </button>
                 )}
               </div>
             );
@@ -281,9 +331,18 @@ export default function OrderHistory({ userId }: OrderHistoryProps) {
           <p className="text-sm text-gray-500">
             Your current balance: ${userBalance.toFixed(2)}
           </p>
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-gray-500 mt-2 mb-6">
             You need ${(VIP_LEVELS[activeTab].minBalance - userBalance).toFixed(2)} more to unlock this level
           </p>
+          {onNavigateToDeposit && (
+            <button
+              onClick={onNavigateToDeposit}
+              className="mx-auto bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+            >
+              <Wallet className="w-5 h-5" />
+              <span>Пополнить счет</span>
+            </button>
+          )}
         </div>
       ) : filteredProducts.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg shadow">
