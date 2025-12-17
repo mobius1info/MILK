@@ -10,6 +10,7 @@ import ProfileView from './components/Client/ProfileView';
 import CategoryFilter from './components/CategoryFilter';
 import BannerSection from './components/BannerSection';
 import ActionButtons from './components/ActionButtons';
+import SupabaseTest from './components/SupabaseTest';
 import { categories } from './data/products';
 import { CartItem, Product } from './types';
 import { LogOut, User as UserIcon, Wallet, ShoppingBag, Home, TrendingUp, Package, FileText } from 'lucide-react';
@@ -409,16 +410,21 @@ function App() {
   }
 
   if (!user || !profile) {
-    return showLogin ? (
-      <LoginForm
-        onSuccess={checkUser}
-        onToggleForm={() => setShowLogin(false)}
-      />
-    ) : (
-      <RegisterForm
-        onSuccess={checkUser}
-        onToggleForm={() => setShowLogin(true)}
-      />
+    return (
+      <>
+        <SupabaseTest />
+        {showLogin ? (
+          <LoginForm
+            onSuccess={checkUser}
+            onToggleForm={() => setShowLogin(false)}
+          />
+        ) : (
+          <RegisterForm
+            onSuccess={checkUser}
+            onToggleForm={() => setShowLogin(true)}
+          />
+        )}
+      </>
     );
   }
 
