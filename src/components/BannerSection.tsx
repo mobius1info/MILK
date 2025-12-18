@@ -1,22 +1,21 @@
 import { useEffect, useState } from 'react';
-import { supabase, Banner } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
+
+interface Banner {
+  id: string;
+  image_url: string;
+  title: string;
+  order_position: number;
+}
 
 export default function BannerSection() {
-  const [banners, setBanners] = useState<Banner[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchBanners();
   }, []);
-
-  useEffect(() => {
-    if (banners.length > 1) {
-      const interval = setInterval(() => {
-        setCurrentIndex((prev) => (prev + 1) % banners.length);
-      }, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [banners.length]);
 
   const fetchBanners = async () => {
     try {
@@ -30,10 +29,39 @@ export default function BannerSection() {
       setBanners(data || []);
     } catch (error) {
       console.error('Error fetching banners:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (banners.length === 0) return null;
+  useEffect(() => {
+    if (banners.length === 0) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % banners.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [banners.length]);
+
+  if (loading) {
+    return (
+      <div className="relative w-full overflow-hidden rounded-xl shadow-lg mb-6 bg-gray-200 animate-pulse">
+        <div className="h-48 sm:h-64 md:h-80" />
+      </div>
+    );
+  }
+
+  if (banners.length === 0) {
+    return (
+      <div className="relative w-full overflow-hidden rounded-xl shadow-lg mb-6 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64]">
+        <div className="h-48 sm:h-64 md:h-80 flex items-center justify-center">
+          <h1 className="text-6xl sm:text-8xl md:text-9xl font-black text-white drop-shadow-2xl tracking-wider">
+            SHOP
+          </h1>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full overflow-hidden rounded-xl shadow-lg mb-6">
@@ -51,18 +79,15 @@ export default function BannerSection() {
                 alt={banner.title}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-              <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
-                <h2 className="text-2xl sm:text-4xl font-bold text-white drop-shadow-lg mb-2">
-                  {banner.title}
-                </h2>
-                <div className="flex items-center space-x-2">
-                  <span className="text-white/90 text-sm sm:text-base font-medium">
-                    Exclusive Collection
-                  </span>
-                  <span className="px-3 py-1 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white text-xs sm:text-sm rounded-full font-bold">
-                    NEW
-                  </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center px-4">
+                  <h1 className="text-6xl sm:text-8xl md:text-9xl font-black text-white drop-shadow-2xl tracking-wider mb-2">
+                    SHOP
+                  </h1>
+                  <p className="text-lg sm:text-2xl md:text-3xl font-bold text-white/90 drop-shadow-lg">
+                    {banner.title}
+                  </p>
                 </div>
               </div>
             </div>

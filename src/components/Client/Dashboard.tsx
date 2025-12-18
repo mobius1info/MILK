@@ -1,28 +1,35 @@
 import { useState, useEffect } from 'react';
-import { supabase, Profile, Transaction, Referral } from '../../lib/supabase';
-import { Wallet, TrendingUp, TrendingDown, Clock, Check, X, Users, Copy, Package, FileText, User, Home, ShoppingBag } from 'lucide-react';
+import { supabase, Profile, Transaction, Referral, Order, OrderItem, Product } from '../../lib/supabase';
+import { Wallet, TrendingUp, TrendingDown, Clock, Check, X, Users, Copy, Package, FileText, User, Home, UserPlus, Headphones, FileCheck, Info, HelpCircle, DollarSign, CheckCircle, XCircle } from 'lucide-react';
 import OrderHistory from './OrderHistory';
 import DepositPage from './DepositPage';
-import CategoryPurchase from './CategoryPurchase';
+import BannerSection from '../BannerSection';
 
 interface DashboardProps {
   profile: Profile;
   onBalanceUpdate: () => void;
-  initialTab?: 'overview' | 'deposit' | 'orders' | 'categories' | 'referrals' | 'transactions' | 'profile';
+  initialTab?: 'overview' | 'deposit' | 'orders' | 'referrals' | 'transactions' | 'profile';
+}
+
+interface OrderWithItems extends Order {
+  items?: Array<OrderItem & { product?: Product }>;
 }
 
 export default function Dashboard({ profile, onBalanceUpdate, initialTab = 'overview' }: DashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'deposit' | 'orders' | 'categories' | 'referrals' | 'transactions' | 'profile'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'overview' | 'deposit' | 'orders' | 'referrals' | 'transactions' | 'profile'>(initialTab);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [orders, setOrders] = useState<OrderWithItems[]>([]);
   const [loading, setLoading] = useState(true);
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
   const [amount, setAmount] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTransactions();
     fetchReferrals();
+    fetchOrders();
   }, []);
 
   useEffect(() => {
@@ -65,6 +72,36 @@ export default function Dashboard({ profile, onBalanceUpdate, initialTab = 'over
       setReferrals(data || []);
     } catch (error) {
       console.error('Error fetching referrals:', error);
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      const { data: ordersData, error: ordersError } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', profile.id)
+        .order('created_at', { ascending: false });
+
+      if (ordersError) throw ordersError;
+
+      const ordersWithItems = await Promise.all(
+        (ordersData || []).map(async (order) => {
+          const { data: itemsData } = await supabase
+            .from('order_items')
+            .select(`
+              *,
+              product:products(*)
+            `)
+            .eq('order_id', order.id);
+
+          return { ...order, items: itemsData || [] };
+        })
+      );
+
+      setOrders(ordersWithItems);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
     }
   };
 
@@ -125,9 +162,39 @@ export default function Dashboard({ profile, onBalanceUpdate, initialTab = 'over
     }
   };
 
+  const getOrderStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Clock className="w-5 h-5 text-yellow-500" />;
+      case 'processing':
+        return <Package className="w-5 h-5 text-blue-500" />;
+      case 'completed':
+        return <CheckCircle className="w-5 h-5 text-green-500" />;
+      case 'cancelled':
+        return <XCircle className="w-5 h-5 text-red-500" />;
+      default:
+        return null;
+    }
+  };
+
+  const getOrderStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'processing':
+        return 'bg-blue-100 text-blue-800';
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   return (
-    <div className="pb-24 md:pb-6">
-      {activeTab === 'deposit' ? (
+    <div className="pb-24">
+      {activeTab === 'deposit' && (
         <DepositPage
           userId={profile.id}
           onBack={() => handleTabChange('overview')}
@@ -136,128 +203,135 @@ export default function Dashboard({ profile, onBalanceUpdate, initialTab = 'over
             onBalanceUpdate();
           }}
         />
-      ) : (
-        <div className="max-w-6xl mx-auto p-4 sm:p-6">
-          <div className="mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 break-words">
-              Welcome, {profile.full_name || profile.email}
-            </h1>
-            <p className="text-sm sm:text-base text-gray-600">Manage your account and transactions</p>
-          </div>
+      )}
 
-          <div className="hidden md:flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-6">
-            {[
-              { id: 'overview', label: 'Overview', icon: Wallet },
-              { id: 'orders', label: 'Orders', icon: Package },
-              { id: 'categories', label: 'Buy Categories', icon: ShoppingBag },
-              { id: 'referrals', label: 'Referrals', icon: Users },
-            ].map(({ id, label, icon: Icon }) => (
-              <button
-                key={id}
-                onClick={() => handleTabChange(id as typeof activeTab)}
-                className={`flex items-center justify-center sm:justify-start space-x-2 px-4 py-2 rounded-lg transition-all ${
-                  activeTab === id
-                    ? 'bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                <span>{label}</span>
-              </button>
-            ))}
-          </div>
+      {activeTab !== 'deposit' && (
+        <div className="max-w-6xl mx-auto p-4 sm:p-6">
+          {activeTab !== 'overview' && (
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 break-words">
+                Welcome, {profile.full_name || profile.email}
+              </h1>
+              <p className="text-sm sm:text-base text-gray-600">Manage your account and transactions</p>
+            </div>
+          )}
+
 
       {activeTab === 'overview' && (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-            <div className="bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white rounded-lg shadow-lg p-4 sm:p-6 sm:col-span-2 md:col-span-1">
-              <div className="flex items-center space-x-3 mb-3 sm:mb-4">
-                <Wallet className="w-6 sm:w-8 h-6 sm:h-8" />
-                <h2 className="text-lg sm:text-xl font-semibold">Balance</h2>
-              </div>
-              <p className="text-3xl sm:text-4xl font-bold">${profile.balance.toFixed(2)}</p>
-            </div>
+          <BannerSection />
 
-            <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-              <button
-                onClick={() => handleTabChange('deposit')}
-                className="w-full flex items-center justify-center space-x-2 bg-green-500 text-white py-3 sm:py-4 rounded-lg hover:bg-green-600 transition-colors"
-              >
-                <TrendingUp className="w-5 sm:w-6 h-5 sm:h-6" />
-                <span className="text-base sm:text-lg font-medium">Deposit</span>
-              </button>
-            </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            <button
+              onClick={() => handleTabChange('deposit')}
+              className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105"
+            >
+              <TrendingUp className="w-8 h-8 mb-2 text-green-500" />
+              <span className="text-sm font-semibold text-gray-800">Deposit</span>
+            </button>
 
-            <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-              <button
-                onClick={() => setShowWithdrawalModal(true)}
-                className="w-full flex items-center justify-center space-x-2 bg-red-500 text-white py-3 sm:py-4 rounded-lg hover:bg-red-600 transition-colors"
-              >
-                <TrendingDown className="w-5 sm:w-6 h-5 sm:h-6" />
-                <span className="text-base sm:text-lg font-medium">Withdraw</span>
-              </button>
-            </div>
+            <button
+              onClick={() => setShowWithdrawalModal(true)}
+              className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105"
+            >
+              <TrendingDown className="w-8 h-8 mb-2 text-red-500" />
+              <span className="text-sm font-semibold text-gray-800">Withdrawal</span>
+            </button>
+
+            <button
+              className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105"
+            >
+              <Headphones className="w-8 h-8 mb-2 text-purple-500" />
+              <span className="text-sm font-semibold text-gray-800">Customer Service</span>
+            </button>
+
+            <button
+              className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105"
+            >
+              <FileCheck className="w-8 h-8 mb-2 text-orange-500" />
+              <span className="text-sm font-semibold text-gray-800">Terms</span>
+            </button>
+
+            <button
+              className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105"
+            >
+              <Info className="w-8 h-8 mb-2 text-cyan-500" />
+              <span className="text-sm font-semibold text-gray-800">About US</span>
+            </button>
+
+            <button
+              className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105"
+            >
+              <HelpCircle className="w-8 h-8 mb-2 text-pink-500" />
+              <span className="text-sm font-semibold text-gray-800">FAQ</span>
+            </button>
+
+            <button
+              className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105"
+            >
+              <DollarSign className="w-8 h-8 mb-2 text-emerald-500" />
+              <span className="text-sm font-semibold text-gray-800">WFP</span>
+            </button>
+
+            <button
+              onClick={() => handleTabChange('referrals')}
+              className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105"
+            >
+              <UserPlus className="w-8 h-8 mb-2 text-blue-500" />
+              <span className="text-sm font-semibold text-gray-800">Invite</span>
+            </button>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Transaction History</h2>
+          <div className="bg-white rounded-lg shadow-md p-4 overflow-hidden">
+            <h3 className="text-lg font-bold text-gray-800 mb-3">Live Withdrawals</h3>
+            <div className="relative h-[300px] overflow-hidden">
+              <style>{`
+                @keyframes scroll {
+                  0% {
+                    transform: translateY(0);
+                  }
+                  100% {
+                    transform: translateY(-50%);
+                  }
+                }
+                .animate-scroll {
+                  animation: scroll 60s linear infinite;
+                }
+              `}</style>
+              <div className="animate-scroll">
+                {(() => {
+                  const names = ['John D.', 'Maria S.', 'Alex K.', 'Sarah L.', 'Mike R.', 'Emma W.', 'David B.', 'Lisa M.', 'Tom H.', 'Anna P.', 'Chris J.', 'Nina F.', 'Paul G.', 'Kate V.', 'Ryan T.', 'Sophie C.', 'Jack N.', 'Mia D.', 'Lucas E.', 'Olivia R.'];
+                  const amounts = [125.50, 340.00, 89.99, 510.75, 220.00, 765.20, 95.00, 430.50, 180.25, 620.00, 145.99, 890.00, 310.75, 555.50, 275.00, 720.99, 165.00, 450.25, 199.99, 580.75];
+                  const times = [2, 5, 8, 12, 15, 18, 22, 25, 28, 31, 35, 38, 42, 45, 48, 52, 55, 58, 3, 7];
 
-            {loading ? (
-              <div className="text-center py-8">Loading...</div>
-            ) : transactions.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500">No transactions yet</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {transactions.map((transaction) => (
-                  <div
-                    key={transaction.id}
-                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors space-y-3 sm:space-y-0"
-                  >
-                    <div className="flex items-center space-x-3 sm:space-x-4 w-full sm:w-auto">
+                  return [...Array(40)].map((_, index) => {
+                    const name = names[index % names.length];
+                    const amount = amounts[index % amounts.length];
+                    const timeAgo = times[index % times.length];
+
+                    return (
                       <div
-                        className={`p-2 sm:p-3 rounded-lg ${
-                          transaction.type === 'deposit'
-                            ? 'bg-green-100 text-green-600'
-                            : 'bg-red-100 text-red-600'
-                        }`}
+                        key={index}
+                        className="flex items-center justify-between p-3 mb-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200"
                       >
-                        {transaction.type === 'deposit' ? (
-                          <TrendingUp className="w-5 sm:w-6 h-5 sm:h-6" />
-                        ) : (
-                          <TrendingDown className="w-5 sm:w-6 h-5 sm:h-6" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-sm sm:text-base capitalize">{transaction.type}</h3>
-                        <p className="text-xs sm:text-sm text-gray-600">
-                          {new Date(transaction.created_at).toLocaleString()}
-                        </p>
-                        {transaction.rejection_reason && (
-                          <p className="text-xs sm:text-sm text-red-600 mt-1">
-                            Reason: {transaction.rejection_reason}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto sm:space-x-4">
-                      <div className="text-left sm:text-right">
-                        <p className="font-bold text-base sm:text-lg">
-                          {transaction.type === 'deposit' ? '+' : '-'}$
-                          {transaction.amount.toFixed(2)}
-                        </p>
-                        <div className="flex items-center space-x-1 justify-start sm:justify-end">
-                          {getStatusIcon(transaction.status)}
-                          <span className="text-xs sm:text-sm capitalize">{transaction.status}</span>
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
+                            {name.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-800">{name}</p>
+                            <p className="text-xs text-gray-600">Withdrawal Successful</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-green-600 text-lg">${amount.toFixed(2)}</p>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
+                    );
+                  });
+                })()}
               </div>
-            )}
+            </div>
           </div>
         </>
       )}
@@ -269,64 +343,95 @@ export default function Dashboard({ profile, onBalanceUpdate, initialTab = 'over
         />
       )}
 
-      {activeTab === 'categories' && <CategoryPurchase />}
-
       {activeTab === 'transactions' && (
         <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Transaction History</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Order Records</h2>
 
           {loading ? (
             <div className="text-center py-8">Loading...</div>
-          ) : transactions.length === 0 ? (
+          ) : orders.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">No transactions yet</p>
+              <Package className="w-12 h-12 mx-auto text-gray-400 mb-3" />
+              <p className="text-gray-500">No orders yet</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {transactions.map((transaction) => (
-                <div
-                  key={transaction.id}
-                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors space-y-3 sm:space-y-0"
-                >
-                  <div className="flex items-center space-x-3 sm:space-x-4 w-full sm:w-auto">
-                    <div
-                      className={`p-2 sm:p-3 rounded-lg ${
-                        transaction.type === 'deposit'
-                          ? 'bg-green-100 text-green-600'
-                          : 'bg-red-100 text-red-600'
-                      }`}
-                    >
-                      {transaction.type === 'deposit' ? (
-                        <TrendingUp className="w-5 sm:w-6 h-5 sm:h-6" />
-                      ) : (
-                        <TrendingDown className="w-5 sm:w-6 h-5 sm:h-6" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-sm sm:text-base capitalize">{transaction.type}</h3>
-                      <p className="text-xs sm:text-sm text-gray-600">
-                        {new Date(transaction.created_at).toLocaleString()}
-                      </p>
-                      {transaction.rejection_reason && (
-                        <p className="text-xs sm:text-sm text-red-600 mt-1">
-                          Reason: {transaction.rejection_reason}
+              {orders.map((order) => (
+                <div key={order.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                  <div
+                    className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        {getOrderStatusIcon(order.status)}
+                        <div>
+                          <p className="font-semibold text-gray-800">
+                            Order #{order.id.slice(0, 8)}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {new Date(order.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-[#f5b04c]">
+                          ${order.total_amount.toFixed(2)}
                         </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto sm:space-x-4">
-                    <div className="text-left sm:text-right">
-                      <p className="font-bold text-base sm:text-lg">
-                        {transaction.type === 'deposit' ? '+' : '-'}$
-                        {transaction.amount.toFixed(2)}
-                      </p>
-                      <div className="flex items-center space-x-1 justify-start sm:justify-end">
-                        {getStatusIcon(transaction.status)}
-                        <span className="text-xs sm:text-sm capitalize">{transaction.status}</span>
+                        <span
+                          className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getOrderStatusColor(
+                            order.status
+                          )}`}
+                        >
+                          {order.status}
+                        </span>
                       </div>
                     </div>
                   </div>
+
+                  {expandedOrder === order.id && (
+                    <div className="border-t bg-gray-50 p-4">
+                      <div className="mb-4">
+                        <p className="text-sm text-gray-600 mb-1">
+                          <span className="font-medium">Payment Method:</span>{' '}
+                          {order.payment_method}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          <span className="font-medium">Shipping Address:</span>{' '}
+                          {order.shipping_address}
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <p className="font-medium text-gray-800 mb-2">Items:</p>
+                        {order.items?.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center space-x-3 bg-white p-3 rounded"
+                          >
+                            {item.product?.image_url && (
+                              <img
+                                src={item.product.image_url}
+                                alt={item.product.name}
+                                className="w-12 h-12 object-cover rounded"
+                              />
+                            )}
+                            <div className="flex-1">
+                              <p className="font-medium text-sm">
+                                {item.product?.name || 'Product'}
+                              </p>
+                              <p className="text-xs text-gray-600">
+                                Qty: {item.quantity} × ${item.price.toFixed(2)}
+                              </p>
+                            </div>
+                            <p className="font-medium text-[#f5b04c]">
+                              ${(item.quantity * item.price).toFixed(2)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -492,12 +597,11 @@ export default function Dashboard({ profile, onBalanceUpdate, initialTab = 'over
           </div>
         </>
       )}
-
         </div>
       )}
 
-      {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
         <div className="flex items-center justify-around py-2">
           <button
             onClick={() => handleTabChange('overview')}
@@ -533,18 +637,6 @@ export default function Dashboard({ profile, onBalanceUpdate, initialTab = 'over
           >
             <Package className="w-6 h-6 mb-1" />
             <span className="text-xs font-medium">Orders</span>
-          </button>
-
-          <button
-            onClick={() => handleTabChange('categories')}
-            className={`flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-all ${
-              activeTab === 'categories'
-                ? 'text-[#f5b04c]'
-                : 'text-gray-600 hover:text-gray-800'
-            }`}
-          >
-            <ShoppingBag className="w-6 h-6 mb-1" />
-            <span className="text-xs font-medium">Categories</span>
           </button>
 
           <button

@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, UserPlus, MessageCircle, FileText, Info, HelpCircle, Briefcase } from 'lucide-react';
+import { TrendingUp, TrendingDown, MessageCircle, FileText, Info, HelpCircle, Briefcase } from 'lucide-react';
 
 interface ActionButtonsProps {
   onDeposit: () => void;
@@ -9,7 +9,6 @@ export default function ActionButtons({ onDeposit, onWithdrawal }: ActionButtons
   const buttons = [
     { icon: TrendingUp, label: 'Deposit', color: 'from-green-500 to-green-600', onClick: onDeposit },
     { icon: TrendingDown, label: 'Withdrawal', color: 'from-red-500 to-red-600', onClick: onWithdrawal },
-    { icon: UserPlus, label: 'Invitation', color: 'from-blue-500 to-blue-600', onClick: () => alert('Invitation feature coming soon') },
     { icon: MessageCircle, label: 'Customer Service', color: 'from-purple-500 to-purple-600', onClick: () => alert('Customer Service: support@mkmall.com') },
     { icon: FileText, label: 'Terms', color: 'from-gray-600 to-gray-700', onClick: () => alert('Terms & Conditions') },
     { icon: Info, label: 'About US', color: 'from-[#2a5f64] to-[#1a4044]', onClick: () => alert('About MK MALL') },

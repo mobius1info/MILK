@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Package, TrendingUp, TrendingDown, Lock, CreditCard, DollarSign, ShoppingBag } from 'lucide-react';
+import { Package, TrendingUp, TrendingDown, Lock, CreditCard, DollarSign, ShoppingBag, Image } from 'lucide-react';
 import ProductManagement from './ProductManagement';
 import DepositManagement from './DepositManagement';
 import WithdrawalManagement from './WithdrawalManagement';
@@ -7,9 +7,10 @@ import CategoryAccessManagement from './CategoryAccessManagement';
 import PaymentMethodsManagement from './PaymentMethodsManagement';
 import ManualBalanceCredit from './ManualBalanceCredit';
 import CategoryRequestManagement from './CategoryRequestManagement';
+import BannerManagement from './BannerManagement';
 
 export default function AdminPanel() {
-  const [activeTab, setActiveTab] = useState<'products' | 'deposits' | 'withdrawals' | 'access' | 'category-requests' | 'payment-methods' | 'manual-credit'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'deposits' | 'withdrawals' | 'access' | 'category-requests' | 'payment-methods' | 'manual-credit' | 'banners'>('products');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -92,6 +93,17 @@ export default function AdminPanel() {
             <DollarSign className="w-5 h-5" />
             <span className="font-medium">Manual Credit</span>
           </button>
+          <button
+            onClick={() => setActiveTab('banners')}
+            className={`flex items-center justify-center sm:justify-start space-x-2 px-4 sm:px-6 py-3 rounded-lg transition-all ${
+              activeTab === 'banners'
+                ? 'bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white shadow-md'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <Image className="w-5 h-5" />
+            <span className="font-medium">Banners</span>
+          </button>
         </div>
 
         {activeTab === 'products' && <ProductManagement />}
@@ -101,6 +113,7 @@ export default function AdminPanel() {
         {activeTab === 'category-requests' && <CategoryRequestManagement />}
         {activeTab === 'payment-methods' && <PaymentMethodsManagement />}
         {activeTab === 'manual-credit' && <ManualBalanceCredit />}
+        {activeTab === 'banners' && <BannerManagement />}
       </div>
     </div>
   );
