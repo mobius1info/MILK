@@ -1,0 +1,518 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
+import { X, ShoppingBag, CheckCircle, Coins, Star, TrendingUp, AlertCircle } from 'lucide-react';
+import NotificationModal from '../NotificationModal';
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  image_url: string;
+  category: string;
+  commission_percentage: number;
+  description: string;
+}
+
+interface VIPLevel {
+  id: string;
+  level: number;
+  name: string;
+  price: number;
+  commission: number;
+  description: string;
+  category: string;
+  category_image_url: string;
+}
+
+interface TaskProductsModalProps {
+  category: VIPLevel;
+  onClose: () => void;
+  onNavigateToDeposit?: () => void;
+}
+
+interface ProductProgress {
+  current_product_index: number;
+  products_purchased: number;
+  total_commission_earned: number;
+  total_products_count: number;
+}
+
+export default function TaskProductsModal({ category, onClose, onNavigateToDeposit }: TaskProductsModalProps) {
+  const [product, setProduct] = useState<Product | null>(null);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [progress, setProgress] = useState<ProductProgress>({
+    current_product_index: 0,
+    products_purchased: 0,
+    total_commission_earned: 0,
+    total_products_count: 25
+  });
+  const [loading, setLoading] = useState(true);
+  const [purchasing, setPurchasing] = useState(false);
+  const [message, setMessage] = useState('');
+  const [insufficientBalance, setInsufficientBalance] = useState<{
+    productPrice: number;
+    commission: number;
+    neededAmount: number;
+    currentBalance: number;
+  } | null>(null);
+  const [dynamicPrice, setDynamicPrice] = useState<number | null>(null);
+  const [dynamicCommission, setDynamicCommission] = useState<number | null>(null);
+  const [vipPrice, setVipPrice] = useState<number>(100);
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    type: 'success' as 'success' | 'error' | 'warning' | 'info',
+    title: '',
+    message: ''
+  });
+
+  useEffect(() => {
+    loadProductsAndProgress();
+  }, [category.category, category.level]);
+
+  async function loadProductsAndProgress() {
+    try {
+      setLoading(true);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const [vipPurchaseResult, vipLevelResult] = await Promise.all([
+        supabase
+          .from('vip_purchases')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('category_id', category.category)
+          .eq('vip_level', category.level)
+          .eq('status', 'approved')
+          .maybeSingle(),
+        supabase
+          .from('vip_levels')
+          .select('products_count')
+          .eq('level', category.level)
+          .eq('category', category.category)
+          .maybeSingle()
+      ]);
+
+      const vipPurchase = vipPurchaseResult.data;
+      const vipLevelData = vipLevelResult.data;
+
+      if (!vipPurchase) {
+        throw new Error('VIP purchase not found');
+      }
+
+      const totalProductsCount = vipLevelData?.products_count || 25;
+      const purchaseVipPrice = vipPurchase.vip_price || category.price || 100;
+      setVipPrice(purchaseVipPrice);
+
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('category', category.category)
+        .order('name')
+        .limit(totalProductsCount);
+
+      if (productsError) throw productsError;
+
+      const normalizedProducts = (productsData || []).map(p => ({
+        ...p,
+        price: Number(p.price),
+        commission_percentage: Number(p.commission_percentage),
+        quantity_multiplier: Number(p.quantity_multiplier || 1)
+      }));
+
+      setAllProducts(normalizedProducts);
+
+      const { data: purchasedProducts, error: purchasedError } = await supabase
+        .from('product_purchases')
+        .select('product_id, quantity_count, commission_earned')
+        .eq('user_id', user.id)
+        .eq('category_id', category.category)
+        .eq('vip_level', category.level);
+
+      if (purchasedError) throw purchasedError;
+
+      const purchasedMap = new Map(
+        (purchasedProducts || []).map(p => [p.product_id, {
+          count: p.quantity_count,
+          commission: Number(p.commission_earned)
+        }])
+      );
+
+      let currentIndex = 0;
+      let totalPurchased = 0;
+      let totalCommission = 0;
+
+      for (let i = 0; i < normalizedProducts.length; i++) {
+        const prod = normalizedProducts[i];
+        const purchased = purchasedMap.get(prod.id);
+
+        if (!purchased || purchased.count === 0) {
+          currentIndex = i;
+          break;
+        }
+
+        totalPurchased++;
+        totalCommission += purchased.commission;
+
+        if (i === normalizedProducts.length - 1) {
+          currentIndex = i;
+        }
+      }
+
+      setProgress({
+        current_product_index: currentIndex,
+        products_purchased: totalPurchased,
+        total_commission_earned: totalCommission,
+        total_products_count: totalProductsCount
+      });
+
+      if (totalPurchased >= totalProductsCount) {
+        setProduct(null);
+      } else if (normalizedProducts && normalizedProducts[currentIndex]) {
+        setProduct(normalizedProducts[currentIndex]);
+      }
+    } catch (error) {
+      console.error('Error loading products:', error);
+      setNotification({
+        isOpen: true,
+        type: 'error',
+        title: 'Ошибка',
+        message: 'Не удалось загрузить товары'
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function purchaseProduct() {
+    if (!product) return;
+
+    try {
+      setPurchasing(true);
+      setMessage('');
+      setInsufficientBalance(null);
+
+      const { data, error } = await supabase.rpc('process_product_purchase', {
+        p_category_id: category.category,
+        p_vip_level: category.level,
+        p_product_id: product.id
+      });
+
+      if (error) throw error;
+
+      const result = data as any;
+
+      if (result.error) {
+        if (result.requires_deposit) {
+          setInsufficientBalance({
+            productPrice: result.product_price,
+            commission: result.commission,
+            neededAmount: result.needed_amount,
+            currentBalance: result.current_balance
+          });
+          setMessage(result.error);
+        } else {
+          setNotification({
+            isOpen: true,
+            type: 'error',
+            title: 'Ошибка',
+            message: result.error || 'Ошибка при покупке'
+          });
+        }
+        return;
+      }
+
+      if (result.success) {
+        setDynamicPrice(result.product_price);
+        setDynamicCommission(result.commission);
+        setMessage(result.message);
+
+        setNotification({
+          isOpen: true,
+          type: 'success',
+          title: result.is_ninth_product ? 'КОМБО товар куплен!' : 'Успешно!',
+          message: result.message
+        });
+      }
+
+      await loadProductsAndProgress();
+
+      if (!result.is_completed) {
+        setTimeout(() => {
+          const nextIndex = progress.current_product_index + 1;
+          if (allProducts[nextIndex]) {
+            setProduct(allProducts[nextIndex]);
+            setDynamicPrice(null);
+            setDynamicCommission(null);
+            setMessage('');
+            setInsufficientBalance(null);
+          }
+        }, 2000);
+      }
+    } catch (error: any) {
+      console.error('Error purchasing product:', error);
+      setNotification({
+        isOpen: true,
+        type: 'error',
+        title: 'Ошибка',
+        message: 'Ошибка при покупке: ' + error.message
+      });
+    } finally {
+      setPurchasing(false);
+    }
+  }
+
+  const nextProductNumber = progress.products_purchased + 1;
+  const isNextCombo = nextProductNumber % 9 === 0;
+
+  const displayPrice = dynamicPrice !== null
+    ? dynamicPrice
+    : isNextCombo
+      ? vipPrice * 1.75
+      : product?.price || 0;
+
+  const commissionPercentage = category.commission;
+  const potentialCommission = isNextCombo
+    ? (displayPrice * (commissionPercentage / 100) * 3)
+    : (displayPrice * (commissionPercentage / 100));
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg p-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#f5b04c] mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg p-8 max-w-md">
+          <div className="text-center">
+            <CheckCircle className="w-16 h-16 mx-auto text-green-500 mb-4" />
+            <h3 className="text-2xl font-bold text-gray-800 mb-3">
+              Работа окончена!
+            </h3>
+            <p className="text-gray-600 mb-2">
+              Вы завершили все {progress.total_products_count} товаров в категории <strong>{category.name}</strong>
+            </p>
+            <p className="text-lg font-semibold text-green-600 mb-6">
+              Всего заработано: ${progress.total_commission_earned.toFixed(2)}
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
+              Купите VIP {category.level} снова, чтобы продолжить зарабатывать в этой категории
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-3 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white rounded-lg font-bold hover:opacity-90"
+          >
+            Закрыть
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-white rounded-none sm:rounded-xl w-full h-full sm:h-auto sm:max-w-2xl lg:max-w-3xl sm:max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="flex-shrink-0 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] p-4 sm:p-5 text-white">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl sm:text-2xl font-bold mb-1 truncate">
+                {category.name}
+              </h2>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-white/90">
+                <span className="flex items-center gap-1">
+                  <ShoppingBag className="w-4 h-4" />
+                  Товар {nextProductNumber}/{progress.total_products_count}
+                  {isNextCombo && (
+                    <span className="ml-1 px-2 py-0.5 bg-yellow-500 text-yellow-900 rounded-full text-xs font-bold animate-pulse">
+                      КОМБО x3
+                    </span>
+                  )}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Coins className="w-4 h-4" />
+                  ${progress.total_commission_earned.toFixed(2)}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="flex-shrink-0 p-1.5 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+          {message && (
+            <div className={`rounded-lg p-3 flex items-start gap-2.5 ${
+              message.includes('пополнить')
+                ? 'bg-red-50 text-red-800 border border-red-200'
+                : 'bg-green-50 text-green-800 border border-green-200'
+            }`}>
+              {message.includes('пополнить') ? (
+                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              ) : (
+                <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              )}
+              <div className="font-medium text-sm">{message}</div>
+            </div>
+          )}
+
+          <div className="bg-gray-100 rounded-lg overflow-hidden shadow-md">
+            <img
+              src={product.image_url}
+              alt={product.name}
+              className="w-full h-56 sm:h-72 object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = 'https://images.pexels.com/photos/1194713/pexels-photo-1194713.jpeg';
+              }}
+            />
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div className="flex items-start justify-between mb-3">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 line-clamp-2 flex-1">{product.name}</h3>
+              {isNextCombo && (
+                <span className="ml-2 px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-full text-xs font-bold shadow-lg">
+                  КОМБО x3
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className={`rounded-lg p-3 ${isNextCombo ? 'bg-orange-50 border-2 border-orange-300' : 'bg-blue-50'}`}>
+                <div className="text-xs text-gray-600 mb-1">
+                  {isNextCombo ? 'Цена КОМБО' : 'Цена товара'}
+                </div>
+                <div className={`text-xl sm:text-2xl font-bold ${isNextCombo ? 'text-orange-600' : 'text-blue-600'}`}>
+                  ${displayPrice.toFixed(2)}
+                </div>
+              </div>
+              <div className={`rounded-lg p-3 ${isNextCombo ? 'bg-yellow-50 border-2 border-yellow-300' : 'bg-green-50'}`}>
+                <div className="text-xs text-gray-600 mb-1">
+                  {isNextCombo ? 'Комиссия x3' : 'Ваша комиссия'}
+                </div>
+                <div className={`text-xl sm:text-2xl font-bold ${isNextCombo ? 'text-yellow-600' : 'text-green-600'}`}>
+                  {commissionPercentage}%
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-3.5 border border-blue-200 shadow-sm">
+            <div className="flex items-start gap-2.5">
+              <TrendingUp className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <div className="font-semibold text-blue-900 mb-1.5 text-sm">Как это работает</div>
+                <ul className="text-xs text-blue-800 space-y-1 leading-relaxed">
+                  <li>• Нажмите кнопку покупки для получения комиссии</li>
+                  <li>• Комиссия зачисляется автоматически на баланс</li>
+                  <li>• Просматривайте товары по очереди до завершения</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {isNextCombo ? (
+            <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-lg p-3.5 border border-orange-300 shadow-sm">
+              <div className="flex items-start gap-2.5">
+                <Star className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <div className="font-semibold text-orange-900 mb-1 text-sm">КОМБО товар - Утроенная комиссия!</div>
+                  <p className="text-xs text-orange-800 leading-relaxed">
+                    Это особый товар с комиссией x3. Для его покупки необходим баланс не менее ${displayPrice.toFixed(2)}. После покупки вы получите ${potentialCommission.toFixed(2)} комиссии!
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg p-3.5 border border-yellow-200 shadow-sm">
+              <div className="flex items-start gap-2.5">
+                <Star className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <div className="font-semibold text-orange-900 mb-1 text-sm">Увеличьте доходы!</div>
+                  <p className="text-xs text-orange-800 leading-relaxed">
+                    Пополните счет для доступа к КОМБО товарам с утроенной комиссией или перейдите на другой VIP уровень.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex-shrink-0 p-4 sm:p-5 bg-gray-50 border-t space-y-3">
+          {insufficientBalance ? (
+            <>
+              <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4 text-center">
+                <AlertCircle className="w-12 h-12 mx-auto text-red-600 mb-2" />
+                <h4 className="font-bold text-red-900 mb-1">Недостаточно средств</h4>
+                <p className="text-sm text-red-700 mb-3">
+                  Необходимо пополнить баланс на <span className="font-bold">${insufficientBalance.neededAmount.toFixed(2)}</span>
+                </p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="bg-white rounded p-2">
+                    <div className="text-gray-600">Текущий баланс</div>
+                    <div className="font-bold text-gray-900">${insufficientBalance.currentBalance.toFixed(2)}</div>
+                  </div>
+                  <div className="bg-white rounded p-2">
+                    <div className="text-gray-600">Цена КОМБО</div>
+                    <div className="font-bold text-orange-600">${insufficientBalance.productPrice.toFixed(2)}</div>
+                  </div>
+                </div>
+              </div>
+              {onNavigateToDeposit && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    onNavigateToDeposit();
+                  }}
+                  className="w-full py-3.5 sm:py-4 bg-gradient-to-r from-green-500 to-green-600 hover:opacity-90 text-white rounded-lg font-bold text-base sm:text-lg flex items-center justify-center gap-2 transition-all shadow-lg"
+                >
+                  <Coins className="w-5 h-5" />
+                  Пополнить баланс
+                </button>
+              )}
+            </>
+          ) : (
+            <button
+              onClick={purchaseProduct}
+              disabled={purchasing}
+              className={`w-full py-3.5 sm:py-4 hover:opacity-90 text-white rounded-lg font-bold text-base sm:text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg ${
+                isNextCombo
+                  ? 'bg-gradient-to-r from-yellow-500 to-orange-600 animate-pulse'
+                  : 'bg-gradient-to-r from-[#f5b04c] to-[#2a5f64]'
+              }`}
+            >
+              {purchasing ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                  Обработка...
+                </>
+              ) : (
+                <>
+                  <ShoppingBag className="w-5 h-5" />
+                  {isNextCombo ? `КОМБО: Купить за $${displayPrice.toFixed(2)} и получить $${potentialCommission.toFixed(2)}` : `Купить и получить $${potentialCommission.toFixed(2)}`}
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification({ ...notification, isOpen: false })}
+        type={notification.type}
+        title={notification.title}
+        message={notification.message}
+      />
+    </div>
+  );
+}
