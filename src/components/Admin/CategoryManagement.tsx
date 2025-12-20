@@ -1,0 +1,342 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
+import { Plus, Edit, Trash2, Tag } from 'lucide-react';
+import NotificationModal from '../NotificationModal';
+
+interface Category {
+  id: string;
+  name: string;
+  display_name: string;
+  description: string;
+  image_url: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export default function CategoryManagement() {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [notification, setNotification] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    type: 'info',
+    title: '',
+    message: '',
+  });
+  const [formData, setFormData] = useState({
+    name: '',
+    display_name: '',
+    description: '',
+    image_url: '',
+  });
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('display_name');
+
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const categoryData = {
+        name: formData.name.toLowerCase().replace(/\s+/g, '-'),
+        display_name: formData.display_name,
+        description: formData.description,
+        image_url: formData.image_url,
+      };
+
+      if (editingCategory) {
+        const { error } = await supabase
+          .from('categories')
+          .update(categoryData)
+          .eq('id', editingCategory.id);
+
+        if (error) throw error;
+
+        setNotification({
+          isOpen: true,
+          type: 'success',
+          title: 'Успешно',
+          message: 'Категория обновлена',
+        });
+      } else {
+        const { error } = await supabase
+          .from('categories')
+          .insert([categoryData]);
+
+        if (error) throw error;
+
+        setNotification({
+          isOpen: true,
+          type: 'success',
+          title: 'Успешно',
+          message: 'Категория создана',
+        });
+      }
+
+      setShowForm(false);
+      setEditingCategory(null);
+      setFormData({
+        name: '',
+        display_name: '',
+        description: '',
+        image_url: '',
+      });
+      fetchCategories();
+    } catch (error: any) {
+      setNotification({
+        isOpen: true,
+        type: 'error',
+        title: 'Ошибка',
+        message: error.message,
+      });
+    }
+  };
+
+  const handleEdit = (category: Category) => {
+    setEditingCategory(category);
+    setFormData({
+      name: category.name,
+      display_name: category.display_name,
+      description: category.description,
+      image_url: category.image_url,
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    const { data: productsCount } = await supabase
+      .from('products')
+      .select('id', { count: 'exact', head: true })
+      .eq('category', name);
+
+    if (productsCount) {
+      setNotification({
+        isOpen: true,
+        type: 'warning',
+        title: 'Невозможно удалить',
+        message: 'В этой категории есть товары. Сначала удалите или переместите товары.',
+      });
+      return;
+    }
+
+    if (!confirm('Вы уверены, что хотите удалить эту категорию?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setNotification({
+        isOpen: true,
+        type: 'success',
+        title: 'Успешно',
+        message: 'Категория удалена',
+      });
+      fetchCategories();
+    } catch (error: any) {
+      setNotification({
+        isOpen: true,
+        type: 'error',
+        title: 'Ошибка',
+        message: error.message,
+      });
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center py-8">Загрузка...</div>;
+  }
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">Управление категориями</h2>
+        <button
+          onClick={() => {
+            setShowForm(true);
+            setEditingCategory(null);
+            setFormData({
+              name: '',
+              display_name: '',
+              description: '',
+              image_url: '',
+            });
+          }}
+          className="flex items-center space-x-2 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all"
+        >
+          <Plus className="w-5 h-5" />
+          <span>Добавить категорию</span>
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h3 className="text-xl font-semibold mb-4">
+            {editingCategory ? 'Редактировать категорию' : 'Новая категория'}
+          </h3>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Отображаемое имя *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.display_name}
+                  onChange={(e) => {
+                    setFormData({
+                      ...formData,
+                      display_name: e.target.value,
+                      name: e.target.value.toLowerCase().replace(/\s+/g, '-')
+                    });
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
+                  placeholder="Electronics"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Системное имя (автоматически)
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  disabled
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                  placeholder="electronics"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Описание
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
+                placeholder="Описание категории"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                URL изображения
+              </label>
+              <input
+                type="url"
+                value={formData.image_url}
+                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
+                placeholder="https://example.com/image.jpg"
+              />
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                type="submit"
+                className="flex items-center space-x-2 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all"
+              >
+                <span>{editingCategory ? 'Обновить' : 'Создать'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowForm(false);
+                  setEditingCategory(null);
+                }}
+                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Отмена
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {categories.map((category) => (
+          <div key={category.id} className="bg-white rounded-lg shadow-md p-5 hover:shadow-lg transition-shadow">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center space-x-3">
+                <div className="bg-blue-100 p-2 rounded-lg">
+                  <Tag className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg text-gray-800">{category.display_name}</h3>
+                  <p className="text-xs text-gray-500">{category.name}</p>
+                </div>
+              </div>
+            </div>
+
+            {category.description && (
+              <p className="text-sm text-gray-600 mb-3 line-clamp-2">{category.description}</p>
+            )}
+
+            <div className="flex space-x-2 mt-4">
+              <button
+                onClick={() => handleEdit(category)}
+                className="flex-1 flex items-center justify-center space-x-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                <Edit className="w-4 h-4" />
+                <span>Изменить</span>
+              </button>
+              <button
+                onClick={() => handleDelete(category.id, category.name)}
+                className="flex-1 flex items-center justify-center space-x-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Удалить</span>
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {categories.length === 0 && (
+        <div className="text-center py-12 bg-gray-50 rounded-lg">
+          <Tag className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Категорий нет</h3>
+          <p className="text-gray-500">Создайте первую категорию для товаров</p>
+        </div>
+      )}
+
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification({ ...notification, isOpen: false })}
+        type={notification.type}
+        title={notification.title}
+        message={notification.message}
+      />
+    </div>
+  );
+}
