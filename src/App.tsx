@@ -167,10 +167,10 @@ function App() {
 
   return (
     <>
-      {!user || !profile ? (
-        <>
-          {console.log('>>> Rendering AUTH FORMS (missing:', !user ? 'user' : 'profile', ')')}
-          <BrowserRouter>
+      <BrowserRouter>
+        {!user || !profile ? (
+          <>
+            {console.log('>>> Rendering AUTH FORMS (missing:', !user ? 'user' : 'profile', ')')}
             <Routes>
               <Route
                 path="/admin"
@@ -194,12 +194,10 @@ function App() {
                 }
               />
             </Routes>
-          </BrowserRouter>
-        </>
-      ) : (
-        <>
-          {console.log('Rendering main app with profile:', profile.email)}
-          <BrowserRouter>
+          </>
+        ) : (
+          <>
+            {console.log('Rendering main app with profile:', profile.email)}
             <Routes>
               <Route
                 path="/"
@@ -227,9 +225,9 @@ function App() {
               />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-          </BrowserRouter>
-        </>
-      )}
+          </>
+        )}
+      </BrowserRouter>
 
       <NotificationModal
         isOpen={notification.isOpen}
