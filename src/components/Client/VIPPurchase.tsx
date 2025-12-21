@@ -104,7 +104,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
     }
   }
 
-  async function requestVIPAccess(vipLevel: number, categoryId: string, price: number) {
+  async function requestVIPAccess(vipLevelId: string, vipLevel: number, categoryId: string, price: number, productsCount: number) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
@@ -131,9 +131,12 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
         .from('vip_purchases')
         .insert({
           user_id: user.id,
+          vip_level_id: vipLevelId,
           vip_level: vipLevel,
           category_id: categoryId,
           vip_price: price,
+          amount_paid: price,
+          total_products: productsCount,
           status: 'pending'
         });
 
@@ -358,7 +361,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
                     </div>
                   ) : (
                     <button
-                      onClick={() => requestVIPAccess(vipLevel.level, vipLevel.category, vipLevel.price)}
+                      onClick={() => requestVIPAccess(vipLevel.id, vipLevel.level, vipLevel.category, vipLevel.price, vipLevel.products_count)}
                       disabled={isPurchased}
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
