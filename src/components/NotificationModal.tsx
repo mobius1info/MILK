@@ -62,19 +62,23 @@ export default function NotificationModal({
 
   console.log('Rendering NotificationModal with isOpen=true');
 
+  const handleConfirm = async () => {
+    console.log('>>> NotificationModal OK button clicked');
+    if (onConfirm) {
+      console.log('>>> Calling onConfirm()');
+      await onConfirm();
+    } else {
+      console.log('>>> No onConfirm callback');
+    }
+    console.log('>>> Calling onClose()');
+    onClose();
+  };
+
   return (
     <>
-      <div
-        className="fixed inset-0 bg-black/50 z-[9998] animate-fadeIn"
-        onClick={() => {
-          onClose();
-          if (onConfirm) {
-            onConfirm();
-          }
-        }}
-      ></div>
-      <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4">
-        <div className="bg-white rounded-lg shadow-2xl p-6 max-w-md w-full animate-scaleIn">
+      <div className="fixed inset-0 bg-black/50 z-[9998] animate-fadeIn"></div>
+      <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4 pointer-events-none">
+        <div className="bg-white rounded-lg shadow-2xl p-6 max-w-md w-full animate-scaleIn pointer-events-auto">
           <div className="flex flex-col items-center text-center">
             <div className={`w-20 h-20 ${getBackgroundColor()} rounded-full flex items-center justify-center mb-4`}>
               {getIcon()}
@@ -86,17 +90,7 @@ export default function NotificationModal({
               {message}
             </p>
             <button
-              onClick={() => {
-                console.log('>>> NotificationModal OK button clicked');
-                console.log('>>> Calling onClose()');
-                onClose();
-                if (onConfirm) {
-                  console.log('>>> Calling onConfirm()');
-                  onConfirm();
-                } else {
-                  console.log('>>> No onConfirm callback');
-                }
-              }}
+              onClick={handleConfirm}
               className={`w-full bg-gradient-to-r ${getButtonColor()} text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity shadow-lg`}
             >
               OK

@@ -227,8 +227,6 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
         setDynamicCommission(result.commission);
         setMessage(result.message);
 
-        await loadProductsAndProgress();
-
         setNotification({
           isOpen: true,
           type: 'success',
@@ -249,15 +247,12 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
     }
   }
 
-  function moveToNextProduct() {
-    const nextIndex = progress.current_product_index + 1;
-    if (allProducts[nextIndex]) {
-      setProduct(allProducts[nextIndex]);
-      setDynamicPrice(null);
-      setDynamicCommission(null);
-      setMessage('');
-      setInsufficientBalance(null);
-    }
+  async function moveToNextProduct() {
+    setDynamicPrice(null);
+    setDynamicCommission(null);
+    setMessage('');
+    setInsufficientBalance(null);
+    await loadProductsAndProgress();
   }
 
   const nextProductNumber = progress.products_purchased + 1;
