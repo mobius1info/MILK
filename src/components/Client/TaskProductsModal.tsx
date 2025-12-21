@@ -399,12 +399,12 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
             </div>
           </div>
 
-          <div className="hidden sm:block bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-3.5 border border-blue-200 shadow-sm">
-            <div className="flex items-start gap-2.5">
-              <TrendingUp className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-2 sm:p-3.5 border border-blue-200 shadow-sm">
+            <div className="flex items-start gap-1.5 sm:gap-2.5">
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <div className="font-semibold text-blue-900 mb-1.5 text-sm">How it Works</div>
-                <ul className="text-xs text-blue-800 space-y-1 leading-relaxed">
+                <div className="font-semibold text-blue-900 mb-1 sm:mb-1.5 text-xs sm:text-sm">How it Works</div>
+                <ul className="text-xs text-blue-800 space-y-0.5 sm:space-y-1 leading-snug sm:leading-relaxed">
                   <li>• Click the purchase button to receive commission</li>
                   <li>• Commission is automatically credited to your balance</li>
                   <li>• Browse products in order until completion</li>
