@@ -93,13 +93,15 @@ export default function RegisterForm({ onSuccess, onToggleForm, onShowNotificati
         title: 'Регистрация успешна!',
         message: 'Ваш аккаунт успешно создан. Нажмите OK для входа в личный кабинет.',
         onConfirm: () => {
-          console.log('User confirmed, closing modal');
+          console.log('User confirmed, closing modal and checking user state');
           onShowNotification({
             isOpen: false,
             type: 'success',
             title: '',
             message: '',
           });
+          // Вызываем onSuccess чтобы обновить состояние и перейти в ЛК
+          onSuccess();
         }
       });
     } catch (err: any) {
