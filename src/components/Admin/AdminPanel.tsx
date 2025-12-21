@@ -132,15 +132,33 @@ export default function AdminPanel() {
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="p-6">
-              {activeTab === 'products' && <ProductManagement />}
-              {activeTab === 'categories' && <CategoryManagement />}
-              {activeTab === 'deposits' && <DepositManagement />}
-              {activeTab === 'withdrawals' && <WithdrawalManagement />}
-              {activeTab === 'payment-methods' && <PaymentMethodsManagement />}
-              {activeTab === 'manual-credit' && <ManualBalanceCredit />}
-              {activeTab === 'banners' && <BannerManagement />}
-              {activeTab === 'vip-purchases' && <VIPPurchaseManagement />}
-              {activeTab === 'vip-levels' && <VIPLevelManagement />}
+              <div style={{ display: activeTab === 'products' ? 'block' : 'none' }}>
+                <ProductManagement />
+              </div>
+              <div style={{ display: activeTab === 'categories' ? 'block' : 'none' }}>
+                <CategoryManagement />
+              </div>
+              <div style={{ display: activeTab === 'deposits' ? 'block' : 'none' }}>
+                <DepositManagement />
+              </div>
+              <div style={{ display: activeTab === 'withdrawals' ? 'block' : 'none' }}>
+                <WithdrawalManagement />
+              </div>
+              <div style={{ display: activeTab === 'payment-methods' ? 'block' : 'none' }}>
+                <PaymentMethodsManagement />
+              </div>
+              <div style={{ display: activeTab === 'manual-credit' ? 'block' : 'none' }}>
+                <ManualBalanceCredit />
+              </div>
+              <div style={{ display: activeTab === 'banners' ? 'block' : 'none' }}>
+                <BannerManagement />
+              </div>
+              <div style={{ display: activeTab === 'vip-purchases' ? 'block' : 'none' }}>
+                <VIPPurchaseManagement />
+              </div>
+              <div style={{ display: activeTab === 'vip-levels' ? 'block' : 'none' }}>
+                <VIPLevelManagement />
+              </div>
             </div>
           </div>
         </div>
