@@ -490,8 +490,13 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
                 </>
               ) : (
                 <>
-                  <ShoppingBag className="w-5 h-5" />
-                  {isNextCombo ? `COMBO: Buy for $${displayPrice.toFixed(2)} and get $${potentialCommission.toFixed(2)}` : `Buy and get $${potentialCommission.toFixed(2)}`}
+                  <ShoppingBag className="w-5 h-5 flex-shrink-0" />
+                  <span className="hidden sm:inline">
+                    {isNextCombo ? `COMBO: Buy for $${displayPrice.toFixed(2)} and get $${potentialCommission.toFixed(2)}` : `Buy and get $${potentialCommission.toFixed(2)}`}
+                  </span>
+                  <span className="sm:hidden text-sm">
+                    {isNextCombo ? `COMBO: $${displayPrice.toFixed(2)} → $${potentialCommission.toFixed(2)}` : `Buy → $${potentialCommission.toFixed(2)}`}
+                  </span>
                 </>
               )}
             </button>
