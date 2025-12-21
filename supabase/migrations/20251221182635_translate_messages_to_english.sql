@@ -1,15 +1,15 @@
 /*
-  # Update Product Purchase Logic to Use VIP Level Combo Settings
-
-  1. Changes
-    - Read combo_product_position and commission_multiplier from vip_levels table
-    - Use these values instead of hardcoded 9th product and 3x multiplier
-    - Makes COMBO mechanics fully customizable per VIP level
+  # Translate Messages to English
   
-  2. Logic
-    - Check if current product number matches combo_product_position
-    - Use commission_multiplier from database for COMBO products
-    - All other logic remains the same
+  1. Changes
+    - Update process_product_purchase function to use English messages
+    - All error messages, success messages, and transaction descriptions now in English
+  
+  2. Messages Updated
+    - "All products purchased" error message
+    - COMBO product insufficient balance error
+    - Success messages for regular and COMBO purchases
+    - Transaction descriptions
 */
 
 CREATE OR REPLACE FUNCTION process_product_purchase(

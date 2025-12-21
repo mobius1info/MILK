@@ -393,7 +393,7 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
                   {isNextCombo ? 'Earn x3' : 'Earn'}
                 </div>
                 <div className={`text-lg sm:text-2xl font-bold ${isNextCombo ? 'text-yellow-600' : 'text-green-600'}`}>
-                  {commissionPercentage}%
+                  {isNextCombo ? `$${potentialCommission.toFixed(2)}` : `${commissionPercentage}%`}
                 </div>
               </div>
             </div>
