@@ -83,34 +83,23 @@ export default function RegisterForm({ onSuccess, onToggleForm, onShowNotificati
       }
 
       console.log('Step 4: User created successfully, ID:', data.user.id);
+      console.log('Step 5: Registration complete - showing success notification');
 
-      console.log('Step 5: Signing out to prevent auto-login...');
-      await supabase.auth.signOut();
-
-      console.log('Step 6: Registration complete - showing success notification');
       setLoading(false);
-
-      const savedEmail = email;
-      const savedPassword = password;
 
       onShowNotification({
         isOpen: true,
         type: 'success',
         title: 'Регистрация успешна!',
         message: 'Ваш аккаунт успешно создан. Нажмите OK для входа в личный кабинет.',
-        onConfirm: async () => {
-          console.log('User confirmed, closing modal and signing in...');
+        onConfirm: () => {
+          console.log('User confirmed, closing modal');
           onShowNotification({
             isOpen: false,
             type: 'success',
             title: '',
             message: '',
           });
-          await supabase.auth.signInWithPassword({
-            email: savedEmail,
-            password: savedPassword,
-          });
-          onSuccess();
         }
       });
     } catch (err: any) {

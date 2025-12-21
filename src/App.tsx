@@ -163,9 +163,9 @@ function App() {
 
   return (
     <>
-      {!user || !profile ? (
+      {!user || !profile || notification.isOpen ? (
         <>
-          {console.log('Rendering auth forms (user:', !!user, 'profile:', !!profile, ')')}
+          {console.log('Rendering auth forms (user:', !!user, 'profile:', !!profile, 'modal:', notification.isOpen, ')')}
           <BrowserRouter>
             <Routes>
               <Route
