@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Package, TrendingUp, TrendingDown, CreditCard, DollarSign, Image, Crown, Settings, Menu, X, Tag } from 'lucide-react';
+import { Package, TrendingUp, TrendingDown, CreditCard, DollarSign, Image, Crown, Settings, Tag } from 'lucide-react';
 import ProductManagement from './ProductManagement';
 import DepositManagement from './DepositManagement';
 import WithdrawalManagement from './WithdrawalManagement';
@@ -31,12 +31,16 @@ const navItems: NavItem[] = [
   { id: 'vip-purchases', label: 'VIP Purchases', icon: Crown, group: 'VIP System' },
 ];
 
-export default function AdminPanel() {
+interface AdminPanelProps {
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
+}
+
+export default function AdminPanel({ sidebarOpen, setSidebarOpen }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     const saved = localStorage.getItem('adminActiveTab');
     return (saved as TabType) || 'products';
   });
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('adminActiveTab', activeTab);
@@ -81,14 +85,7 @@ export default function AdminPanel() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg hover:bg-gray-50 transition-colors"
-      >
-        {sidebarOpen ? <X className="w-6 h-6 text-gray-700" /> : <Menu className="w-6 h-6 text-gray-700" />}
-      </button>
-
-      <div className={`fixed inset-y-0 left-0 z-40 w-72 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`fixed top-20 lg:top-0 bottom-0 left-0 z-40 w-72 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="h-full flex flex-col">
           <div className="p-6 border-b border-gray-200">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] bg-clip-text text-transparent">
@@ -159,7 +156,7 @@ export default function AdminPanel() {
 
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          className="fixed top-20 left-0 right-0 bottom-0 bg-black/50 z-30 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}

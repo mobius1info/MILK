@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Profile } from '../lib/supabase';
 import AdminPanel from '../components/Admin/AdminPanel';
-import { LogOut, UserIcon, ShoppingBag } from 'lucide-react';
+import { LogOut, UserIcon, ShoppingBag, Menu } from 'lucide-react';
 
 interface AdminPageProps {
   profile: Profile;
@@ -10,6 +11,7 @@ interface AdminPageProps {
 
 export default function AdminPage({ profile, onLogout }: AdminPageProps) {
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div>
@@ -17,6 +19,12 @@ export default function AdminPage({ profile, onLogout }: AdminPageProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-2 sm:space-x-4">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors -ml-2"
+              >
+                <Menu className="w-6 h-6 text-gray-700" />
+              </button>
               <img
                 src="/logo55555.svg"
                 alt="ML MALL"
@@ -48,7 +56,7 @@ export default function AdminPage({ profile, onLogout }: AdminPageProps) {
           </div>
         </div>
       </div>
-      <AdminPanel />
+      <AdminPanel sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
     </div>
   );
 }
