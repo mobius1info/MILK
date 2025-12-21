@@ -87,9 +87,14 @@ export default function NotificationModal({
             </p>
             <button
               onClick={() => {
+                console.log('>>> NotificationModal OK button clicked');
+                console.log('>>> Calling onClose()');
                 onClose();
                 if (onConfirm) {
+                  console.log('>>> Calling onConfirm()');
                   onConfirm();
+                } else {
+                  console.log('>>> No onConfirm callback');
                 }
               }}
               className={`w-full bg-gradient-to-r ${getButtonColor()} text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity shadow-lg`}

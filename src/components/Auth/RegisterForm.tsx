@@ -83,27 +83,14 @@ export default function RegisterForm({ onSuccess, onToggleForm, onShowNotificati
       }
 
       console.log('Step 4: User created successfully, ID:', data.user.id);
-      console.log('Step 5: Registration complete - showing success notification');
+      console.log('Step 5: Registration complete');
+      console.log('>>> Keeping loading screen ON - profile will be loaded via onAuthStateChange');
 
-      setLoading(false);
+      // Не сбрасываем loading - пусть LoadingScreen показывается, пока профиль загружается
+      // setLoading(false) НЕ вызываем
 
-      onShowNotification({
-        isOpen: true,
-        type: 'success',
-        title: 'Регистрация успешна!',
-        message: 'Ваш аккаунт успешно создан. Нажмите OK для входа в личный кабинет.',
-        onConfirm: () => {
-          console.log('User confirmed, closing modal and checking user state');
-          onShowNotification({
-            isOpen: false,
-            type: 'success',
-            title: '',
-            message: '',
-          });
-          // Вызываем onSuccess чтобы обновить состояние и перейти в ЛК
-          onSuccess();
-        }
-      });
+      // Не показываем модалку - onAuthStateChange автоматически загрузит профиль
+      // и перенаправит в ЛК когда все будет готово
     } catch (err: any) {
       console.error('=== REGISTRATION ERROR ===');
       console.error('Error:', err);

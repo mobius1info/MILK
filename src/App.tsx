@@ -154,10 +154,14 @@ function App() {
     setProfile(null);
   };
 
-  console.log('App render - isLoading:', isLoading, 'user:', !!user, 'profile:', !!profile);
+  console.log('=== APP RENDER ===');
+  console.log('isLoading:', isLoading);
+  console.log('user:', user?.email || 'null');
+  console.log('profile:', profile?.email || 'null');
+  console.log('isFetchingProfile:', isFetchingProfile);
 
   if (isLoading) {
-    console.log('Rendering LoadingScreen');
+    console.log('>>> Rendering LoadingScreen');
     return <LoadingScreen />;
   }
 
@@ -165,7 +169,7 @@ function App() {
     <>
       {!user || !profile ? (
         <>
-          {console.log('Rendering auth forms (user:', !!user, 'profile:', !!profile, ')')}
+          {console.log('>>> Rendering AUTH FORMS (missing:', !user ? 'user' : 'profile', ')')}
           <BrowserRouter>
             <Routes>
               <Route
