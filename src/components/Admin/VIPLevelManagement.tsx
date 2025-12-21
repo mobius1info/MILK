@@ -13,6 +13,8 @@ interface VIPLevel {
   category: string;
   category_image_url: string;
   products_count: number;
+  combo_product_position: number;
+  commission_multiplier: number;
   is_active: boolean;
 }
 
@@ -40,6 +42,8 @@ export default function VIPLevelManagement() {
     category: '',
     category_image_url: '',
     products_count: 25,
+    combo_product_position: 9,
+    commission_multiplier: 3,
     is_active: true
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -83,6 +87,8 @@ export default function VIPLevelManagement() {
       category: level.category,
       category_image_url: level.category_image_url,
       products_count: level.products_count || 25,
+      combo_product_position: level.combo_product_position || 9,
+      commission_multiplier: level.commission_multiplier || 3,
       is_active: level.is_active
     });
     setImageFile(null);
@@ -99,6 +105,8 @@ export default function VIPLevelManagement() {
       category: '',
       category_image_url: '',
       products_count: 25,
+      combo_product_position: 9,
+      commission_multiplier: 3,
       is_active: true
     });
     setImageFile(null);
@@ -139,6 +147,8 @@ export default function VIPLevelManagement() {
         category: formData.category.trim(),
         category_image_url: imageUrl,
         products_count: formData.products_count,
+        combo_product_position: formData.combo_product_position,
+        commission_multiplier: formData.commission_multiplier,
         is_active: formData.is_active
       };
 
@@ -253,6 +263,8 @@ export default function VIPLevelManagement() {
                 category: '',
                 category_image_url: '',
                 products_count: 25,
+                combo_product_position: 9,
+                commission_multiplier: 3,
                 is_active: true
               });
               setImageFile(null);
@@ -335,6 +347,42 @@ export default function VIPLevelManagement() {
                   className="w-full px-3 py-2 border rounded-lg"
                   placeholder="25"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  COMBO Product Position
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.combo_product_position}
+                  onChange={(e) => setFormData({ ...formData, combo_product_position: parseInt(e.target.value) || 9 })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="9"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Every Nth product will be a COMBO product (e.g., 9 means every 9th, 18th, 27th product)
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  COMBO Commission Multiplier
+                </label>
+                <select
+                  value={formData.commission_multiplier}
+                  onChange={(e) => setFormData({ ...formData, commission_multiplier: parseInt(e.target.value) })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                >
+                  <option value={2}>2x</option>
+                  <option value={3}>3x</option>
+                  <option value={4}>4x</option>
+                  <option value={5}>5x</option>
+                </select>
+                <p className="mt-1 text-xs text-gray-500">
+                  COMBO products will earn this multiplier on commission
+                </p>
               </div>
 
               <div>
@@ -467,7 +515,7 @@ export default function VIPLevelManagement() {
                           {level.commission.toFixed(0)}%
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
-                          On 9th product: {(level.commission * 3).toFixed(0)}% (3x)
+                          COMBO (every {level.combo_product_position || 9}th): {(level.commission * (level.commission_multiplier || 3)).toFixed(0)}% ({level.commission_multiplier || 3}x)
                         </div>
                       </div>
 
