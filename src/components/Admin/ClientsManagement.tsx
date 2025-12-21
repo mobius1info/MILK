@@ -35,12 +35,13 @@ export default function ClientsManagement() {
 
       if (error) throw error;
 
-      console.log('🔍 DEBUG: Fetched profiles data:', data);
-      console.log('🔍 DEBUG: First profile:', data?.[0]);
-      console.log('🔍 DEBUG: combo_enabled field:', data?.[0]?.combo_enabled);
-      console.log('🔍 DEBUG: vip_completions_count field:', data?.[0]?.vip_completions_count);
+      const profilesWithDefaults = (data || []).map(profile => ({
+        ...profile,
+        combo_enabled: profile.combo_enabled ?? false,
+        vip_completions_count: profile.vip_completions_count ?? 0
+      }));
 
-      setProfiles(data || []);
+      setProfiles(profilesWithDefaults);
     } catch (error) {
       console.error('Error fetching profiles:', error);
     } finally {
@@ -152,8 +153,6 @@ export default function ClientsManagement() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            {console.log('🎨 RENDER: Rendering table with profiles:', filteredProfiles.length)}
-            {console.log('🎨 RENDER: Sample profile data:', filteredProfiles[0])}
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
@@ -181,9 +180,7 @@ export default function ClientsManagement() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredProfiles.map((profile) => {
-                  console.log('👤 RENDER ROW:', profile.email, 'combo:', profile.combo_enabled, 'vip:', profile.vip_completions_count);
-                  return (
+                {filteredProfiles.map((profile) => (
                   <tr key={profile.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -214,16 +211,16 @@ export default function ClientsManagement() {
                       <div className="flex items-center gap-2">
                         <Award className="w-5 h-5 text-blue-500" />
                         <span className="text-lg font-bold text-gray-900">
-                          {profile.vip_completions_count || 0}
+                          {profile.vip_completions_count ?? 0}
                         </span>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
-                        {profile.vip_completions_count >= 1 ? 'Combo eligible' : 'Need 1 completion'}
+                        {(profile.vip_completions_count ?? 0) >= 1 ? 'Combo eligible' : 'Need 1 completion'}
                       </p>
                     </td>
                     <td className="px-6 py-4">
                       <button
-                        onClick={() => toggleCombo(profile.id, profile.combo_enabled)}
+                        onClick={() => toggleCombo(profile.id, profile.combo_enabled ?? false)}
                         className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all ${
                           profile.combo_enabled
                             ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg hover:shadow-xl'
@@ -233,7 +230,7 @@ export default function ClientsManagement() {
                         <Zap className={`w-4 h-4 ${profile.combo_enabled ? 'animate-pulse' : ''}`} />
                         {profile.combo_enabled ? 'ENABLED' : 'DISABLED'}
                       </button>
-                      {!profile.combo_enabled && profile.vip_completions_count >= 1 && (
+                      {!profile.combo_enabled && (profile.vip_completions_count ?? 0) >= 1 && (
                         <p className="text-xs text-amber-600 mt-1">Click to enable combo</p>
                       )}
                     </td>
@@ -258,8 +255,7 @@ export default function ClientsManagement() {
                       </p>
                     </td>
                   </tr>
-                  );
-                })}
+                ))}
               </tbody>
             </table>
           </div>

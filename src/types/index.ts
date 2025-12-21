@@ -18,3 +18,16 @@ export interface Category {
   name: string;
   icon: string;
 }
+
+export interface Profile {
+  id: string;
+  email: string;
+  username: string;
+  balance: number;
+  created_at: string;
+  referral_code: string;
+  referred_by: string | null;
+  role: string;
+  combo_enabled: boolean;
+  vip_completions_count: number;
+}
