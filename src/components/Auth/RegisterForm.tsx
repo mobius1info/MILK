@@ -38,9 +38,33 @@ export default function RegisterForm({ onSuccess, onToggleForm, onShowNotificati
 
     try {
       console.log('Step 1: Calling supabase.auth.signUp...');
+
+      let referrerId = null;
+      if (referralCode) {
+        console.log('Step 1a: Looking up referral code:', referralCode);
+        const { data: referrerData } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('referral_code', referralCode)
+          .maybeSingle();
+
+        if (referrerData) {
+          referrerId = referrerData.id;
+          console.log('Step 1b: Referrer found:', referrerId);
+        } else {
+          console.log('Step 1b: Referrer not found, continuing without referrer');
+        }
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            full_name: fullName,
+            referred_by: referrerId
+          }
+        }
       });
 
       console.log('Step 2: SignUp response received');
@@ -59,94 +83,7 @@ export default function RegisterForm({ onSuccess, onToggleForm, onShowNotificati
       }
 
       console.log('Step 4: User created successfully, ID:', data.user.id);
-
-      console.log('Step 5: Signing in immediately after registration...');
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (signInError) {
-        console.error('Step 5 error: Could not sign in after registration:', signInError);
-        throw signInError;
-      }
-      console.log('Step 5: Signed in successfully');
-
-      console.log('Step 6: Waiting 3000ms for profile trigger...');
-      await new Promise(resolve => setTimeout(resolve, 3000));
-
-      console.log('Step 7: Looking for referrer...');
-      let referrerId = null;
-      if (referralCode) {
-        console.log('Step 7a: Referral code provided:', referralCode);
-        const { data: referrerData } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('referral_code', referralCode)
-          .maybeSingle();
-
-        if (referrerData) {
-          referrerId = referrerData.id;
-          console.log('Step 7b: Referrer found:', referrerId);
-        } else {
-          console.log('Step 7b: Referrer not found');
-        }
-      }
-
-      console.log('Step 8: Checking if profile was created by trigger...');
-      const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', data.user.id)
-        .maybeSingle();
-
-      if (!existingProfile) {
-        console.log('Step 9: Profile not created by trigger, creating manually...');
-        const newReferralCode = Math.random().toString(36).substring(2, 10);
-        const username = email.split('@')[0];
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert({
-            id: data.user.id,
-            email: email,
-            username: username,
-            role: 'client',
-            referral_code: newReferralCode,
-            full_name: fullName,
-            referred_by: referrerId
-          });
-
-        if (insertError) {
-          console.error('Step 10: Error creating profile manually:');
-          console.error('- Error code:', insertError.code);
-          console.error('- Error message:', insertError.message);
-          console.error('- Error details:', insertError.details);
-          console.error('- Full error:', insertError);
-          throw new Error(`Ошибка создания профиля: ${insertError.message}`);
-        } else {
-          console.log('Step 10: Profile created manually successfully');
-        }
-      } else {
-        console.log('Step 9: Profile exists, updating with full_name and referrer...');
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            full_name: fullName,
-            referred_by: referrerId,
-          })
-          .eq('id', data.user.id);
-
-        if (profileError) {
-          console.error('Step 10: Profile update error:', profileError);
-        } else {
-          console.log('Step 10: Profile updated successfully');
-        }
-      }
-
-      console.log('Step 11: Signing out before showing success notification...');
-      await supabase.auth.signOut();
-
-      console.log('Step 12: Registration complete - showing success notification');
+      console.log('Step 5: Registration complete - showing success notification');
       setLoading(false);
 
       const savedEmail = email;
