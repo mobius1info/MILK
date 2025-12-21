@@ -29,11 +29,17 @@ export default function ClientsManagement() {
       setLoading(true);
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, email, username, balance, created_at, referral_code, referred_by, role, combo_enabled, vip_completions_count')
         .eq('role', 'client')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+
+      console.log('🔍 DEBUG: Fetched profiles data:', data);
+      console.log('🔍 DEBUG: First profile:', data?.[0]);
+      console.log('🔍 DEBUG: combo_enabled field:', data?.[0]?.combo_enabled);
+      console.log('🔍 DEBUG: vip_completions_count field:', data?.[0]?.vip_completions_count);
+
       setProfiles(data || []);
     } catch (error) {
       console.error('Error fetching profiles:', error);
@@ -146,6 +152,8 @@ export default function ClientsManagement() {
           </div>
         ) : (
           <div className="overflow-x-auto">
+            {console.log('🎨 RENDER: Rendering table with profiles:', filteredProfiles.length)}
+            {console.log('🎨 RENDER: Sample profile data:', filteredProfiles[0])}
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
@@ -173,7 +181,9 @@ export default function ClientsManagement() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredProfiles.map((profile) => (
+                {filteredProfiles.map((profile) => {
+                  console.log('👤 RENDER ROW:', profile.email, 'combo:', profile.combo_enabled, 'vip:', profile.vip_completions_count);
+                  return (
                   <tr key={profile.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -248,7 +258,8 @@ export default function ClientsManagement() {
                       </p>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
