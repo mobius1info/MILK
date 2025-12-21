@@ -233,6 +233,17 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
           title: result.is_ninth_product ? 'COMBO product purchased!' : 'Success!',
           message: result.message
         });
+
+        setTimeout(async () => {
+          setNotification({ isOpen: false, type: 'success', title: '', message: '' });
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+          setDynamicPrice(null);
+          setDynamicCommission(null);
+          setMessage('');
+          setInsufficientBalance(null);
+          await loadProductsAndProgress();
+        }, 2000);
       }
     } catch (error: any) {
       console.error('Error purchasing product:', error);
@@ -245,14 +256,6 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
     } finally {
       setPurchasing(false);
     }
-  }
-
-  async function moveToNextProduct() {
-    setDynamicPrice(null);
-    setDynamicCommission(null);
-    setMessage('');
-    setInsufficientBalance(null);
-    await loadProductsAndProgress();
   }
 
   const nextProductNumber = progress.products_purchased + 1;
@@ -498,7 +501,6 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
         type={notification.type}
         title={notification.title}
         message={notification.message}
-        onConfirm={notification.type === 'success' ? moveToNextProduct : undefined}
       />
     </div>
   );
