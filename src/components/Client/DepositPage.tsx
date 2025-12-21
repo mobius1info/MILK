@@ -13,7 +13,6 @@ export default function DepositPage({ userId, onBack, onSuccess }: DepositPagePr
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [amount, setAmount] = useState('');
-  const [transactionHash, setTransactionHash] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -93,16 +92,6 @@ export default function DepositPage({ userId, onBack, onSuccess }: DepositPagePr
       return;
     }
 
-    if (!transactionHash.trim()) {
-      setNotification({
-        isOpen: true,
-        type: 'warning',
-        title: 'Missing Transaction Hash',
-        message: 'Please enter the transaction hash or reference number'
-      });
-      return;
-    }
-
     setSubmitting(true);
     try {
       const { error } = await supabase.from('transactions').insert([
@@ -112,7 +101,6 @@ export default function DepositPage({ userId, onBack, onSuccess }: DepositPagePr
           amount: depositAmount,
           status: 'pending',
           payment_method_id: selectedMethod.id,
-          transaction_hash: transactionHash.trim(),
         },
       ]);
 
@@ -125,7 +113,6 @@ export default function DepositPage({ userId, onBack, onSuccess }: DepositPagePr
         message: 'Deposit request successfully submitted! Please wait for administrator confirmation.'
       });
       setAmount('');
-      setTransactionHash('');
       onSuccess();
       onBack();
     } catch (error: any) {
@@ -288,22 +275,6 @@ export default function DepositPage({ userId, onBack, onSuccess }: DepositPagePr
                     </p>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Transaction Hash / Reference
-                    </label>
-                    <input
-                      type="text"
-                      value={transactionHash}
-                      onChange={(e) => setTransactionHash(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
-                      placeholder="Enter your transaction hash or reference number"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Required for verification. You can find this in your wallet after sending.
-                    </p>
-                  </div>
-
                   <button
                     onClick={handleSubmit}
                     disabled={submitting}
@@ -319,7 +290,6 @@ export default function DepositPage({ userId, onBack, onSuccess }: DepositPagePr
                         <p className="font-semibold mb-1">Important Notice:</p>
                         <ul className="list-disc list-inside space-y-1">
                           <li>Send exact amount to the address above</li>
-                          <li>Include transaction hash for faster processing</li>
                           <li>Your deposit will be reviewed by admin</li>
                           <li>Processing time: 10-30 minutes after confirmation</li>
                         </ul>
