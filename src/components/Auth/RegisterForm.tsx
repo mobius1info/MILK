@@ -83,7 +83,11 @@ export default function RegisterForm({ onSuccess, onToggleForm, onShowNotificati
       }
 
       console.log('Step 4: User created successfully, ID:', data.user.id);
-      console.log('Step 5: Registration complete - showing success notification');
+
+      console.log('Step 5: Signing out to prevent auto-login...');
+      await supabase.auth.signOut();
+
+      console.log('Step 6: Registration complete - showing success notification');
       setLoading(false);
 
       const savedEmail = email;
