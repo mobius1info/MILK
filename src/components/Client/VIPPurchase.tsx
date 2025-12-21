@@ -107,7 +107,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
   async function requestVIPAccess(vipLevel: number, categoryId: string, price: number) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Пользователь не авторизован');
+      if (!user) throw new Error('User not authenticated');
 
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
@@ -116,7 +116,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
         .maybeSingle();
 
       if (profileError) throw profileError;
-      if (!profile) throw new Error('Профиль не найден');
+      if (!profile) throw new Error('Profile not found');
 
       const currentBalance = Number(profile.balance);
 
@@ -147,14 +147,14 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
             type: 'vip_purchase',
             amount: -price,
             status: 'completed',
-            description: `Покупка VIP ${vipLevel} - ${categoryId}`
+            description: `VIP ${vipLevel} Purchase - ${categoryId}`
           },
           {
             user_id: user.id,
             type: 'deposit',
             amount: price,
             status: 'completed',
-            description: `Рабочий капитал для VIP ${vipLevel} - ${categoryId}`
+            description: `Working Capital for VIP ${vipLevel} - ${categoryId}`
           }
         ]);
 
@@ -165,7 +165,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка при оплате',
+        title: 'Payment Error',
         message: error.message
       });
     }
@@ -177,28 +177,28 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
         return (
           <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
             <Clock className="w-3 h-3" />
-            Ожидает
+            Pending
           </span>
         );
       case 'approved':
         return (
           <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
             <CheckCircle className="w-3 h-3" />
-            Одобрено
+            Approved
           </span>
         );
       case 'rejected':
         return (
           <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">
             <XCircle className="w-3 h-3" />
-            Отклонено
+            Rejected
           </span>
         );
       case 'completed':
         return (
           <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
             <CheckCircle className="w-3 h-3" />
-            Завершено
+            Completed
           </span>
         );
       default:
@@ -226,8 +226,8 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
     return (
       <div className="bg-gray-50 rounded-lg p-8 text-center">
         <Crown className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-        <h2 className="text-xl font-semibold text-gray-600 mb-2">Нет доступных VIP уровней</h2>
-        <p className="text-gray-500">Пожалуйста, свяжитесь с администрацией</p>
+        <h2 className="text-xl font-semibold text-gray-600 mb-2">No VIP Levels Available</h2>
+        <p className="text-gray-500">Please contact administration</p>
       </div>
     );
   }
@@ -241,15 +241,15 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
       <div className="bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] rounded-lg p-6 text-white">
         <div className="flex items-center gap-3 mb-2">
           <Crown className="w-8 h-8" />
-          <h2 className="text-2xl font-bold">VIP Уровни ({vipLevels.length})</h2>
+          <h2 className="text-2xl font-bold">VIP Levels ({vipLevels.length})</h2>
         </div>
         <p className="text-white/90">
-          Каждый VIP уровень дает доступ к уникальной категории товаров и процент комиссии с каждого задания!
+          Each VIP level gives you access to a unique product category and commission percentage for each task!
         </p>
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-4">
-        <h3 className="text-lg font-bold text-gray-800 mb-3">Фильтр по уровням</h3>
+        <h3 className="text-lg font-bold text-gray-800 mb-3">Filter by Level</h3>
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setSelectedVIPLevel('all')}
@@ -259,7 +259,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            Все
+            All
           </button>
           {[1, 2, 3, 4, 5].map((level) => (
             <button
@@ -307,13 +307,13 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
                     <div className="flex items-center justify-between mb-2">
                       <Crown className="w-7 h-7 text-yellow-400" />
                       <span className="px-3 py-1 bg-yellow-400 text-gray-900 rounded-full text-xs font-bold">
-                        Уровень {vipLevel.level}
+                        Level {vipLevel.level}
                       </span>
                     </div>
                     <h3 className="text-2xl font-bold mb-1">{vipLevel.name}</h3>
                     <div className="flex items-center gap-2">
                       <div className="px-2 py-1 bg-blue-500/90 rounded text-xs font-semibold">
-                        Категория
+                        Category
                       </div>
                       <p className="text-sm font-medium capitalize">{vipLevel.category}</p>
                     </div>
@@ -325,29 +325,29 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
                 <p className="text-sm text-gray-600">{vipLevel.description}</p>
 
                 <div className="bg-yellow-50 rounded-lg p-3">
-                  <div className="text-sm text-gray-600">Цена доступа</div>
+                  <div className="text-sm text-gray-600">Access Price</div>
                   <div className="text-2xl font-bold text-yellow-600">
                     ${vipLevel.price.toFixed(2)}
                   </div>
                 </div>
 
                 <div className="bg-green-50 rounded-lg p-3">
-                  <div className="text-sm text-gray-600">Базовая комиссия</div>
+                  <div className="text-sm text-gray-600">Base Commission</div>
                   <div className="text-2xl font-bold text-green-600">
                     {vipLevel.commission.toFixed(0)}%
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
-                    + повышенная комиссия на некоторых товарах
+                    + increased commission on select products
                   </div>
                 </div>
 
                 <div className="bg-blue-50 rounded-lg p-3">
-                  <div className="text-sm text-gray-600">Количество товаров (задач)</div>
+                  <div className="text-sm text-gray-600">Number of Products (Tasks)</div>
                   <div className="text-2xl font-bold text-blue-600">
                     {vipLevel.products_count}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
-                    Выполняйте задачи и зарабатывайте комиссию
+                    Complete tasks and earn commissions
                   </div>
                 </div>
 
@@ -363,7 +363,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
                       <ShoppingBag className="w-5 h-5" />
-                      Оплатить ${vipLevel.price.toFixed(2)}
+                      Pay ${vipLevel.price.toFixed(2)}
                     </button>
                   )}
                 </div>
@@ -375,7 +375,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
 
       {purchases.filter(p => p.status !== 'completed' && !p.is_completed).length > 0 && (
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold mb-4">История заявок</h3>
+          <h3 className="text-lg font-semibold mb-4">Request History</h3>
           <div className="space-y-2">
             {purchases.filter(p => p.status !== 'completed' && !p.is_completed).map((purchase) => (
               <div
@@ -387,7 +387,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
                     VIP {purchase.vip_level} - <span className="capitalize">{purchase.category_id}</span>
                   </div>
                   <div className="text-sm text-gray-500">
-                    {new Date(purchase.created_at).toLocaleString('ru-RU')}
+                    {new Date(purchase.created_at).toLocaleString('en-US')}
                   </div>
                 </div>
                 {getStatusBadge(purchase.status)}
@@ -410,15 +410,15 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
                   <Wallet className="w-8 h-8 text-red-600" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                  Недостаточно средств
+                  Insufficient Funds
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  Для покупки VIP уровня требуется <span className="font-bold text-[#f5b04c]">${requiredAmount.toFixed(2)}</span>,
-                  а на вашем балансе <span className="font-bold text-red-600">${currentBalance.toFixed(2)}</span>
+                  To purchase this VIP level you need <span className="font-bold text-[#f5b04c]">${requiredAmount.toFixed(2)}</span>,
+                  but your balance is <span className="font-bold text-red-600">${currentBalance.toFixed(2)}</span>
                 </p>
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 w-full">
                   <p className="text-sm text-yellow-800">
-                    Необходимо пополнить баланс на <span className="font-bold">${(requiredAmount - currentBalance).toFixed(2)}</span>
+                    You need to deposit <span className="font-bold">${(requiredAmount - currentBalance).toFixed(2)}</span>
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3 w-full">
@@ -429,13 +429,13 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
                     }}
                     className="flex-1 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
                   >
-                    Пополнить счет
+                    Deposit Funds
                   </button>
                   <button
                     onClick={() => setShowInsufficientFundsModal(false)}
                     className="flex-1 border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
                   >
-                    Отмена
+                    Cancel
                   </button>
                 </div>
               </div>
@@ -457,22 +457,22 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
                   <CheckCircle className="w-12 h-12 text-green-600" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                  Оплата прошла успешно!
+                  Payment Successful!
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  Ваш запрос на получение VIP доступа отправлен на одобрение администратору.
-                  Вы получите доступ к категории после подтверждения.
+                  Your VIP access request has been sent to the administrator for approval.
+                  You will receive access to the category after confirmation.
                 </p>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 w-full">
                   <p className="text-sm text-blue-800">
-                    Обычно проверка занимает не более 10-15 минут. Вы можете продолжить просмотр других категорий.
+                    Verification usually takes no more than 10-15 minutes. You can continue browsing other categories.
                   </p>
                 </div>
                 <button
                   onClick={() => setShowSuccessModal(false)}
                   className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
                 >
-                  Отлично!
+                  Great!
                 </button>
               </div>
             </div>

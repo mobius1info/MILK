@@ -142,9 +142,9 @@ export default function VIPCategories() {
     return (
       <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-8 text-center border-2 border-dashed border-blue-300">
         <Lock className="w-16 h-16 mx-auto mb-4 text-blue-400" />
-        <h3 className="text-xl font-bold text-gray-900 mb-2">VIP категории не доступны</h3>
+        <h3 className="text-xl font-bold text-gray-900 mb-2">VIP Categories Not Available</h3>
         <p className="text-gray-600 mb-4">
-          Приобретите доступ к VIP категориям чтобы начать зарабатывать комиссию!
+          Purchase VIP category access to start earning commission!
         </p>
       </div>
     );
@@ -157,8 +157,8 @@ export default function VIPCategories() {
           <div className="flex items-center gap-3">
             <Crown className="w-8 h-8" />
             <div>
-              <h2 className="text-2xl font-bold">Мои VIP Категории</h2>
-              <p className="text-blue-100">Просматривайте товары и зарабатывайте комиссию</p>
+              <h2 className="text-2xl font-bold">My VIP Categories</h2>
+              <p className="text-blue-100">Browse products and earn commission</p>
             </div>
           </div>
         </div>
@@ -206,7 +206,7 @@ export default function VIPCategories() {
 
                   <div className="bg-gray-100 rounded-lg p-3">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-gray-600">Прогресс</span>
+                      <span className="text-xs text-gray-600">Progress</span>
                       <span className="text-xs font-semibold text-gray-700">
                         {currentPurchase.completed_products_count || 0}/{vipLevel.products_count}
                       </span>
@@ -223,8 +223,8 @@ export default function VIPCategories() {
 
                   {!approved ? (
                     <div className="text-center py-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <p className="text-sm font-semibold text-blue-700">Все товары завершены!</p>
-                      <p className="text-xs text-blue-600 mt-1">Купите VIP {vipLevel.level} снова, чтобы продолжить зарабатывать</p>
+                      <p className="text-sm font-semibold text-blue-700">All products completed!</p>
+                      <p className="text-xs text-blue-600 mt-1">Purchase VIP {vipLevel.level} again to continue earning</p>
                     </div>
                   ) : hasAccessToCategory ? (
                     <button
@@ -232,12 +232,12 @@ export default function VIPCategories() {
                       className="w-full py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition-all"
                     >
                       <ShoppingBag className="w-5 h-5" />
-                      Начать
+                      Start
                     </button>
                   ) : (
                     <div className="text-center py-3">
                       <Lock className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                      <p className="text-sm text-gray-500">Ожидайте одобрения доступа</p>
+                      <p className="text-sm text-gray-500">Awaiting access approval</p>
                     </div>
                   )}
                 </div>
@@ -261,7 +261,7 @@ export default function VIPCategories() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-8 text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-lg font-semibold text-gray-700">Загрузка следующего товара...</p>
+            <p className="text-lg font-semibold text-gray-700">Loading next product...</p>
           </div>
         </div>
       )}

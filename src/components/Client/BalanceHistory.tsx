@@ -76,19 +76,19 @@ export default function BalanceHistory({ userId }: BalanceHistoryProps) {
   const getTransactionLabel = (type: Transaction['type']) => {
     switch (type) {
       case 'deposit':
-        return 'Пополнение';
+        return 'Deposit';
       case 'withdrawal':
-        return 'Вывод средств';
+        return 'Withdrawal';
       case 'commission':
-        return 'Комиссия с покупки';
+        return 'Purchase Commission';
       case 'referral_bonus':
-        return 'Бонус за реферала';
+        return 'Referral Bonus';
       case 'manual_credit':
-        return 'Пополнение от админа';
+        return 'Admin Credit';
       case 'vip_purchase':
-        return 'Покупка VIP';
+        return 'VIP Purchase';
       case 'product_purchase':
-        return 'Покупка товара';
+        return 'Product Purchase';
       default:
         return type;
     }
@@ -111,13 +111,13 @@ export default function BalanceHistory({ userId }: BalanceHistoryProps) {
   const getStatusLabel = (status: Transaction['status']) => {
     switch (status) {
       case 'completed':
-        return 'Завершено';
+        return 'Completed';
       case 'pending':
-        return 'В обработке';
+        return 'Pending';
       case 'failed':
-        return 'Ошибка';
+        return 'Failed';
       case 'rejected':
-        return 'Отклонено';
+        return 'Rejected';
       default:
         return status;
     }
@@ -174,13 +174,13 @@ export default function BalanceHistory({ userId }: BalanceHistoryProps) {
   const getSectionTitle = () => {
     switch (filter) {
       case 'deposit':
-        return 'Пополнения';
+        return 'Deposits';
       case 'withdrawal':
-        return 'Выводы';
+        return 'Withdrawals';
       case 'commission':
-        return 'Заработки';
+        return 'Earnings';
       default:
-        return 'Все транзакции';
+        return 'All Transactions';
     }
   };
 
@@ -198,7 +198,7 @@ export default function BalanceHistory({ userId }: BalanceHistoryProps) {
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-lg shadow-md p-4">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">История баланса</h2>
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Balance History</h2>
 
         <div className="flex flex-wrap gap-2 mb-4">
           <button
@@ -209,7 +209,7 @@ export default function BalanceHistory({ userId }: BalanceHistoryProps) {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            Все транзакции
+            All Transactions
           </button>
           <button
             onClick={() => setFilter('deposit')}
@@ -219,7 +219,7 @@ export default function BalanceHistory({ userId }: BalanceHistoryProps) {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            Пополнения
+            Deposits
           </button>
           <button
             onClick={() => setFilter('withdrawal')}
@@ -229,7 +229,7 @@ export default function BalanceHistory({ userId }: BalanceHistoryProps) {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            Выводы
+            Withdrawals
           </button>
           <button
             onClick={() => setFilter('commission')}
@@ -239,35 +239,35 @@ export default function BalanceHistory({ userId }: BalanceHistoryProps) {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            Заработки
+            Earnings
           </button>
         </div>
 
         {filter !== 'all' && totals.count > 0 && (
           <div className="bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] rounded-lg p-4 mb-4 text-white">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-bold">{getSectionTitle()} - Общий итог</h3>
-              <span className="text-sm opacity-90">Всего транзакций: {totals.count}</span>
+              <h3 className="text-lg font-bold">{getSectionTitle()} - Total</h3>
+              <span className="text-sm opacity-90">Total transactions: {totals.count}</span>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
-                <p className="text-xs opacity-90 mb-1">Одобрено</p>
+                <p className="text-xs opacity-90 mb-1">Approved</p>
                 <p className="text-xl font-bold">${totals.approved.toFixed(2)}</p>
               </div>
               {totals.pending > 0 && (
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
-                  <p className="text-xs opacity-90 mb-1">В обработке</p>
+                  <p className="text-xs opacity-90 mb-1">Pending</p>
                   <p className="text-xl font-bold">${totals.pending.toFixed(2)}</p>
                 </div>
               )}
               {totals.rejected > 0 && (
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
-                  <p className="text-xs opacity-90 mb-1">Отклонено</p>
+                  <p className="text-xs opacity-90 mb-1">Rejected</p>
                   <p className="text-xl font-bold">${totals.rejected.toFixed(2)}</p>
                 </div>
               )}
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
-                <p className="text-xs opacity-90 mb-1">Всего</p>
+                <p className="text-xs opacity-90 mb-1">Total</p>
                 <p className="text-xl font-bold">${totals.total.toFixed(2)}</p>
               </div>
             </div>
@@ -277,7 +277,7 @@ export default function BalanceHistory({ userId }: BalanceHistoryProps) {
         <div className="space-y-3">
           {filteredTransactions.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              <p>Транзакций не найдено</p>
+              <p>No transactions found</p>
             </div>
           ) : (
             filteredTransactions.map((transaction) => (
@@ -303,7 +303,7 @@ export default function BalanceHistory({ userId }: BalanceHistoryProps) {
                       <p className="text-sm text-gray-600 mb-1">{transaction.description}</p>
                     )}
                     <p className="text-xs text-gray-500">
-                      {new Date(transaction.created_at).toLocaleString('ru-RU', {
+                      {new Date(transaction.created_at).toLocaleString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',

@@ -94,8 +94,8 @@ export default function CategoryAccessManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
-        message: 'Не удалось обновить доступ к категории',
+        title: 'Error',
+        message: 'Failed to update category access',
       });
     } finally {
       setLoading(false);
@@ -137,8 +137,8 @@ export default function CategoryAccessManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
-        message: 'Не удалось обновить лимит товаров',
+        title: 'Error',
+        message: 'Failed to update product limit',
       });
     } finally {
       setLoading(false);

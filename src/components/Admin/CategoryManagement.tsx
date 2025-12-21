@@ -78,8 +78,8 @@ export default function CategoryManagement() {
         setNotification({
           isOpen: true,
           type: 'success',
-          title: 'Успешно',
-          message: 'Категория обновлена',
+          title: 'Success',
+          message: 'Category updated',
         });
       } else {
         const { error } = await supabase
@@ -91,8 +91,8 @@ export default function CategoryManagement() {
         setNotification({
           isOpen: true,
           type: 'success',
-          title: 'Успешно',
-          message: 'Категория создана',
+          title: 'Success',
+          message: 'Category created',
         });
       }
 
@@ -109,7 +109,7 @@ export default function CategoryManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message,
       });
     }
@@ -136,13 +136,13 @@ export default function CategoryManagement() {
       setNotification({
         isOpen: true,
         type: 'warning',
-        title: 'Невозможно удалить',
-        message: 'В этой категории есть товары. Сначала удалите или переместите товары.',
+        title: 'Cannot Delete',
+        message: 'This category contains products. First delete or move the products.',
       });
       return;
     }
 
-    if (!confirm('Вы уверены, что хотите удалить эту категорию?')) return;
+    if (!confirm('Are you sure you want to delete this category?')) return;
 
     try {
       const { error } = await supabase
@@ -155,28 +155,28 @@ export default function CategoryManagement() {
       setNotification({
         isOpen: true,
         type: 'success',
-        title: 'Успешно',
-        message: 'Категория удалена',
+        title: 'Success',
+        message: 'Category deleted',
       });
       fetchCategories();
     } catch (error: any) {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message,
       });
     }
   };
 
   if (loading) {
-    return <div className="text-center py-8">Загрузка...</div>;
+    return <div className="text-center py-8">Loading...</div>;
   }
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Управление категориями</h2>
+        <h2 className="text-2xl font-bold text-gray-800">Category Management</h2>
         <button
           onClick={() => {
             setShowForm(true);
@@ -191,20 +191,20 @@ export default function CategoryManagement() {
           className="flex items-center space-x-2 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all"
         >
           <Plus className="w-5 h-5" />
-          <span>Добавить категорию</span>
+          <span>Add Category</span>
         </button>
       </div>
 
       {showForm && (
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h3 className="text-xl font-semibold mb-4">
-            {editingCategory ? 'Редактировать категорию' : 'Новая категория'}
+            {editingCategory ? 'Edit Category' : 'New Category'}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Отображаемое имя *
+                  Display Name *
                 </label>
                 <input
                   type="text"
@@ -223,7 +223,7 @@ export default function CategoryManagement() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Системное имя (автоматически)
+                  System Name (automatic)
                 </label>
                 <input
                   type="text"
@@ -237,20 +237,20 @@ export default function CategoryManagement() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Описание
+                Description
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
-                placeholder="Описание категории"
+                placeholder="Category description"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                URL изображения
+                Image URL
               </label>
               <input
                 type="url"
@@ -266,7 +266,7 @@ export default function CategoryManagement() {
                 type="submit"
                 className="flex items-center space-x-2 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all"
               >
-                <span>{editingCategory ? 'Обновить' : 'Создать'}</span>
+                <span>{editingCategory ? 'Update' : 'Create'}</span>
               </button>
               <button
                 type="button"
@@ -276,7 +276,7 @@ export default function CategoryManagement() {
                 }}
                 className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Отмена
+                Cancel
               </button>
             </div>
           </form>
@@ -308,14 +308,14 @@ export default function CategoryManagement() {
                 className="flex-1 flex items-center justify-center space-x-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
               >
                 <Edit className="w-4 h-4" />
-                <span>Изменить</span>
+                <span>Edit</span>
               </button>
               <button
                 onClick={() => handleDelete(category.id, category.name)}
                 className="flex-1 flex items-center justify-center space-x-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
-                <span>Удалить</span>
+                <span>Delete</span>
               </button>
             </div>
           </div>
@@ -325,8 +325,8 @@ export default function CategoryManagement() {
       {categories.length === 0 && (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
           <Tag className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Категорий нет</h3>
-          <p className="text-gray-500">Создайте первую категорию для товаров</p>
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">No Categories</h3>
+          <p className="text-gray-500">Create the first category for products</p>
         </div>
       )}
 

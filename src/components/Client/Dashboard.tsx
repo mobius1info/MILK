@@ -122,8 +122,8 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
     setNotification({
       isOpen: true,
       type: 'success',
-      title: 'Скопировано!',
-      message: 'Реферальный код успешно скопирован в буфер обмена'
+      title: 'Copied!',
+      message: 'Referral code successfully copied to clipboard'
     });
   };
 
@@ -134,8 +134,8 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
       setNotification({
         isOpen: true,
         type: 'warning',
-        title: 'Неверная сумма',
-        message: 'Пожалуйста, введите корректную сумму для вывода'
+        title: 'Invalid Amount',
+        message: 'Please enter a valid amount for withdrawal'
       });
       return;
     }
@@ -144,8 +144,8 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Недостаточно средств',
-        message: 'На вашем балансе недостаточно средств для вывода этой суммы'
+        title: 'Insufficient Funds',
+        message: 'Your balance is insufficient to withdraw this amount'
       });
       return;
     }
@@ -169,14 +169,14 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
       setNotification({
         isOpen: true,
         type: 'success',
-        title: 'Запрос отправлен!',
-        message: 'Ваш запрос на вывод средств успешно отправлен и ожидает одобрения администратора'
+        title: 'Request Submitted!',
+        message: 'Your withdrawal request has been successfully submitted and is awaiting administrator approval'
       });
     } catch (error: any) {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message
       });
     } finally {
@@ -439,10 +439,10 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
       {activeTab === 'profile' && (
         <div className="space-y-4">
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Профиль</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Profile</h2>
             <div className="space-y-4">
               <div className="border-b pb-4">
-                <label className="text-sm text-gray-600 block mb-1">Баланс</label>
+                <label className="text-sm text-gray-600 block mb-1">Balance</label>
                 <p className="text-2xl font-bold text-[#f5b04c]">${profile.balance.toFixed(2)}</p>
               </div>
               <div>
@@ -621,7 +621,7 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
             }`}
           >
             <ShoppingBag className="w-5 h-5 mb-1" />
-            <span className="text-xs font-medium">Таски</span>
+            <span className="text-xs font-medium">Tasks</span>
           </button>
 
           <button

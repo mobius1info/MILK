@@ -196,7 +196,7 @@ export default function ProductManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message,
       });
     } finally {
@@ -235,7 +235,7 @@ export default function ProductManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message,
       });
     }
@@ -281,7 +281,7 @@ export default function ProductManagement() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Поиск товаров по названию или описанию..."
+              placeholder="Search products by name or description..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
@@ -295,7 +295,7 @@ export default function ProductManagement() {
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c] appearance-none bg-white"
               >
-                <option value="all">Все категории ({products.length})</option>
+                <option value="all">All Categories ({products.length})</option>
                 {categories.map(cat => (
                   <option key={cat.id} value={cat.name}>
                     {cat.display_name} ({products.filter(p => p.category === cat.name).length})
@@ -322,14 +322,14 @@ export default function ProductManagement() {
               className="flex items-center justify-center space-x-2 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all whitespace-nowrap"
             >
               <Plus className="w-5 h-5" />
-              <span>Добавить</span>
+              <span>Add</span>
             </button>
           </div>
         </div>
 
         {(selectedCategory !== 'all' || searchQuery) && (
           <div className="flex items-center gap-2 text-sm text-gray-600">
-            <span>Найдено товаров: {filteredProducts.length}</span>
+            <span>Products found: {filteredProducts.length}</span>
             {(selectedCategory !== 'all' || searchQuery) && (
               <button
                 onClick={() => {
@@ -338,7 +338,7 @@ export default function ProductManagement() {
                 }}
                 className="text-blue-600 hover:underline"
               >
-                Сбросить фильтры
+                Reset filters
               </button>
             )}
           </div>
@@ -374,7 +374,7 @@ export default function ProductManagement() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
                   required
                 >
-                  <option value="">Выберите категорию</option>
+                  <option value="">Select category</option>
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.name}>
                       {cat.display_name}
@@ -383,7 +383,7 @@ export default function ProductManagement() {
                 </select>
                 {categories.length === 0 && (
                   <p className="mt-1 text-xs text-orange-600">
-                    Сначала создайте категорию в разделе "Categories"
+                    First create a category in the "Categories" section
                   </p>
                 )}
               </div>
@@ -482,28 +482,28 @@ export default function ProductManagement() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Множитель количества
+                  Quantity Multiplier
                 </label>
                 <select
                   value={formData.quantity_multiplier}
                   onChange={(e) => setFormData({ ...formData, quantity_multiplier: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
                 >
-                  <option value="1">x1 (обычный)</option>
-                  <option value="2">x2 (считается как 2 товара)</option>
-                  <option value="3">x3 (считается как 3 товара)</option>
-                  <option value="4">x4 (считается как 4 товара)</option>
-                  <option value="5">x5 (считается как 5 товаров)</option>
+                  <option value="1">x1 (normal)</option>
+                  <option value="2">x2 (counts as 2 products)</option>
+                  <option value="3">x3 (counts as 3 products)</option>
+                  <option value="4">x4 (counts as 4 products)</option>
+                  <option value="5">x5 (counts as 5 products)</option>
                 </select>
               </div>
             </div>
 
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-xs text-blue-800">
-                <strong>Комиссия:</strong> Установите процент комиссии для товара (например: 5 = 5%).
+                <strong>Commission:</strong> Set the commission percentage for the product (e.g., 5 = 5%).
                 <br />
-                <strong>Множитель:</strong> Товар с множителем x2 считается как 2 единицы при подсчете прогресса.
-                Используйте для более дорогих товаров, чтобы клиент быстрее завершал задачи.
+                <strong>Multiplier:</strong> A product with x2 multiplier counts as 2 units when calculating progress.
+                Use for more expensive products to help clients complete tasks faster.
               </p>
             </div>
 
@@ -555,8 +555,8 @@ export default function ProductManagement() {
       {filteredProducts.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
           <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Товары не найдены</h3>
-          <p className="text-gray-500">Попробуйте изменить параметры поиска или добавьте новый товар</p>
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Products not found</h3>
+          <p className="text-gray-500">Try changing search parameters or add a new product</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -598,11 +598,11 @@ export default function ProductManagement() {
                 </div>
                 <div className="mb-3 flex gap-2 flex-wrap">
                   <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-medium">
-                    Комиссия: {product.commission_percentage || 0}%
+                    Commission: {product.commission_percentage || 0}%
                   </span>
                   {(product as any).quantity_multiplier > 1 && (
                     <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded font-medium">
-                      Считается как {(product as any).quantity_multiplier} шт
+                      Counts as {(product as any).quantity_multiplier} pcs
                     </span>
                   )}
                 </div>

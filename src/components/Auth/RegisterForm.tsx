@@ -79,18 +79,18 @@ export default function RegisterForm({ onSuccess, onToggleForm, onShowNotificati
 
       if (!data.user) {
         console.log('Step 3: No user in response, throwing error...');
-        throw new Error('Не удалось создать пользователя. Возможно, этот email уже зарегистрирован.');
+        throw new Error('Failed to create user. This email may already be registered.');
       }
 
       console.log('Step 4: User created successfully, ID:', data.user.id);
       console.log('Step 5: Registration complete');
       console.log('>>> Keeping loading screen ON - profile will be loaded via onAuthStateChange');
 
-      // Не сбрасываем loading - пусть LoadingScreen показывается, пока профиль загружается
-      // setLoading(false) НЕ вызываем
+      // Don't reset loading - let LoadingScreen show while profile is loading
+      // setLoading(false) NOT called
 
-      // Не показываем модалку - onAuthStateChange автоматически загрузит профиль
-      // и перенаправит в ЛК когда все будет готово
+      // Don't show modal - onAuthStateChange will automatically load profile
+      // and redirect to dashboard when everything is ready
     } catch (err: any) {
       console.error('=== REGISTRATION ERROR ===');
       console.error('Error:', err);
@@ -99,8 +99,8 @@ export default function RegisterForm({ onSuccess, onToggleForm, onShowNotificati
       onShowNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка регистрации',
-        message: err.message || 'Не удалось зарегистрироваться. Попробуйте снова.'
+        title: 'Registration Error',
+        message: err.message || 'Failed to register. Please try again.'
       });
       console.log('Error notification set at App level');
     }

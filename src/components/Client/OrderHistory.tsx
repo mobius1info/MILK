@@ -529,7 +529,7 @@ export default function OrderHistory({ userId, onNavigateToDeposit }: OrderHisto
                     onClick={() => setExpandedVIP(isExpanded ? null : vip.level)}
                     className="w-full bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
                   >
-                    {isExpanded ? 'Скрыть задачи' : 'Посмотреть задачи'}
+                    {isExpanded ? 'Hide Tasks' : 'View Tasks'}
                   </button>
                 )}
               </div>
@@ -539,7 +539,7 @@ export default function OrderHistory({ userId, onNavigateToDeposit }: OrderHisto
                   {vipProducts.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
                       <Package className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                      <p>Нет доступных задач</p>
+                      <p>No available tasks</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

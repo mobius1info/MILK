@@ -155,8 +155,8 @@ export default function VIPLevelManagement() {
         setNotification({
           isOpen: true,
           type: 'success',
-          title: 'Успех',
-          message: 'VIP уровень обновлен',
+          title: 'Success',
+          message: 'VIP level updated',
         });
       } else {
         const { error } = await supabase
@@ -170,8 +170,8 @@ export default function VIPLevelManagement() {
         setNotification({
           isOpen: true,
           type: 'success',
-          title: 'Успех',
-          message: 'VIP уровень создан',
+          title: 'Success',
+          message: 'VIP level created',
         });
       }
 
@@ -182,7 +182,7 @@ export default function VIPLevelManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message,
       });
     } finally {
@@ -191,7 +191,7 @@ export default function VIPLevelManagement() {
   }
 
   async function deleteVIPLevel(id: string) {
-    if (!confirm('Удалить этот VIP уровень?')) return;
+    if (!confirm('Delete this VIP level?')) return;
 
     try {
       const { error } = await supabase
@@ -203,8 +203,8 @@ export default function VIPLevelManagement() {
       setNotification({
         isOpen: true,
         type: 'success',
-        title: 'Успех',
-        message: 'VIP уровень удален',
+        title: 'Success',
+        message: 'VIP level deleted',
       });
       loadVIPLevels();
     } catch (error: any) {
@@ -212,7 +212,7 @@ export default function VIPLevelManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message,
       });
     }
@@ -232,15 +232,15 @@ export default function VIPLevelManagement() {
         <div className="flex items-center gap-3">
           <Crown className="w-8 h-8" />
           <div>
-            <h2 className="text-2xl font-bold">Управление VIP Уровнями</h2>
-            <p className="text-purple-100">Настройка комиссий и категорий для каждого VIP уровня</p>
+            <h2 className="text-2xl font-bold">VIP Level Management</h2>
+            <p className="text-purple-100">Configure commissions and categories for each VIP level</p>
           </div>
         </div>
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">VIP Уровни</h3>
+          <h3 className="text-lg font-semibold">VIP Levels</h3>
           <button
             onClick={() => {
               setEditingId('new');
@@ -260,19 +260,19 @@ export default function VIPLevelManagement() {
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
           >
             <Plus className="w-5 h-5" />
-            Добавить уровень
+            Add Level
           </button>
         </div>
 
         {editingId && (
           <div className="mb-6 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
             <h4 className="font-semibold mb-4">
-              {editingId === 'new' ? 'Создать новый VIP уровень' : 'Редактировать VIP уровень'}
+              {editingId === 'new' ? 'Create New VIP Level' : 'Edit VIP Level'}
             </h4>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Уровень (номер)
+                  Level (number)
                 </label>
                 <input
                   type="number"
@@ -285,7 +285,7 @@ export default function VIPLevelManagement() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Название
+                  Name
                 </label>
                 <input
                   type="text"
@@ -298,7 +298,7 @@ export default function VIPLevelManagement() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Комиссия (%)
+                  Commission (%)
                 </label>
                 <input
                   type="number"
@@ -312,7 +312,7 @@ export default function VIPLevelManagement() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Цена ($)
+                  Price ($)
                 </label>
                 <input
                   type="number"
@@ -326,7 +326,7 @@ export default function VIPLevelManagement() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Количество товаров (задач)
+                  Number of Products (tasks)
                 </label>
                 <input
                   type="number"
@@ -339,27 +339,27 @@ export default function VIPLevelManagement() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Описание
+                  Description
                 </label>
                 <input
                   type="text"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="Базовый уровень"
+                  placeholder="Basic level"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Категория
+                  Category
                 </label>
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
                 >
-                  <option value="">Выберите категорию</option>
+                  <option value="">Select category</option>
                   <option value="electronics">Electronics</option>
                   <option value="fashion">Fashion</option>
                   <option value="home">Home & Living</option>
@@ -370,7 +370,7 @@ export default function VIPLevelManagement() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Изображение категории
+                  Category Image
                 </label>
                 <input
                   type="file"
@@ -395,7 +395,7 @@ export default function VIPLevelManagement() {
                   className="w-4 h-4 text-blue-600"
                 />
                 <label className="ml-2 text-sm font-medium text-gray-700">
-                  Активен
+                  Active
                 </label>
               </div>
             </div>
@@ -407,14 +407,14 @@ export default function VIPLevelManagement() {
                 className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50"
               >
                 <Save className="w-5 h-5" />
-                {uploading ? 'Сохранение...' : 'Сохранить'}
+                {uploading ? 'Saving...' : 'Save'}
               </button>
               <button
                 onClick={cancelEdit}
                 className="flex items-center gap-2 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
               >
                 <X className="w-5 h-5" />
-                Отмена
+                Cancel
               </button>
             </div>
           </div>
@@ -440,7 +440,7 @@ export default function VIPLevelManagement() {
                     </div>
                     {!level.is_active && (
                       <span className="px-2 py-1 bg-gray-200 text-gray-600 rounded text-xs">
-                        Неактивен
+                        Inactive
                       </span>
                     )}
                   </div>
@@ -455,31 +455,31 @@ export default function VIPLevelManagement() {
                     )}
                     <div className="flex-1 grid md:grid-cols-4 gap-4">
                       <div className="bg-yellow-50 rounded-lg p-3">
-                        <div className="text-sm text-gray-600">Цена</div>
+                        <div className="text-sm text-gray-600">Price</div>
                         <div className="text-2xl font-bold text-yellow-600">
                           ${level.price.toFixed(2)}
                         </div>
                       </div>
 
                       <div className="bg-green-50 rounded-lg p-3">
-                        <div className="text-sm text-gray-600">Комиссия с товара</div>
+                        <div className="text-sm text-gray-600">Commission per Product</div>
                         <div className="text-2xl font-bold text-green-600">
                           {level.commission.toFixed(0)}%
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
-                          На 9-м товаре: {(level.commission * 3).toFixed(0)}% (3x)
+                          On 9th product: {(level.commission * 3).toFixed(0)}% (3x)
                         </div>
                       </div>
 
                       <div className="bg-purple-50 rounded-lg p-3">
-                        <div className="text-sm text-gray-600">Товаров (задач)</div>
+                        <div className="text-sm text-gray-600">Products (tasks)</div>
                         <div className="text-2xl font-bold text-purple-600">
                           {level.products_count}
                         </div>
                       </div>
 
                       <div className="bg-blue-50 rounded-lg p-3">
-                        <div className="text-sm text-gray-600">Категория:</div>
+                        <div className="text-sm text-gray-600">Category:</div>
                         <div className="text-xl font-bold text-blue-800 capitalize">
                           {level.category}
                         </div>

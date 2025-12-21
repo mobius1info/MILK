@@ -91,7 +91,7 @@ export default function BannerManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message,
       });
     }
@@ -112,7 +112,7 @@ export default function BannerManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message,
       });
     }
@@ -141,7 +141,7 @@ export default function BannerManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message,
       });
     }
@@ -169,7 +169,7 @@ export default function BannerManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message,
       });
     }
@@ -197,7 +197,7 @@ export default function BannerManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message,
       });
     }

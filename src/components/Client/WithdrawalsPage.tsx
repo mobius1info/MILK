@@ -66,8 +66,8 @@ export default function WithdrawalsPage({ userId, userBalance, onBalanceUpdate }
       setNotification({
         isOpen: true,
         type: 'warning',
-        title: 'Неверная сумма',
-        message: 'Пожалуйста, введите корректную сумму для вывода',
+        title: 'Invalid Amount',
+        message: 'Please enter a valid amount for withdrawal',
       });
       return;
     }
@@ -76,8 +76,8 @@ export default function WithdrawalsPage({ userId, userBalance, onBalanceUpdate }
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Недостаточно средств',
-        message: 'На вашем балансе недостаточно средств для вывода этой суммы',
+        title: 'Insufficient Funds',
+        message: 'Your balance is insufficient to withdraw this amount',
       });
       return;
     }
@@ -102,14 +102,14 @@ export default function WithdrawalsPage({ userId, userBalance, onBalanceUpdate }
       setNotification({
         isOpen: true,
         type: 'success',
-        title: 'Запрос отправлен!',
-        message: 'Ваш запрос на вывод средств успешно отправлен и ожидает одобрения администратора',
+        title: 'Request Submitted!',
+        message: 'Your withdrawal request has been successfully submitted and is awaiting administrator approval',
       });
     } catch (error: any) {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message,
       });
     } finally {
@@ -134,13 +134,13 @@ export default function WithdrawalsPage({ userId, userBalance, onBalanceUpdate }
   const getStatusLabel = (status: Transaction['status']) => {
     switch (status) {
       case 'completed':
-        return 'Завершено';
+        return 'Completed';
       case 'pending':
-        return 'В обработке';
+        return 'Pending';
       case 'failed':
-        return 'Ошибка';
+        return 'Failed';
       case 'rejected':
-        return 'Отклонено';
+        return 'Rejected';
       default:
         return status;
     }
@@ -191,7 +191,7 @@ export default function WithdrawalsPage({ userId, userBalance, onBalanceUpdate }
       <div className="bg-gradient-to-r from-red-500 to-pink-500 rounded-lg shadow-lg p-6 text-white">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-sm opacity-90">Доступно для вывода</p>
+            <p className="text-sm opacity-90">Available for Withdrawal</p>
             <h2 className="text-3xl font-bold">${userBalance.toFixed(2)}</h2>
           </div>
           <TrendingDown className="w-12 h-12 opacity-80" />
@@ -201,42 +201,42 @@ export default function WithdrawalsPage({ userId, userBalance, onBalanceUpdate }
           className="w-full bg-white text-red-600 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2"
         >
           <Plus className="w-5 h-5" />
-          <span>Новый запрос на вывод</span>
+          <span>New Withdrawal Request</span>
         </button>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="bg-white rounded-lg shadow-md p-4">
-          <p className="text-xs text-gray-600 mb-1">Всего выведено</p>
+          <p className="text-xs text-gray-600 mb-1">Total Withdrawn</p>
           <p className="text-xl font-bold text-green-600">${stats.completed.toFixed(2)}</p>
-          <p className="text-xs text-gray-500 mt-1">{stats.completedCount} транзакций</p>
+          <p className="text-xs text-gray-500 mt-1">{stats.completedCount} transactions</p>
         </div>
         <div className="bg-white rounded-lg shadow-md p-4">
-          <p className="text-xs text-gray-600 mb-1">В обработке</p>
+          <p className="text-xs text-gray-600 mb-1">Pending</p>
           <p className="text-xl font-bold text-yellow-600">${stats.pending.toFixed(2)}</p>
-          <p className="text-xs text-gray-500 mt-1">{stats.pendingCount} запросов</p>
+          <p className="text-xs text-gray-500 mt-1">{stats.pendingCount} requests</p>
         </div>
         <div className="bg-white rounded-lg shadow-md p-4">
-          <p className="text-xs text-gray-600 mb-1">Отклонено</p>
+          <p className="text-xs text-gray-600 mb-1">Rejected</p>
           <p className="text-xl font-bold text-red-600">${stats.rejected.toFixed(2)}</p>
-          <p className="text-xs text-gray-500 mt-1">{stats.rejectedCount} запросов</p>
+          <p className="text-xs text-gray-500 mt-1">{stats.rejectedCount} requests</p>
         </div>
         <div className="bg-white rounded-lg shadow-md p-4">
-          <p className="text-xs text-gray-600 mb-1">Всего запросов</p>
+          <p className="text-xs text-gray-600 mb-1">Total Requests</p>
           <p className="text-xl font-bold text-gray-800">{withdrawals.length}</p>
           <p className="text-xs text-gray-500 mt-1">${stats.total.toFixed(2)}</p>
         </div>
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-4">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">История выводов</h2>
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Withdrawal History</h2>
 
         <div className="space-y-3">
           {withdrawals.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <TrendingDown className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-              <p className="text-lg font-semibold mb-2">Выводов пока нет</p>
-              <p className="text-sm">Создайте первый запрос на вывод средств</p>
+              <p className="text-lg font-semibold mb-2">No Withdrawals Yet</p>
+              <p className="text-sm">Create your first withdrawal request</p>
             </div>
           ) : (
             withdrawals.map((withdrawal) => (
@@ -252,17 +252,17 @@ export default function WithdrawalsPage({ userId, userBalance, onBalanceUpdate }
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-gray-800">
-                          Запрос на вывод средств
+                          Withdrawal Request
                         </h3>
                       </div>
                       <p className="text-sm text-gray-600 mb-1">
-                        Статус: <span className="font-semibold">{getStatusLabel(withdrawal.status)}</span>
+                        Status: <span className="font-semibold">{getStatusLabel(withdrawal.status)}</span>
                       </p>
                       {withdrawal.description && (
                         <p className="text-sm text-gray-600 mb-1">{withdrawal.description}</p>
                       )}
                       <p className="text-xs text-gray-500">
-                        {new Date(withdrawal.created_at).toLocaleString('ru-RU', {
+                        {new Date(withdrawal.created_at).toLocaleString('en-US', {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric',
@@ -292,14 +292,14 @@ export default function WithdrawalsPage({ userId, userBalance, onBalanceUpdate }
           ></div>
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
-              <h3 className="text-2xl font-bold mb-4">Вывод средств</h3>
+              <h3 className="text-2xl font-bold mb-4">Withdraw Funds</h3>
               <div className="mb-4">
                 <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-gray-600">
-                    Доступно: <span className="font-semibold text-lg text-blue-600">${userBalance.toFixed(2)}</span>
+                    Available: <span className="font-semibold text-lg text-blue-600">${userBalance.toFixed(2)}</span>
                   </p>
                 </div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Сумма для вывода</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Amount to Withdraw</label>
                 <input
                   type="number"
                   step="0.01"
@@ -308,7 +308,7 @@ export default function WithdrawalsPage({ userId, userBalance, onBalanceUpdate }
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
-                  placeholder="Введите сумму"
+                  placeholder="Enter amount"
                 />
               </div>
               <div className="flex space-x-3">
@@ -317,7 +317,7 @@ export default function WithdrawalsPage({ userId, userBalance, onBalanceUpdate }
                   disabled={submitting}
                   className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
                 >
-                  {submitting ? 'Отправка...' : 'Отправить запрос'}
+                  {submitting ? 'Submitting...' : 'Submit Request'}
                 </button>
                 <button
                   onClick={() => {
@@ -326,7 +326,7 @@ export default function WithdrawalsPage({ userId, userBalance, onBalanceUpdate }
                   }}
                   className="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  Отмена
+                  Cancel
                 </button>
               </div>
             </div>

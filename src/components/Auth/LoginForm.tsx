@@ -31,7 +31,7 @@ export default function LoginForm({ onSuccess, onToggleForm }: LoginFormProps) {
 
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
-          throw new Error('Неверный email или пароль');
+          throw new Error('Invalid email or password');
         }
         throw error;
       }
@@ -42,7 +42,7 @@ export default function LoginForm({ onSuccess, onToggleForm }: LoginFormProps) {
       }
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err.message || 'Ошибка при входе');
+      setError(err.message || 'Login error');
     } finally {
       setLoading(false);
     }

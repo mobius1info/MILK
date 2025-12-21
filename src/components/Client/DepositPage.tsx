@@ -65,8 +65,8 @@ export default function DepositPage({ userId, onBack, onSuccess }: DepositPagePr
       setNotification({
         isOpen: true,
         type: 'warning',
-        title: 'Некорректная сумма',
-        message: 'Пожалуйста, введите корректную сумму депозита'
+        title: 'Invalid Amount',
+        message: 'Please enter a valid deposit amount'
       });
       return;
     }
@@ -77,8 +77,8 @@ export default function DepositPage({ userId, onBack, onSuccess }: DepositPagePr
       setNotification({
         isOpen: true,
         type: 'warning',
-        title: 'Сумма слишком мала',
-        message: `Минимальная сумма депозита: $${selectedMethod.min_amount.toFixed(2)}`
+        title: 'Amount Too Small',
+        message: `Minimum deposit amount: $${selectedMethod.min_amount.toFixed(2)}`
       });
       return;
     }
@@ -87,8 +87,8 @@ export default function DepositPage({ userId, onBack, onSuccess }: DepositPagePr
       setNotification({
         isOpen: true,
         type: 'warning',
-        title: 'Сумма слишком велика',
-        message: `Максимальная сумма депозита: $${selectedMethod.max_amount.toFixed(2)}`
+        title: 'Amount Too Large',
+        message: `Maximum deposit amount: $${selectedMethod.max_amount.toFixed(2)}`
       });
       return;
     }
@@ -97,8 +97,8 @@ export default function DepositPage({ userId, onBack, onSuccess }: DepositPagePr
       setNotification({
         isOpen: true,
         type: 'warning',
-        title: 'Отсутствует хеш транзакции',
-        message: 'Пожалуйста, введите хеш транзакции или номер референса'
+        title: 'Missing Transaction Hash',
+        message: 'Please enter the transaction hash or reference number'
       });
       return;
     }
@@ -121,8 +121,8 @@ export default function DepositPage({ userId, onBack, onSuccess }: DepositPagePr
       setNotification({
         isOpen: true,
         type: 'success',
-        title: 'Заявка отправлена',
-        message: 'Запрос на депозит успешно отправлен! Пожалуйста, ожидайте подтверждения администратора.'
+        title: 'Request Submitted',
+        message: 'Deposit request successfully submitted! Please wait for administrator confirmation.'
       });
       setAmount('');
       setTransactionHash('');
@@ -132,8 +132,8 @@ export default function DepositPage({ userId, onBack, onSuccess }: DepositPagePr
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
-        message: 'Произошла ошибка: ' + error.message
+        title: 'Error',
+        message: 'An error occurred: ' + error.message
       });
     } finally {
       setSubmitting(false);

@@ -69,8 +69,8 @@ export default function WithdrawalManagement() {
       setNotification({
         isOpen: true,
         type: 'success',
-        title: 'Вывод одобрен',
-        message: `$${transaction?.amount.toFixed(2)} отправлено пользователю ${transaction?.profile?.email}`,
+        title: 'Withdrawal Approved',
+        message: `$${transaction?.amount.toFixed(2)} sent to ${transaction?.profile?.email}`,
       });
 
       fetchTransactions();
@@ -78,7 +78,7 @@ export default function WithdrawalManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message,
       });
     }
@@ -89,8 +89,8 @@ export default function WithdrawalManagement() {
       setNotification({
         isOpen: true,
         type: 'warning',
-        title: 'Предупреждение',
-        message: 'Пожалуйста, укажите причину отклонения',
+        title: 'Warning',
+        message: 'Please specify the reason for rejection',
       });
       return;
     }
@@ -112,7 +112,7 @@ export default function WithdrawalManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message,
       });
     }

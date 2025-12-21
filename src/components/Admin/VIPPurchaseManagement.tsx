@@ -110,8 +110,8 @@ export default function VIPPurchaseManagement() {
       setNotification({
         isOpen: true,
         type: 'success',
-        title: 'Успех',
-        message: 'VIP доступ одобрен и предоставлен клиенту',
+        title: 'Success',
+        message: 'VIP access approved and granted to client',
       });
       loadRequests();
     } catch (error: any) {
@@ -119,8 +119,8 @@ export default function VIPPurchaseManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
-        message: 'Ошибка при одобрении: ' + error.message,
+        title: 'Error',
+        message: 'Error approving: ' + error.message,
       });
     }
   }
@@ -143,8 +143,8 @@ export default function VIPPurchaseManagement() {
       setNotification({
         isOpen: true,
         type: 'info',
-        title: 'Отклонено',
-        message: 'Заявка отклонена',
+        title: 'Rejected',
+        message: 'Request rejected',
       });
       loadRequests();
     } catch (error: any) {
@@ -152,8 +152,8 @@ export default function VIPPurchaseManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
-        message: 'Ошибка при отклонении: ' + error.message,
+        title: 'Error',
+        message: 'Error rejecting: ' + error.message,
       });
     }
   }
@@ -180,7 +180,7 @@ export default function VIPPurchaseManagement() {
           {pendingCount > 0 && (
             <div className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2">
               <Bell className="w-5 h-5 animate-pulse" />
-              <span className="font-bold">{pendingCount} новых</span>
+              <span className="font-bold">{pendingCount} new</span>
             </div>
           )}
         </div>
@@ -197,10 +197,10 @@ export default function VIPPurchaseManagement() {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            {filterOption === 'all' && 'Все'}
-            {filterOption === 'pending' && `Ожидают (${pendingCount})`}
-            {filterOption === 'approved' && 'Одобренные'}
-            {filterOption === 'rejected' && 'Отклоненные'}
+            {filterOption === 'all' && 'All'}
+            {filterOption === 'pending' && `Pending (${pendingCount})`}
+            {filterOption === 'approved' && 'Approved'}
+            {filterOption === 'rejected' && 'Rejected'}
           </button>
         ))}
       </div>
@@ -208,7 +208,7 @@ export default function VIPPurchaseManagement() {
       {filteredRequests.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-12 text-center text-gray-500">
           <Crown className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-          <p className="text-lg">Нет заявок для отображения</p>
+          <p className="text-lg">No requests to display</p>
         </div>
       ) : (
         <div className="grid gap-4">
@@ -246,9 +246,9 @@ export default function VIPPurchaseManagement() {
                       <div className="font-medium">{request.profiles?.email}</div>
                     </div>
                     <div>
-                      <span className="text-gray-600">Дата заявки:</span>
+                      <span className="text-gray-600">Request Date:</span>
                       <div className="font-medium">
-                        {new Date(request.created_at).toLocaleString('ru-RU')}
+                        {new Date(request.created_at).toLocaleString('en-US')}
                       </div>
                     </div>
                   </div>
@@ -257,7 +257,7 @@ export default function VIPPurchaseManagement() {
                     <div className="mt-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg flex items-center gap-2 text-yellow-800">
                       <Bell className="w-5 h-5 animate-pulse" />
                       <span className="font-semibold">
-                        КЛИЕНТ КУПИЛ ВИП НОМЕР {request.vip_level}
+                        CLIENT PURCHASED VIP LEVEL {request.vip_level}
                       </span>
                     </div>
                   )}
@@ -271,14 +271,14 @@ export default function VIPPurchaseManagement() {
                         className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
                       >
                         <CheckCircle className="w-5 h-5" />
-                        Дать доступ
+                        Grant Access
                       </button>
                       <button
                         onClick={() => rejectRequest(request.id)}
                         className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
                       >
                         <XCircle className="w-5 h-5" />
-                        Отклонить
+                        Reject
                       </button>
                     </div>
                   ) : (
@@ -286,13 +286,13 @@ export default function VIPPurchaseManagement() {
                       {request.status === 'approved' && (
                         <span className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-lg font-medium">
                           <CheckCircle className="w-5 h-5" />
-                          Одобрено
+                          Approved
                         </span>
                       )}
                       {request.status === 'rejected' && (
                         <span className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-800 rounded-lg font-medium">
                           <XCircle className="w-5 h-5" />
-                          Отклонено
+                          Rejected
                         </span>
                       )}
                     </div>
@@ -300,7 +300,7 @@ export default function VIPPurchaseManagement() {
 
                   {request.status !== 'pending' && request.approved_at && (
                     <div className="text-xs text-gray-500">
-                      {new Date(request.approved_at).toLocaleString('ru-RU')}
+                      {new Date(request.approved_at).toLocaleString('en-US')}
                     </div>
                   )}
                 </div>

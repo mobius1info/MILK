@@ -105,8 +105,8 @@ export default function CategoryRequestManagement() {
       setNotification({
         isOpen: true,
         type: 'success',
-        title: 'Заявка одобрена!',
-        message: 'Заявка успешно одобрена. Пользователь получил доступ к категории.'
+        title: 'Request Approved!',
+        message: 'Request successfully approved. User has received access to the category.'
       });
       await loadRequests();
     } catch (err: any) {
@@ -143,8 +143,8 @@ export default function CategoryRequestManagement() {
       setNotification({
         isOpen: true,
         type: 'info',
-        title: 'Заявка отклонена',
-        message: 'Заявка отклонена и средства возвращены пользователю.'
+        title: 'Request Rejected',
+        message: 'Request rejected and funds returned to user.'
       });
       await loadRequests();
     } catch (err: any) {

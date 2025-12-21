@@ -135,15 +135,15 @@ export default function OrdersRecord({ userId }: OrdersRecordProps) {
 
   function getStatusText(status: string, isCompleted: boolean) {
     if (isCompleted) {
-      return 'Завершено';
+      return 'Completed';
     }
     switch (status) {
       case 'approved':
-        return 'Одобрено';
+        return 'Approved';
       case 'pending':
-        return 'Ожидает';
+        return 'Pending';
       case 'rejected':
-        return 'Отклонено';
+        return 'Rejected';
       default:
         return status;
     }

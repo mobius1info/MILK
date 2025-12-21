@@ -176,8 +176,8 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
-        message: 'Не удалось загрузить товары'
+        title: 'Error',
+        message: 'Failed to load products'
       });
     } finally {
       setLoading(false);
@@ -215,8 +215,8 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
           setNotification({
             isOpen: true,
             type: 'error',
-            title: 'Ошибка',
-            message: result.error || 'Ошибка при покупке'
+            title: 'Error',
+            message: result.error || 'Purchase error'
           });
         }
         return;
@@ -230,7 +230,7 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
         setNotification({
           isOpen: true,
           type: 'success',
-          title: result.is_ninth_product ? 'КОМБО товар куплен!' : 'Успешно!',
+          title: result.is_ninth_product ? 'COMBO product purchased!' : 'Success!',
           message: result.message
         });
       }
@@ -254,8 +254,8 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
-        message: 'Ошибка при покупке: ' + error.message
+        title: 'Error',
+        message: 'Purchase error: ' + error.message
       });
     } finally {
       setPurchasing(false);
@@ -293,23 +293,23 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
           <div className="text-center">
             <CheckCircle className="w-16 h-16 mx-auto text-green-500 mb-4" />
             <h3 className="text-2xl font-bold text-gray-800 mb-3">
-              Работа окончена!
+              Work Completed!
             </h3>
             <p className="text-gray-600 mb-2">
-              Вы завершили все {progress.total_products_count} товаров в категории <strong>{category.name}</strong>
+              You have completed all {progress.total_products_count} products in category <strong>{category.name}</strong>
             </p>
             <p className="text-lg font-semibold text-green-600 mb-6">
-              Всего заработано: ${progress.total_commission_earned.toFixed(2)}
+              Total Earned: ${progress.total_commission_earned.toFixed(2)}
             </p>
             <p className="text-sm text-gray-500 mb-6">
-              Купите VIP {category.level} снова, чтобы продолжить зарабатывать в этой категории
+              Purchase VIP {category.level} again to continue earning in this category
             </p>
           </div>
           <button
             onClick={onClose}
             className="w-full px-4 py-3 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white rounded-lg font-bold hover:opacity-90"
           >
-            Закрыть
+            Close
           </button>
         </div>
       </div>
@@ -328,10 +328,10 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-white/90">
                 <span className="flex items-center gap-1">
                   <ShoppingBag className="w-4 h-4" />
-                  Товар {nextProductNumber}/{progress.total_products_count}
+                  Product {nextProductNumber}/{progress.total_products_count}
                   {isNextCombo && (
                     <span className="ml-1 px-2 py-0.5 bg-yellow-500 text-yellow-900 rounded-full text-xs font-bold animate-pulse">
-                      КОМБО x3
+                      COMBO x3
                     </span>
                   )}
                 </span>
@@ -353,11 +353,11 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
           {message && (
             <div className={`rounded-lg p-3 flex items-start gap-2.5 ${
-              message.includes('пополнить')
+              message.includes('deposit')
                 ? 'bg-red-50 text-red-800 border border-red-200'
                 : 'bg-green-50 text-green-800 border border-green-200'
             }`}>
-              {message.includes('пополнить') ? (
+              {message.includes('deposit') ? (
                 <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
               ) : (
                 <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -382,14 +382,14 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
               <h3 className="text-lg sm:text-xl font-bold text-gray-900 line-clamp-2 flex-1">{product.name}</h3>
               {isNextCombo && (
                 <span className="ml-2 px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-full text-xs font-bold shadow-lg">
-                  КОМБО x3
+                  COMBO x3
                 </span>
               )}
             </div>
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
               <div className={`rounded-lg p-3 ${isNextCombo ? 'bg-orange-50 border-2 border-orange-300' : 'bg-blue-50'}`}>
                 <div className="text-xs text-gray-600 mb-1">
-                  {isNextCombo ? 'Цена КОМБО' : 'Цена товара'}
+                  {isNextCombo ? 'COMBO Price' : 'Product Price'}
                 </div>
                 <div className={`text-xl sm:text-2xl font-bold ${isNextCombo ? 'text-orange-600' : 'text-blue-600'}`}>
                   ${displayPrice.toFixed(2)}
@@ -397,7 +397,7 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
               </div>
               <div className={`rounded-lg p-3 ${isNextCombo ? 'bg-yellow-50 border-2 border-yellow-300' : 'bg-green-50'}`}>
                 <div className="text-xs text-gray-600 mb-1">
-                  {isNextCombo ? 'Комиссия x3' : 'Ваша комиссия'}
+                  {isNextCombo ? 'Commission x3' : 'Your Commission'}
                 </div>
                 <div className={`text-xl sm:text-2xl font-bold ${isNextCombo ? 'text-yellow-600' : 'text-green-600'}`}>
                   {commissionPercentage}%
@@ -410,11 +410,11 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
             <div className="flex items-start gap-2.5">
               <TrendingUp className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <div className="font-semibold text-blue-900 mb-1.5 text-sm">Как это работает</div>
+                <div className="font-semibold text-blue-900 mb-1.5 text-sm">How it Works</div>
                 <ul className="text-xs text-blue-800 space-y-1 leading-relaxed">
-                  <li>• Нажмите кнопку покупки для получения комиссии</li>
-                  <li>• Комиссия зачисляется автоматически на баланс</li>
-                  <li>• Просматривайте товары по очереди до завершения</li>
+                  <li>• Click the purchase button to receive commission</li>
+                  <li>• Commission is automatically credited to your balance</li>
+                  <li>• Browse products in order until completion</li>
                 </ul>
               </div>
             </div>
@@ -425,9 +425,9 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
               <div className="flex items-start gap-2.5">
                 <Star className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <div className="font-semibold text-orange-900 mb-1 text-sm">КОМБО товар - Утроенная комиссия!</div>
+                  <div className="font-semibold text-orange-900 mb-1 text-sm">COMBO Product - Triple Commission!</div>
                   <p className="text-xs text-orange-800 leading-relaxed">
-                    Это особый товар с комиссией x3. Для его покупки необходим баланс не менее ${displayPrice.toFixed(2)}. После покупки вы получите ${potentialCommission.toFixed(2)} комиссии!
+                    This is a special product with x3 commission. A balance of at least ${displayPrice.toFixed(2)} is required to purchase it. After purchase, you will receive ${potentialCommission.toFixed(2)} commission!
                   </p>
                 </div>
               </div>
@@ -437,9 +437,9 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
               <div className="flex items-start gap-2.5">
                 <Star className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <div className="font-semibold text-orange-900 mb-1 text-sm">Увеличьте доходы!</div>
+                  <div className="font-semibold text-orange-900 mb-1 text-sm">Increase Your Earnings!</div>
                   <p className="text-xs text-orange-800 leading-relaxed">
-                    Пополните счет для доступа к КОМБО товарам с утроенной комиссией или перейдите на другой VIP уровень.
+                    Deposit funds to access COMBO products with triple commission or upgrade to a different VIP level.
                   </p>
                 </div>
               </div>
@@ -452,17 +452,17 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
             <>
               <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4 text-center">
                 <AlertCircle className="w-12 h-12 mx-auto text-red-600 mb-2" />
-                <h4 className="font-bold text-red-900 mb-1">Недостаточно средств</h4>
+                <h4 className="font-bold text-red-900 mb-1">Insufficient Funds</h4>
                 <p className="text-sm text-red-700 mb-3">
-                  Необходимо пополнить баланс на <span className="font-bold">${insufficientBalance.neededAmount.toFixed(2)}</span>
+                  Need to deposit <span className="font-bold">${insufficientBalance.neededAmount.toFixed(2)}</span>
                 </p>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="bg-white rounded p-2">
-                    <div className="text-gray-600">Текущий баланс</div>
+                    <div className="text-gray-600">Current Balance</div>
                     <div className="font-bold text-gray-900">${insufficientBalance.currentBalance.toFixed(2)}</div>
                   </div>
                   <div className="bg-white rounded p-2">
-                    <div className="text-gray-600">Цена КОМБО</div>
+                    <div className="text-gray-600">COMBO Price</div>
                     <div className="font-bold text-orange-600">${insufficientBalance.productPrice.toFixed(2)}</div>
                   </div>
                 </div>
@@ -476,7 +476,7 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
                   className="w-full py-3.5 sm:py-4 bg-gradient-to-r from-green-500 to-green-600 hover:opacity-90 text-white rounded-lg font-bold text-base sm:text-lg flex items-center justify-center gap-2 transition-all shadow-lg"
                 >
                   <Coins className="w-5 h-5" />
-                  Пополнить баланс
+                  Deposit Funds
                 </button>
               )}
             </>
@@ -493,12 +493,12 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
               {purchasing ? (
                 <>
                   <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                  Обработка...
+                  Processing...
                 </>
               ) : (
                 <>
                   <ShoppingBag className="w-5 h-5" />
-                  {isNextCombo ? `КОМБО: Купить за $${displayPrice.toFixed(2)} и получить $${potentialCommission.toFixed(2)}` : `Купить и получить $${potentialCommission.toFixed(2)}`}
+                  {isNextCombo ? `COMBO: Buy for $${displayPrice.toFixed(2)} and get $${potentialCommission.toFixed(2)}` : `Buy and get $${potentialCommission.toFixed(2)}`}
                 </>
               )}
             </button>

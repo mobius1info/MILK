@@ -151,7 +151,7 @@ export default function ActiveTasks({ onNavigateToDeposit }: ActiveTasksProps = 
       <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
-            Мои задания
+            My Tasks
           </h2>
         </div>
 
@@ -166,7 +166,7 @@ export default function ActiveTasks({ onNavigateToDeposit }: ActiveTasksProps = 
           >
             <div className="flex items-center justify-center gap-2">
               <Play className="w-5 h-5" />
-              <span>Активные ({activePurchases.length})</span>
+              <span>Active ({activePurchases.length})</span>
             </div>
           </button>
           <button
@@ -179,7 +179,7 @@ export default function ActiveTasks({ onNavigateToDeposit }: ActiveTasksProps = 
           >
             <div className="flex items-center justify-center gap-2">
               <CheckCircle className="w-5 h-5" />
-              <span>Завершенные ({completedPurchases.length})</span>
+              <span>Completed ({completedPurchases.length})</span>
             </div>
           </button>
         </div>
@@ -188,12 +188,12 @@ export default function ActiveTasks({ onNavigateToDeposit }: ActiveTasksProps = 
           <div className="text-center py-12">
             <Lock className="w-16 h-16 mx-auto text-gray-400 mb-4" />
             <h3 className="text-xl font-bold text-gray-800 mb-2">
-              {activeTab === 'active' ? 'Нет активных заданий' : 'Нет завершенных заданий'}
+              {activeTab === 'active' ? 'No Active Tasks' : 'No Completed Tasks'}
             </h3>
             <p className="text-gray-600">
               {activeTab === 'active'
-                ? 'Приобретите VIP доступ к категориям, чтобы начать выполнять задания'
-                : 'Завершенные задания появятся здесь'
+                ? 'Purchase VIP access to categories to start completing tasks'
+                : 'Completed tasks will appear here'
               }
             </p>
           </div>
@@ -236,7 +236,7 @@ export default function ActiveTasks({ onNavigateToDeposit }: ActiveTasksProps = 
                     <div className="flex items-center space-x-2 text-green-600">
                       <Package className="w-4 h-4" />
                       <span className="text-sm font-semibold">
-                        +{vipLevel.commission}% комиссия
+                        +{vipLevel.commission}% commission
                       </span>
                     </div>
                   </div>
@@ -247,16 +247,16 @@ export default function ActiveTasks({ onNavigateToDeposit }: ActiveTasksProps = 
                         className="w-full bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white py-3 rounded-lg font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                       >
                         <Play className="w-5 h-5" />
-                        Начать заработок
+                        Start Earning
                       </button>
                     ) : (
                       <div className="bg-blue-50 rounded-lg p-3 text-center border border-blue-200">
                         <div className="flex items-center justify-center gap-2 text-blue-700 mb-1">
                           <CheckCircle className="w-5 h-5" />
-                          <span className="font-bold">Завершено</span>
+                          <span className="font-bold">Completed</span>
                         </div>
                         <p className="text-xs text-blue-600">
-                          {new Date(purchase.created_at).toLocaleDateString('ru-RU')}
+                          {new Date(purchase.created_at).toLocaleDateString('en-US')}
                         </p>
                       </div>
                     )}

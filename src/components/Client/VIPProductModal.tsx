@@ -195,8 +195,8 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
         setNotification({
           isOpen: true,
           type: 'error',
-          title: 'Ошибка',
-          message: result.error || 'Ошибка при покупке'
+          title: 'Error',
+          message: result.error || 'Purchase error'
         });
         return;
       }
@@ -218,8 +218,8 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
-        message: 'Ошибка при покупке: ' + error.message
+        title: 'Error',
+        message: 'Purchase error: ' + error.message
       });
     } finally {
       setPurchasing(false);
@@ -249,20 +249,20 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
               <CheckCircle className="w-12 h-12 text-white" />
             </div>
             <h3 className="text-2xl font-bold text-gray-800 mb-3">
-              Все товары завершены!
+              All Products Completed!
             </h3>
             <p className="text-gray-600 mb-2">
               VIP {vipLevel} - <span className="capitalize font-semibold">{categoryId}</span>
             </p>
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 mb-4 border border-green-200">
-              <p className="text-sm text-gray-600 mb-1">Всего заработано</p>
+              <p className="text-sm text-gray-600 mb-1">Total Earned</p>
               <p className="text-3xl font-bold text-green-600">
                 ${progress.total_commission_earned.toFixed(2)}
               </p>
             </div>
             <div className="bg-blue-50 rounded-lg p-4 mb-6 border border-blue-200">
               <p className="text-sm text-blue-700 font-medium">
-                Чтобы продолжить зарабатывать комиссию в этой категории, купите VIP {vipLevel} снова в разделе "VIP Покупка"
+                To continue earning commission in this category, purchase VIP {vipLevel} again in the "VIP Purchase" section
               </p>
             </div>
           </div>
@@ -273,7 +273,7 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
             }}
             className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-bold hover:opacity-90 transition-opacity"
           >
-            Понятно
+            Got It
           </button>
         </div>
       </div>
@@ -289,8 +289,8 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
               VIP {vipLevel} - <span className="capitalize">{categoryId}</span>
             </h2>
             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-2 text-xs sm:text-sm text-gray-600">
-              <span className="whitespace-nowrap">Товар {progress.current_product_index + 1} из {progress.total_products_count}</span>
-              <span className="whitespace-nowrap">Заработано: ${progress.total_commission_earned.toFixed(2)}</span>
+              <span className="whitespace-nowrap">Product {progress.current_product_index + 1} of {progress.total_products_count}</span>
+              <span className="whitespace-nowrap">Earned: ${progress.total_commission_earned.toFixed(2)}</span>
             </div>
           </div>
           <button
@@ -326,22 +326,22 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
 
             <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 space-y-4 border-2 border-blue-200">
               <div className="flex items-center justify-between pb-3 border-b border-blue-200">
-                <span className="text-gray-700 font-medium">Цена товара:</span>
+                <span className="text-gray-700 font-medium">Product Price:</span>
                 <span className="text-2xl font-bold text-blue-600">${product.price.toFixed(2)}</span>
               </div>
 
               <div className="flex items-center justify-between pb-3 border-b border-blue-200">
-                <span className="text-gray-700 font-medium">Ваша комиссия:</span>
+                <span className="text-gray-700 font-medium">Your Commission:</span>
                 <span className="text-2xl font-bold text-green-600">{product.commission_percentage.toFixed(2)}%</span>
               </div>
 
               <div className="flex items-center justify-between pb-3 border-b border-blue-200">
-                <span className="text-gray-700 font-medium">Сумма комиссии:</span>
+                <span className="text-gray-700 font-medium">Commission Amount:</span>
                 <span className="text-2xl font-bold text-green-600">+${potentialCommission.toFixed(2)}</span>
               </div>
 
               <div className="flex items-center justify-between pt-2">
-                <span className="text-lg font-bold text-gray-900">Итого:</span>
+                <span className="text-lg font-bold text-gray-900">Total:</span>
                 <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   ${totalAmount.toFixed(2)}
                 </span>
@@ -350,7 +350,7 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
               {product.quantity_multiplier > 1 && (
                 <div className="bg-orange-100 rounded-lg p-3 mt-3">
                   <p className="text-sm text-orange-800 font-semibold text-center">
-                    Этот товар считается как {product.quantity_multiplier} покупки
+                    This product counts as {product.quantity_multiplier} purchases
                   </p>
                 </div>
               )}
@@ -361,12 +361,12 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
             <div className="flex items-start gap-2 sm:gap-3">
               <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
-                <div className="font-semibold text-blue-900 mb-2 text-sm sm:text-base">Как это работает</div>
+                <div className="font-semibold text-blue-900 mb-2 text-sm sm:text-base">How it Works</div>
                 <ul className="text-xs sm:text-sm text-blue-800 space-y-1 sm:space-y-1.5">
-                  <li>• Цена товара: ${product.price.toFixed(2)}</li>
-                  <li>• Ваша комиссия равна: ${potentialCommission.toFixed(2)}</li>
-                  <li>• Комиссия автоматически зачислится на ваш баланс</li>
-                  <li>• Каждый товар имеет свой процент комиссии</li>
+                  <li>• Product price: ${product.price.toFixed(2)}</li>
+                  <li>• Your commission equals: ${potentialCommission.toFixed(2)}</li>
+                  <li>• Commission will be automatically credited to your balance</li>
+                  <li>• Each product has its own commission percentage</li>
                 </ul>
               </div>
             </div>
@@ -376,10 +376,10 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
             <div className="flex items-start gap-2 sm:gap-3">
               <Star className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
-                <div className="font-semibold text-orange-900 mb-1 text-sm sm:text-base">Получайте больше комиссии!</div>
+                <div className="font-semibold text-orange-900 mb-1 text-sm sm:text-base">Earn More Commission!</div>
                 <p className="text-xs sm:text-sm text-orange-800">
-                  Пополните счет, чтобы разблокировать больше заданий с повышенной комиссией,
-                  или перейдите на другой VIP уровень для получения других процентов комиссии.
+                  Deposit funds to unlock more tasks with increased commission,
+                  or upgrade to a different VIP level to get different commission percentages.
                 </p>
               </div>
             </div>
@@ -391,7 +391,7 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
             className="w-full py-4 sm:py-5 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white rounded-xl font-bold text-lg sm:text-xl flex items-center justify-center gap-2 sm:gap-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
           >
             <ShoppingBag className="w-6 h-6 sm:w-7 sm:h-7" />
-            {purchasing ? 'Отправка заказа...' : 'SUBMIT ORDER'}
+            {purchasing ? 'Submitting order...' : 'SUBMIT ORDER'}
           </button>
         </div>
       </div>

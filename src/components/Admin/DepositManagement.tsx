@@ -69,8 +69,8 @@ export default function DepositManagement() {
       setNotification({
         isOpen: true,
         type: 'success',
-        title: 'Депозит одобрен',
-        message: `$${transaction?.amount.toFixed(2)} зачислено на счет ${transaction?.profile?.email}`,
+        title: 'Deposit Approved',
+        message: `$${transaction?.amount.toFixed(2)} credited to ${transaction?.profile?.email}`,
       });
 
       fetchTransactions();
@@ -78,7 +78,7 @@ export default function DepositManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message,
       });
     }
@@ -89,8 +89,8 @@ export default function DepositManagement() {
       setNotification({
         isOpen: true,
         type: 'warning',
-        title: 'Предупреждение',
-        message: 'Пожалуйста, укажите причину отклонения',
+        title: 'Warning',
+        message: 'Please specify the reason for rejection',
       });
       return;
     }
@@ -112,7 +112,7 @@ export default function DepositManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message,
       });
     }

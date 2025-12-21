@@ -120,8 +120,8 @@ export default function PaymentMethodsManagement() {
         setNotification({
           isOpen: true,
           type: 'success',
-          title: 'Успех',
-          message: 'Способ оплаты успешно обновлен',
+          title: 'Success',
+          message: 'Payment method successfully updated',
         });
       } else {
         const { error } = await supabase
@@ -132,8 +132,8 @@ export default function PaymentMethodsManagement() {
         setNotification({
           isOpen: true,
           type: 'success',
-          title: 'Успех',
-          message: 'Способ оплаты успешно добавлен',
+          title: 'Success',
+          message: 'Payment method successfully added',
         });
       }
 
@@ -143,7 +143,7 @@ export default function PaymentMethodsManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message,
       });
     }
@@ -165,15 +165,15 @@ export default function PaymentMethodsManagement() {
       setNotification({
         isOpen: true,
         type: 'success',
-        title: 'Успех',
-        message: 'Способ оплаты успешно удален',
+        title: 'Success',
+        message: 'Payment method successfully deleted',
       });
       fetchPaymentMethods();
     } catch (error: any) {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message,
       });
     }
@@ -192,7 +192,7 @@ export default function PaymentMethodsManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message,
       });
     }
@@ -222,7 +222,7 @@ export default function PaymentMethodsManagement() {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Ошибка',
+        title: 'Error',
         message: error.message,
       });
     }
