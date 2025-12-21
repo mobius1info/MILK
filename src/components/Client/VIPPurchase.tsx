@@ -127,6 +127,13 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
         return;
       }
 
+      const { error: updateBalanceError } = await supabase
+        .from('profiles')
+        .update({ balance: currentBalance - price })
+        .eq('id', user.id);
+
+      if (updateBalanceError) throw updateBalanceError;
+
       const { error: insertError } = await supabase
         .from('vip_purchases')
         .insert({
@@ -144,22 +151,13 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
 
       await supabase
         .from('transactions')
-        .insert([
-          {
-            user_id: user.id,
-            type: 'vip_purchase',
-            amount: -price,
-            status: 'completed',
-            description: `VIP ${vipLevel} Purchase - ${categoryId}`
-          },
-          {
-            user_id: user.id,
-            type: 'deposit',
-            amount: price,
-            status: 'completed',
-            description: `Working Capital for VIP ${vipLevel} - ${categoryId}`
-          }
-        ]);
+        .insert({
+          user_id: user.id,
+          type: 'vip_purchase',
+          amount: -price,
+          status: 'completed',
+          description: `VIP ${vipLevel} Purchase - ${categoryId}`
+        });
 
       setShowSuccessModal(true);
       loadPurchases();
