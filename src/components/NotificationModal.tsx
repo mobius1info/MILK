@@ -24,7 +24,7 @@ export default function NotificationModal({
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return <CheckCircle className="w-16 h-16 text-green-600" />;
+        return <CheckCircle className="w-16 h-16 text-[#f5b04c]" />;
       case 'error':
         return <XCircle className="w-16 h-16 text-red-600" />;
       case 'warning':
@@ -37,7 +37,7 @@ export default function NotificationModal({
   const getBackgroundColor = () => {
     switch (type) {
       case 'success':
-        return 'bg-green-100';
+        return 'bg-gradient-to-br from-[#f5b04c]/10 to-[#2a5f64]/10';
       case 'error':
         return 'bg-red-100';
       case 'warning':
@@ -50,7 +50,7 @@ export default function NotificationModal({
   const getButtonColor = () => {
     switch (type) {
       case 'success':
-        return 'from-green-500 to-emerald-600';
+        return 'from-[#f5b04c] to-[#2a5f64]';
       case 'error':
         return 'from-red-500 to-rose-600';
       case 'warning':
