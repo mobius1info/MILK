@@ -131,15 +131,28 @@ export default function ManualBalanceCredit() {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Note (Optional)
+            Description for Client (Optional)
+            <span className="text-xs text-gray-500 ml-2">
+              (This message will be shown to the client)
+            </span>
           </label>
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
             rows={3}
             className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c] focus:border-transparent"
-            placeholder="Add a note for this credit (e.g., 'Compensation for issue #123')"
+            placeholder="e.g., 'Bonus for referral', 'Refund for order #123', 'Penalty for violation'"
           />
+          {note.trim() ? (
+            <div className="mt-2 p-2 bg-gray-50 rounded border border-gray-200">
+              <p className="text-xs text-gray-600 mb-1">Client will see:</p>
+              <p className="text-sm text-gray-800">{note}</p>
+            </div>
+          ) : (
+            <p className="mt-1 text-xs text-gray-500">
+              If left empty, default message: "Balance {amount && parseFloat(amount) < 0 ? 'deducted' : 'credited'} by administrator"
+            </p>
+          )}
         </div>
 
         <button
@@ -157,10 +170,10 @@ export default function ManualBalanceCredit() {
           <li>Enter the user's email address</li>
           <li>Specify the amount: positive to add funds, negative to deduct</li>
           <li>Example: 100 adds $100, -50 removes $50</li>
-          <li>Optionally add a note for record keeping</li>
+          <li>Add a custom description that the client will see in their transaction history</li>
           <li>Balance will be updated immediately</li>
           <li>A transaction record will be created automatically</li>
-          <li>System prevents balance from going negative</li>
+          <li>System prevents balance from going negative on deductions</li>
         </ul>
       </div>
     </div>
