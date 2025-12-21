@@ -227,27 +227,14 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
         setDynamicCommission(result.commission);
         setMessage(result.message);
 
+        await loadProductsAndProgress();
+
         setNotification({
           isOpen: true,
           type: 'success',
           title: result.is_ninth_product ? 'COMBO product purchased!' : 'Success!',
           message: result.message
         });
-      }
-
-      await loadProductsAndProgress();
-
-      if (!result.is_completed) {
-        setTimeout(() => {
-          const nextIndex = progress.current_product_index + 1;
-          if (allProducts[nextIndex]) {
-            setProduct(allProducts[nextIndex]);
-            setDynamicPrice(null);
-            setDynamicCommission(null);
-            setMessage('');
-            setInsufficientBalance(null);
-          }
-        }, 2000);
       }
     } catch (error: any) {
       console.error('Error purchasing product:', error);
@@ -259,6 +246,17 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
       });
     } finally {
       setPurchasing(false);
+    }
+  }
+
+  function moveToNextProduct() {
+    const nextIndex = progress.current_product_index + 1;
+    if (allProducts[nextIndex]) {
+      setProduct(allProducts[nextIndex]);
+      setDynamicPrice(null);
+      setDynamicCommission(null);
+      setMessage('');
+      setInsufficientBalance(null);
     }
   }
 
@@ -512,6 +510,7 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
         type={notification.type}
         title={notification.title}
         message={notification.message}
+        onConfirm={notification.type === 'success' ? moveToNextProduct : undefined}
       />
     </div>
   );

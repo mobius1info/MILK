@@ -20,7 +20,10 @@ interface OrderWithItems extends Order {
 }
 
 export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'orders' | 'tasks' | 'referrals' | 'deposit' | 'balance-history' | 'withdrawals'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'orders' | 'tasks' | 'referrals' | 'deposit' | 'balance-history' | 'withdrawals'>(() => {
+    const savedTab = localStorage.getItem('activeTab');
+    return (savedTab as typeof activeTab) || 'overview';
+  });
   const [orders, setOrders] = useState<OrderWithItems[]>([]);
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,6 +54,7 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
   }, [activeTab]);
 
   useEffect(() => {
+    localStorage.setItem('activeTab', activeTab);
     const titles: Record<typeof activeTab, string> = {
       'overview': 'ML MALL - Dashboard',
       'profile': 'ML MALL - Profile',
