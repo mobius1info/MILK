@@ -28,19 +28,43 @@ interface VIPPurchase {
   completed_products_count: number;
 }
 
+interface VIPLevel {
+  id: string;
+  level: number;
+  name: string;
+  category: string;
+  category_image_url: string;
+}
+
 interface OrdersRecordProps {
   userId: string;
 }
 
 export default function OrdersRecord({ userId }: OrdersRecordProps) {
   const [vipPurchases, setVipPurchases] = useState<VIPPurchase[]>([]);
+  const [vipLevels, setVipLevels] = useState<VIPLevel[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedPurchase, setExpandedPurchase] = useState<string | null>(null);
   const [purchaseProducts, setPurchaseProducts] = useState<Record<string, ProductPurchase[]>>({});
 
   useEffect(() => {
+    fetchVIPLevels();
     fetchVIPPurchases();
   }, [userId]);
+
+  async function fetchVIPLevels() {
+    try {
+      const { data, error } = await supabase
+        .from('vip_levels')
+        .select('id, level, name, category, category_image_url')
+        .eq('is_active', true);
+
+      if (error) throw error;
+      setVipLevels(data || []);
+    } catch (error) {
+      console.error('Error fetching VIP levels:', error);
+    }
+  }
 
   async function fetchVIPPurchases() {
     try {
@@ -179,22 +203,48 @@ export default function OrdersRecord({ userId }: OrdersRecordProps) {
               const key = `${purchase.category_id}-${purchase.vip_level}`;
               const products = purchaseProducts[key] || [];
               const isExpanded = expandedPurchase === purchase.id;
+              const vipLevel = vipLevels.find(v => v.level === purchase.vip_level && v.category.toLowerCase() === purchase.category_id.toLowerCase());
 
               return (
                 <div key={purchase.id} className="bg-white rounded-lg border-2 border-gray-200 overflow-hidden">
+                  {vipLevel?.category_image_url && (
+                    <div className="relative h-32 overflow-hidden">
+                      <img
+                        src={vipLevel.category_image_url}
+                        alt={purchase.category_id}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://images.pexels.com/photos/1194713/pexels-photo-1194713.jpeg';
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                      <div className="absolute bottom-0 left-0 right-0 p-3">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-white text-xl capitalize">
+                            {purchase.category_id}
+                          </h4>
+                          <span className="px-2 py-1 bg-yellow-400 text-gray-900 rounded-full text-xs font-bold">
+                            VIP {purchase.vip_level}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-3">
                         {getStatusIcon(purchase.status, purchase.is_completed)}
                         <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-bold text-gray-900 text-lg capitalize">
-                              {purchase.category_id}
-                            </h4>
-                            <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full font-medium">
-                              VIP {purchase.vip_level}
-                            </span>
-                          </div>
+                          {!vipLevel?.category_image_url && (
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-bold text-gray-900 text-lg capitalize">
+                                {purchase.category_id}
+                              </h4>
+                              <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full font-medium">
+                                VIP {purchase.vip_level}
+                              </span>
+                            </div>
+                          )}
                           <p className="text-sm text-gray-500">
                             {new Date(purchase.created_at).toLocaleString('en-US', {
                               year: 'numeric',
