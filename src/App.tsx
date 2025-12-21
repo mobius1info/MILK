@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { supabase, Profile } from './lib/supabase';
 import LoadingScreen from './components/LoadingScreen';
 import LoginForm from './components/Auth/LoginForm';
@@ -8,6 +8,35 @@ import AdminLoginForm from './components/Auth/AdminLoginForm';
 import AdminPage from './pages/AdminPage';
 import ClientPage from './pages/ClientPage';
 import NotificationModal from './components/NotificationModal';
+
+function MainApp({ profile, handleLogout, fetchProfile }: { profile: Profile; handleLogout: () => void; fetchProfile: (id: string) => void }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isAdminRoute = location.pathname === '/admin';
+
+  useEffect(() => {
+    if (profile.role === 'admin' && location.pathname === '/') {
+      navigate('/admin', { replace: true });
+    } else if (profile.role !== 'admin' && location.pathname === '/admin') {
+      navigate('/', { replace: true });
+    }
+  }, [location.pathname, profile.role, navigate]);
+
+  return (
+    <>
+      <div style={{ display: isAdminRoute && profile.role === 'admin' ? 'block' : 'none' }}>
+        {profile.role === 'admin' && <AdminPage profile={profile} onLogout={handleLogout} />}
+      </div>
+      <div style={{ display: !isAdminRoute || profile.role !== 'admin' ? 'block' : 'none' }}>
+        <ClientPage
+          profile={profile}
+          onLogout={handleLogout}
+          onBalanceUpdate={() => fetchProfile(profile.id)}
+        />
+      </div>
+    </>
+  );
+}
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -198,32 +227,11 @@ function App() {
         ) : (
           <>
             {console.log('Rendering main app with profile:', profile.email)}
+            <MainApp profile={profile} handleLogout={handleLogout} fetchProfile={fetchProfile} />
             <Routes>
-              <Route
-                path="/"
-                element={
-                  profile.role === 'admin' ? (
-                    <Navigate to="/admin" replace />
-                  ) : (
-                    <ClientPage
-                      profile={profile}
-                      onLogout={handleLogout}
-                      onBalanceUpdate={() => fetchProfile(profile.id)}
-                    />
-                  )
-                }
-              />
-              <Route
-                path="/admin"
-                element={
-                  profile.role === 'admin' ? (
-                    <AdminPage profile={profile} onLogout={handleLogout} />
-                  ) : (
-                    <Navigate to="/" replace />
-                  )
-                }
-              />
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="/" element={null} />
+              <Route path="/admin" element={null} />
+              <Route path="*" element={<Navigate to={profile.role === 'admin' ? '/admin' : '/'} replace />} />
             </Routes>
           </>
         )}
