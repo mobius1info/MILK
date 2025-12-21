@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Package, TrendingUp, TrendingDown, CreditCard, DollarSign, Image, Crown, Settings, Menu, X, Tag } from 'lucide-react';
 import ProductManagement from './ProductManagement';
 import DepositManagement from './DepositManagement';
@@ -67,6 +67,18 @@ export default function AdminPanel() {
 
   const currentNav = navItems.find(item => item.id === activeTab);
 
+  const renderedTabs = useMemo(() => ({
+    products: <ProductManagement />,
+    categories: <CategoryManagement />,
+    deposits: <DepositManagement />,
+    withdrawals: <WithdrawalManagement />,
+    'payment-methods': <PaymentMethodsManagement />,
+    'manual-credit': <ManualBalanceCredit />,
+    banners: <BannerManagement />,
+    'vip-purchases': <VIPPurchaseManagement />,
+    'vip-levels': <VIPLevelManagement />
+  }), []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <button
@@ -132,33 +144,14 @@ export default function AdminPanel() {
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="p-6">
-              <div style={{ display: activeTab === 'products' ? 'block' : 'none' }}>
-                <ProductManagement />
-              </div>
-              <div style={{ display: activeTab === 'categories' ? 'block' : 'none' }}>
-                <CategoryManagement />
-              </div>
-              <div style={{ display: activeTab === 'deposits' ? 'block' : 'none' }}>
-                <DepositManagement />
-              </div>
-              <div style={{ display: activeTab === 'withdrawals' ? 'block' : 'none' }}>
-                <WithdrawalManagement />
-              </div>
-              <div style={{ display: activeTab === 'payment-methods' ? 'block' : 'none' }}>
-                <PaymentMethodsManagement />
-              </div>
-              <div style={{ display: activeTab === 'manual-credit' ? 'block' : 'none' }}>
-                <ManualBalanceCredit />
-              </div>
-              <div style={{ display: activeTab === 'banners' ? 'block' : 'none' }}>
-                <BannerManagement />
-              </div>
-              <div style={{ display: activeTab === 'vip-purchases' ? 'block' : 'none' }}>
-                <VIPPurchaseManagement />
-              </div>
-              <div style={{ display: activeTab === 'vip-levels' ? 'block' : 'none' }}>
-                <VIPLevelManagement />
-              </div>
+              {Object.entries(renderedTabs).map(([tabKey, component]) => (
+                <div
+                  key={tabKey}
+                  style={{ display: activeTab === tabKey ? 'block' : 'none' }}
+                >
+                  {component}
+                </div>
+              ))}
             </div>
           </div>
         </div>
