@@ -65,7 +65,8 @@ export default function ProductManagement() {
     try {
       const { data, error } = await supabase
         .from('categories')
-        .select('*')
+        .select('id, name, display_name, description, image_url')
+        .eq('is_active', true)
         .order('display_name');
 
       if (error) throw error;
@@ -248,7 +249,39 @@ export default function ProductManagement() {
   return (
     <div>
       <div className="mb-6 space-y-4">
+        <div className="bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] rounded-lg p-6 text-white">
+          <div className="flex items-center gap-3">
+            <Package className="w-8 h-8" />
+            <div>
+              <h2 className="text-2xl font-bold">Products by Category</h2>
+              <p className="text-white/90 text-sm mt-1">Click on a category to view its products</p>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <button
+            onClick={() => {
+              setSelectedCategory('all');
+              setSearchQuery('');
+            }}
+            className={`bg-gradient-to-br rounded-lg p-4 border-2 transition-all text-left hover:shadow-lg ${
+              selectedCategory === 'all'
+                ? 'from-blue-100 to-cyan-100 border-blue-500 shadow-md'
+                : 'from-blue-50 to-cyan-50 border-blue-200 hover:border-blue-300'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <Package className={`w-5 h-5 ${selectedCategory === 'all' ? 'text-blue-700' : 'text-blue-600'}`} />
+              <span className={`text-2xl font-bold ${selectedCategory === 'all' ? 'text-blue-700' : 'text-blue-600'}`}>
+                {products.length}
+              </span>
+            </div>
+            <h3 className={`font-semibold ${selectedCategory === 'all' ? 'text-gray-800' : 'text-gray-700'}`}>
+              All Products
+            </h3>
+            <p className="text-xs text-gray-500 mt-1">View all products</p>
+          </button>
           {categoryStats.map(stat => (
             <button
               key={stat.category}
@@ -328,19 +361,29 @@ export default function ProductManagement() {
         </div>
 
         {(selectedCategory !== 'all' || searchQuery) && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <span>Products found: {filteredProducts.length}</span>
-            {(selectedCategory !== 'all' || searchQuery) && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2 text-sm font-medium text-blue-800">
+                <Filter className="w-4 h-4" />
+                <span>
+                  {selectedCategory !== 'all' && `Category: ${selectedCategory}`}
+                  {selectedCategory !== 'all' && searchQuery && ' • '}
+                  {searchQuery && `Search: "${searchQuery}"`}
+                </span>
+                <span className="px-2 py-0.5 bg-blue-200 rounded-full text-xs font-bold">
+                  {filteredProducts.length} found
+                </span>
+              </div>
               <button
                 onClick={() => {
                   setSelectedCategory('all');
                   setSearchQuery('');
                 }}
-                className="text-blue-600 hover:underline"
+                className="text-sm text-blue-600 hover:text-blue-700 font-semibold hover:underline"
               >
                 Reset filters
               </button>
-            )}
+            </div>
           </div>
         )}
       </div>
