@@ -32,8 +32,15 @@ const navItems: NavItem[] = [
 ];
 
 export default function AdminPanel() {
-  const [activeTab, setActiveTab] = useState<TabType>('products');
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    const saved = localStorage.getItem('adminActiveTab');
+    return (saved as TabType) || 'products';
+  });
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('adminActiveTab', activeTab);
+  }, [activeTab]);
 
   useEffect(() => {
     const titles: Record<TabType, string> = {

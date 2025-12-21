@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Crown, CheckCircle, XCircle, Clock, User, Bell } from 'lucide-react';
+import { Crown, CheckCircle, XCircle, Clock, User, Bell, RefreshCw } from 'lucide-react';
 import NotificationModal from '../NotificationModal';
 
 interface VIPPurchaseRequest {
@@ -21,7 +21,10 @@ interface VIPPurchaseRequest {
 export default function VIPPurchaseManagement() {
   const [requests, setRequests] = useState<VIPPurchaseRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
+  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>(() => {
+    const saved = localStorage.getItem('adminVIPPurchaseFilter');
+    return (saved as 'all' | 'pending' | 'approved' | 'rejected') || 'pending';
+  });
   const [notification, setNotification] = useState<{
     isOpen: boolean;
     type: 'success' | 'error' | 'warning' | 'info';
@@ -36,26 +39,11 @@ export default function VIPPurchaseManagement() {
 
   useEffect(() => {
     loadRequests();
-
-    const channel = supabase
-      .channel('vip_purchases_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'vip_purchases'
-        },
-        () => {
-          loadRequests();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('adminVIPPurchaseFilter', filter);
+  }, [filter]);
 
   async function loadRequests() {
     try {
@@ -176,7 +164,17 @@ export default function VIPPurchaseManagement() {
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-6 text-white">
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => {
+              setLoading(true);
+              loadRequests();
+            }}
+            className="flex items-center gap-2 bg-white/20 hover:bg-white/30 rounded-lg px-4 py-2 transition-colors"
+          >
+            <RefreshCw className="w-5 h-5" />
+            <span className="font-medium">Refresh</span>
+          </button>
           {pendingCount > 0 && (
             <div className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2">
               <Bell className="w-5 h-5 animate-pulse" />

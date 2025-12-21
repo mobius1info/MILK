@@ -10,7 +10,10 @@ interface TransactionWithProfile extends Transaction {
 export default function DepositManagement() {
   const [transactions, setTransactions] = useState<TransactionWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
+  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>(() => {
+    const saved = localStorage.getItem('adminDepositFilter');
+    return (saved as 'all' | 'pending' | 'approved' | 'rejected') || 'pending';
+  });
   const [rejectionReason, setRejectionReason] = useState('');
   const [selectedTransaction, setSelectedTransaction] = useState<string | null>(null);
   const [notification, setNotification] = useState<{
@@ -27,6 +30,7 @@ export default function DepositManagement() {
 
   useEffect(() => {
     fetchTransactions();
+    localStorage.setItem('adminDepositFilter', filter);
   }, [filter]);
 
   const fetchTransactions = async () => {
