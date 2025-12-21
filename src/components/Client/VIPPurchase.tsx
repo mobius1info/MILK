@@ -364,7 +364,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
                       <ShoppingBag className="w-5 h-5" />
-                      Pay ${vipLevel.price.toFixed(2)}
+                      Deposit ${vipLevel.price.toFixed(2)}
                     </button>
                   )}
                 </div>
