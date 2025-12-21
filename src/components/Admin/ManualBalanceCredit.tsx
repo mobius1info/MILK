@@ -12,10 +12,12 @@ export default function ManualBalanceCredit() {
   const handleCredit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email.trim() || !amount || parseFloat(amount) <= 0) {
+    const numAmount = parseFloat(amount);
+
+    if (!email.trim() || !amount || isNaN(numAmount) || numAmount === 0) {
       setResult({
         success: false,
-        message: 'Please provide valid email and amount',
+        message: 'Please provide valid email and non-zero amount',
       });
       return;
     }
@@ -26,16 +28,18 @@ export default function ManualBalanceCredit() {
     try {
       const { data, error } = await supabase.rpc('admin_credit_balance', {
         user_email: email.trim(),
-        credit_amount: parseFloat(amount),
+        credit_amount: numAmount,
         admin_note: note.trim() || null,
       });
 
       if (error) throw error;
 
       if (data.success) {
+        const operation = numAmount > 0 ? 'credited' : 'debited';
+        const absAmount = Math.abs(numAmount).toFixed(2);
         setResult({
           success: true,
-          message: `Successfully credited $${amount} to ${email}. New balance: $${data.new_balance}`,
+          message: `Successfully ${operation} $${absAmount} ${numAmount > 0 ? 'to' : 'from'} ${email}. New balance: $${data.new_balance}`,
         });
         setEmail('');
         setAmount('');
@@ -100,6 +104,9 @@ export default function ManualBalanceCredit() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Amount ($)
+            <span className="text-xs text-gray-500 ml-2">
+              (Positive to add, negative to deduct)
+            </span>
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -110,12 +117,16 @@ export default function ManualBalanceCredit() {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               step="0.01"
-              min="0.01"
               className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c] focus:border-transparent"
-              placeholder="0.00"
+              placeholder="100.00 or -50.00"
               required
             />
           </div>
+          {amount && parseFloat(amount) < 0 && (
+            <p className="mt-1 text-sm text-red-600">
+              This will deduct ${Math.abs(parseFloat(amount)).toFixed(2)} from the user's balance
+            </p>
+          )}
         </div>
 
         <div>
@@ -136,7 +147,7 @@ export default function ManualBalanceCredit() {
           disabled={loading}
           className="w-full bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Processing...' : 'Credit Balance'}
+          {loading ? 'Processing...' : amount && parseFloat(amount) < 0 ? 'Deduct from Balance' : 'Credit Balance'}
         </button>
       </form>
 
@@ -144,10 +155,12 @@ export default function ManualBalanceCredit() {
         <h3 className="text-sm font-semibold text-blue-900 mb-2">How it works:</h3>
         <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
           <li>Enter the user's email address</li>
-          <li>Specify the amount to credit</li>
+          <li>Specify the amount: positive to add funds, negative to deduct</li>
+          <li>Example: 100 adds $100, -50 removes $50</li>
           <li>Optionally add a note for record keeping</li>
-          <li>Balance will be credited immediately</li>
+          <li>Balance will be updated immediately</li>
           <li>A transaction record will be created automatically</li>
+          <li>System prevents balance from going negative</li>
         </ul>
       </div>
     </div>

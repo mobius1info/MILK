@@ -86,6 +86,11 @@ export default function TransactionHistory({ userId }: TransactionHistoryProps) 
                   <p className="text-xs sm:text-sm text-gray-600">
                     {new Date(transaction.created_at).toLocaleString()}
                   </p>
+                  {transaction.description && (
+                    <p className="text-xs sm:text-sm text-gray-700 mt-1">
+                      {transaction.description}
+                    </p>
+                  )}
                   {transaction.rejection_reason && (
                     <p className="text-xs sm:text-sm text-red-600 mt-1">
                       Reason: {transaction.rejection_reason}
