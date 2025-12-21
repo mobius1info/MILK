@@ -155,10 +155,7 @@ export default function VIPLevelManagement() {
       if (editingId && editingId !== 'new') {
         const { error } = await supabase
           .from('vip_levels')
-          .update({
-            ...levelData,
-            updated_at: new Date().toISOString()
-          })
+          .update(levelData)
           .eq('id', editingId);
 
         if (error) throw error;
