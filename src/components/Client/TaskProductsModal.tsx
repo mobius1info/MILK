@@ -26,6 +26,8 @@ interface VIPLevel {
 
 interface TaskProductsModalProps {
   category: VIPLevel;
+  comboEnabled: boolean;
+  vipCompletions: number;
   onClose: () => void;
   onNavigateToDeposit?: () => void;
 }
@@ -37,7 +39,7 @@ interface ProductProgress {
   total_products_count: number;
 }
 
-export default function TaskProductsModal({ category, onClose, onNavigateToDeposit }: TaskProductsModalProps) {
+export default function TaskProductsModal({ category, comboEnabled, vipCompletions, onClose, onNavigateToDeposit }: TaskProductsModalProps) {
   const [product, setProduct] = useState<Product | null>(null);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [progress, setProgress] = useState<ProductProgress>({
@@ -259,7 +261,8 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
   }
 
   const nextProductNumber = progress.products_purchased + 1;
-  const isNextCombo = nextProductNumber % 9 === 0;
+  // Combo only works if: 9th product AND combo is enabled by admin AND user has completed VIP at least once
+  const isNextCombo = (nextProductNumber % 9 === 0) && comboEnabled && (vipCompletions >= 1);
 
   const displayPrice = dynamicPrice !== null
     ? dynamicPrice

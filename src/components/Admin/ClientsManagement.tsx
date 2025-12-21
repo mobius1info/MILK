@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Users, Mail, User, DollarSign, Search, RefreshCw } from 'lucide-react';
+import { Users, Mail, User, DollarSign, Search, RefreshCw, Award, Zap } from 'lucide-react';
 
 interface Profile {
   id: string;
@@ -11,6 +11,8 @@ interface Profile {
   referral_code: string;
   referred_by: string | null;
   role: string;
+  combo_enabled: boolean;
+  vip_completions_count: number;
 }
 
 export default function ClientsManagement() {
@@ -37,6 +39,24 @@ export default function ClientsManagement() {
       console.error('Error fetching profiles:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function toggleCombo(profileId: string, currentStatus: boolean) {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ combo_enabled: !currentStatus })
+        .eq('id', profileId);
+
+      if (error) throw error;
+
+      setProfiles(profiles.map(p =>
+        p.id === profileId ? { ...p, combo_enabled: !currentStatus } : p
+      ));
+    } catch (error) {
+      console.error('Error toggling combo:', error);
+      alert('Failed to update combo status');
     }
   }
 
@@ -139,6 +159,12 @@ export default function ClientsManagement() {
                     Balance
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    VIP Completions
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Combo Status
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Referral Code
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -173,6 +199,33 @@ export default function ClientsManagement() {
                           {Number(profile.balance || 0).toFixed(2)}
                         </span>
                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <Award className="w-5 h-5 text-blue-500" />
+                        <span className="text-lg font-bold text-gray-900">
+                          {profile.vip_completions_count || 0}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {profile.vip_completions_count >= 1 ? 'Combo eligible' : 'Need 1 completion'}
+                      </p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => toggleCombo(profile.id, profile.combo_enabled)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all ${
+                          profile.combo_enabled
+                            ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg hover:shadow-xl'
+                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                        }`}
+                      >
+                        <Zap className={`w-4 h-4 ${profile.combo_enabled ? 'animate-pulse' : ''}`} />
+                        {profile.combo_enabled ? 'ENABLED' : 'DISABLED'}
+                      </button>
+                      {!profile.combo_enabled && profile.vip_completions_count >= 1 && (
+                        <p className="text-xs text-amber-600 mt-1">Click to enable combo</p>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <code className="px-2 py-1 bg-gray-100 rounded text-sm font-mono text-gray-700">

@@ -45,6 +45,8 @@ export default function ActiveTasks({ onNavigateToDeposit }: ActiveTasksProps = 
   const [selectedCategory, setSelectedCategory] = useState<VIPLevel | null>(null);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'active' | 'completed'>('active');
+  const [comboEnabled, setComboEnabled] = useState(false);
+  const [vipCompletions, setVipCompletions] = useState(0);
 
   useEffect(() => {
     loadPurchases();
@@ -54,6 +56,19 @@ export default function ActiveTasks({ onNavigateToDeposit }: ActiveTasksProps = 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      // Load user profile to get combo settings
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('combo_enabled, vip_completions_count')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) throw profileError;
+      if (profileData) {
+        setComboEnabled(profileData.combo_enabled || false);
+        setVipCompletions(profileData.vip_completions_count || 0);
+      }
 
       const { data: activeData, error: activeError } = await supabase
         .from('vip_purchases')
@@ -272,6 +287,8 @@ export default function ActiveTasks({ onNavigateToDeposit }: ActiveTasksProps = 
       {showTaskModal && selectedCategory && (
         <TaskProductsModal
           category={selectedCategory}
+          comboEnabled={comboEnabled}
+          vipCompletions={vipCompletions}
           onClose={() => {
             setShowTaskModal(false);
             setSelectedCategory(null);
