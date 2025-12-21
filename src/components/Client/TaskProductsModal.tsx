@@ -310,8 +310,8 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-0 sm:p-4">
-      <div className="bg-white rounded-none sm:rounded-xl w-full h-full sm:h-auto sm:max-w-2xl lg:max-w-3xl sm:max-h-[90vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-0 sm:p-4 overflow-hidden">
+      <div className="bg-white rounded-none sm:rounded-xl w-full h-full sm:h-auto sm:max-w-2xl lg:max-w-3xl sm:max-h-[90vh] flex flex-col overflow-hidden" style={{ maxHeight: '100dvh' }}>
         <div className="flex-shrink-0 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] p-4 sm:p-5 text-white">
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex-1 min-w-0">
@@ -440,7 +440,7 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
           )}
         </div>
 
-        <div className="flex-shrink-0 p-4 sm:p-5 bg-gray-50 border-t space-y-3">
+        <div className="flex-shrink-0 p-4 pb-6 sm:p-5 bg-gray-50 border-t space-y-3" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
           {insufficientBalance ? (
             <>
               <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4 text-center">
@@ -466,10 +466,10 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
                     onClose();
                     onNavigateToDeposit();
                   }}
-                  className="w-full py-3.5 sm:py-4 bg-gradient-to-r from-green-500 to-green-600 hover:opacity-90 text-white rounded-lg font-bold text-base sm:text-lg flex items-center justify-center gap-2 transition-all shadow-lg"
+                  className="w-full py-3 sm:py-4 bg-gradient-to-r from-green-500 to-green-600 hover:opacity-90 text-white rounded-lg font-bold text-sm sm:text-lg flex items-center justify-center gap-1.5 sm:gap-2 transition-all shadow-lg"
                 >
-                  <Coins className="w-5 h-5" />
-                  Deposit Funds
+                  <Coins className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                  <span>Deposit Funds</span>
                 </button>
               )}
             </>
@@ -477,7 +477,7 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
             <button
               onClick={purchaseProduct}
               disabled={purchasing}
-              className={`w-full py-3.5 sm:py-4 hover:opacity-90 text-white rounded-lg font-bold text-base sm:text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg ${
+              className={`w-full py-3 sm:py-4 hover:opacity-90 text-white rounded-lg font-bold text-sm sm:text-lg flex items-center justify-center gap-1.5 sm:gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg ${
                 isNextCombo
                   ? 'bg-gradient-to-r from-yellow-500 to-orange-600 animate-pulse'
                   : 'bg-gradient-to-r from-[#f5b04c] to-[#2a5f64]'
@@ -486,16 +486,16 @@ export default function TaskProductsModal({ category, onClose, onNavigateToDepos
               {purchasing ? (
                 <>
                   <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                  Processing...
+                  <span className="text-sm sm:text-base">Processing...</span>
                 </>
               ) : (
                 <>
-                  <ShoppingBag className="w-5 h-5 flex-shrink-0" />
+                  <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                   <span className="hidden sm:inline">
                     {isNextCombo ? `COMBO: Buy for $${displayPrice.toFixed(2)} and get $${potentialCommission.toFixed(2)}` : `Buy and get $${potentialCommission.toFixed(2)}`}
                   </span>
-                  <span className="sm:hidden text-sm">
-                    {isNextCombo ? `COMBO: $${displayPrice.toFixed(2)} → $${potentialCommission.toFixed(2)}` : `Buy → $${potentialCommission.toFixed(2)}`}
+                  <span className="sm:hidden truncate">
+                    {isNextCombo ? `COMBO $${displayPrice.toFixed(0)} → +$${potentialCommission.toFixed(0)}` : `Buy & Get +$${potentialCommission.toFixed(2)}`}
                   </span>
                 </>
               )}
