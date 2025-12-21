@@ -10,9 +10,9 @@ interface TransactionWithProfile extends Transaction {
 export default function DepositManagement() {
   const [transactions, setTransactions] = useState<TransactionWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>(() => {
+  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'manual'>(() => {
     const saved = localStorage.getItem('adminDepositFilter');
-    return (saved as 'all' | 'pending' | 'approved' | 'rejected') || 'pending';
+    return (saved as 'all' | 'pending' | 'approved' | 'rejected' | 'manual') || 'pending';
   });
   const [rejectionReason, setRejectionReason] = useState('');
   const [selectedTransaction, setSelectedTransaction] = useState<string | null>(null);
@@ -44,7 +44,9 @@ export default function DepositManagement() {
         .eq('type', 'deposit')
         .order('created_at', { ascending: false });
 
-      if (filter !== 'all') {
+      if (filter === 'manual') {
+        query = query.eq('status', 'completed').ilike('description', '%Manual credit by admin%');
+      } else if (filter !== 'all') {
         query = query.eq('status', filter);
       }
 
@@ -154,7 +156,7 @@ export default function DepositManagement() {
 
       <div className="flex justify-end mb-6">
         <div className="flex flex-wrap gap-2">
-          {(['all', 'pending', 'approved', 'rejected'] as const).map((status) => (
+          {(['all', 'pending', 'approved', 'rejected', 'manual'] as const).map((status) => (
             <button
               key={status}
               onClick={() => setFilter(status)}
@@ -164,7 +166,7 @@ export default function DepositManagement() {
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              {status}
+              {status === 'manual' ? 'Ручное зачисление' : status}
             </button>
           ))}
         </div>
@@ -177,7 +179,9 @@ export default function DepositManagement() {
             <p className="text-gray-500">No deposits found</p>
           </div>
         ) : (
-          transactions.map((transaction) => (
+          transactions.map((transaction) => {
+            const isManualCredit = transaction.description?.includes('Manual credit by admin');
+            return (
             <div key={transaction.id} className="bg-white rounded-lg shadow-md p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row items-start justify-between space-y-4 sm:space-y-0">
                 <div className="flex-1 w-full">
@@ -186,7 +190,9 @@ export default function DepositManagement() {
                       <TrendingUp className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-base sm:text-lg">Deposit</h3>
+                      <h3 className="font-semibold text-base sm:text-lg">
+                        {isManualCredit ? 'Ручное зачисление' : 'Deposit'}
+                      </h3>
                       <p className="text-xs sm:text-sm text-gray-600 break-all">
                         {transaction.profile?.email || 'Unknown user'}
                       </p>
@@ -219,6 +225,12 @@ export default function DepositManagement() {
                         {transaction.status}
                       </span>
                     </div>
+                    {isManualCredit && transaction.description && (
+                      <div className="col-span-1 sm:col-span-2">
+                        <p className="text-xs sm:text-sm text-gray-500">Описание</p>
+                        <p className="text-sm text-gray-700">{transaction.description}</p>
+                      </div>
+                    )}
                     {transaction.rejection_reason && (
                       <div className="col-span-1 sm:col-span-2">
                         <p className="text-xs sm:text-sm text-gray-500">Rejection Reason</p>
@@ -280,7 +292,8 @@ export default function DepositManagement() {
                 </div>
               )}
             </div>
-          ))
+            );
+          })
         )}
       </div>
 
