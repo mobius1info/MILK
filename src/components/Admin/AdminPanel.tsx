@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Package, TrendingUp, TrendingDown, CreditCard, DollarSign, Image, Crown, Settings, Tag } from 'lucide-react';
+import { Package, TrendingUp, TrendingDown, CreditCard, DollarSign, Image, Crown, Settings, Tag, Users } from 'lucide-react';
 import ProductManagement from './ProductManagement';
 import DepositManagement from './DepositManagement';
 import WithdrawalManagement from './WithdrawalManagement';
@@ -9,8 +9,9 @@ import BannerManagement from './BannerManagement';
 import VIPPurchaseManagement from './VIPPurchaseManagement';
 import VIPLevelManagement from './VIPLevelManagement';
 import CategoryManagement from './CategoryManagement';
+import ClientsManagement from './ClientsManagement';
 
-type TabType = 'products' | 'categories' | 'deposits' | 'withdrawals' | 'payment-methods' | 'manual-credit' | 'banners' | 'vip-purchases' | 'vip-levels';
+type TabType = 'products' | 'categories' | 'deposits' | 'withdrawals' | 'payment-methods' | 'manual-credit' | 'banners' | 'vip-purchases' | 'vip-levels' | 'clients';
 
 interface NavItem {
   id: TabType;
@@ -20,6 +21,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
+  { id: 'clients', label: 'All Clients', icon: Users, group: 'Users' },
   { id: 'products', label: 'Products', icon: Package, group: 'Inventory' },
   { id: 'categories', label: 'Categories', icon: Tag, group: 'Inventory' },
   { id: 'banners', label: 'Banners', icon: Image, group: 'Content' },
@@ -48,6 +50,7 @@ export default function AdminPanel({ sidebarOpen, setSidebarOpen }: AdminPanelPr
 
   useEffect(() => {
     const titles: Record<TabType, string> = {
+      'clients': 'ML MALL - Admin - All Clients',
       'products': 'ML MALL - Admin - Products',
       'categories': 'ML MALL - Admin - Categories',
       'deposits': 'ML MALL - Admin - Deposits',
@@ -72,6 +75,7 @@ export default function AdminPanel({ sidebarOpen, setSidebarOpen }: AdminPanelPr
   const currentNav = navItems.find(item => item.id === activeTab);
 
   const renderedTabs = useMemo(() => ({
+    clients: <ClientsManagement />,
     products: <ProductManagement />,
     categories: <CategoryManagement />,
     deposits: <DepositManagement />,
