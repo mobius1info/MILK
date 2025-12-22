@@ -72,12 +72,24 @@ export default function VIPPurchaseManagement() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('combo_enabled, combo_product_position, combo_multiplier, combo_deposit_percent')
+        .eq('id', userId)
+        .single();
+
+      if (profileError) throw profileError;
+
       const { error: updateError } = await supabase
         .from('vip_purchases')
         .update({
           status: 'approved',
           approved_at: new Date().toISOString(),
-          approved_by: user.id
+          approved_by: user.id,
+          combo_enabled_at_approval: profileData?.combo_enabled || false,
+          combo_position_at_approval: profileData?.combo_product_position || 9,
+          combo_multiplier_at_approval: profileData?.combo_multiplier || 3,
+          combo_deposit_percent_at_approval: profileData?.combo_deposit_percent || 50
         })
         .eq('id', requestId);
 
