@@ -162,6 +162,56 @@ export default function VIPPurchaseManagement() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // Check if user has another active VIP for the same category and level
+      const { data: existingVIP } = await supabase
+        .from('vip_purchases')
+        .select('id')
+        .eq('user_id', approvalModal.userId)
+        .eq('vip_level', approvalModal.vipLevel)
+        .eq('category_id', approvalModal.categoryId)
+        .eq('status', 'approved')
+        .eq('is_completed', false)
+        .neq('id', approvalModal.requestId)
+        .maybeSingle();
+
+      if (existingVIP) {
+        setNotification({
+          isOpen: true,
+          type: 'error',
+          title: 'Cannot Approve',
+          message: `Client ${approvalModal.clientEmail} already has an active VIP for this category and level. They must complete it first.`,
+        });
+        return;
+      }
+
+      // Get the VIP price from the request
+      const { data: vipPurchaseData } = await supabase
+        .from('vip_purchases')
+        .select('vip_price')
+        .eq('id', approvalModal.requestId)
+        .single();
+
+      const vipPrice = Number(vipPurchaseData?.vip_price || 0);
+
+      // Check user's balance
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('balance')
+        .eq('id', approvalModal.userId)
+        .single();
+
+      const currentBalance = Number(profile?.balance || 0);
+
+      if (currentBalance < vipPrice) {
+        setNotification({
+          isOpen: true,
+          type: 'error',
+          title: 'Insufficient Balance',
+          message: `Client ${approvalModal.clientEmail} does not have enough balance. Required: $${vipPrice.toFixed(2)}, Available: $${currentBalance.toFixed(2)}`,
+        });
+        return;
+      }
+
       const updateData = {
         status: 'approved',
         approved_at: new Date().toISOString(),

@@ -108,6 +108,46 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      // Check if user has an active/incomplete VIP purchase for this category and level
+      const { data: existingPurchase } = await supabase
+        .from('vip_purchases')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('vip_level', vipLevel)
+        .eq('category_id', categoryId)
+        .in('status', ['pending', 'approved'])
+        .eq('is_completed', false)
+        .maybeSingle();
+
+      if (existingPurchase) {
+        setNotification({
+          isOpen: true,
+          type: 'warning',
+          title: 'Active VIP Found',
+          message: 'You already have an active VIP purchase for this category and level. Please complete it before requesting a new one.'
+        });
+        return;
+      }
+
+      // Check user's balance
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('balance')
+        .eq('id', user.id)
+        .single();
+
+      const currentBalance = Number(profile?.balance || 0);
+
+      if (currentBalance < price) {
+        setNotification({
+          isOpen: true,
+          type: 'error',
+          title: 'Insufficient Balance',
+          message: `You need $${price.toFixed(2)} in your balance to request this VIP. Current balance: $${currentBalance.toFixed(2)}. Please deposit funds first.`
+        });
+        return;
+      }
+
       const { error: insertError } = await supabase
         .from('vip_purchases')
         .insert({
