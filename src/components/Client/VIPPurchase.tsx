@@ -109,6 +109,24 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('balance')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profileError) throw profileError;
+      if (!profile) throw new Error('Profile not found');
+
+      const currentBalance = Number(profile.balance);
+
+      if (currentBalance < price) {
+        setCurrentBalance(currentBalance);
+        setRequiredAmount(price);
+        setShowInsufficientFundsModal(true);
+        return;
+      }
+
       const { error: insertError } = await supabase
         .from('vip_purchases')
         .insert({
@@ -331,8 +349,8 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
                       disabled={isPurchased}
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
-                      <Crown className="w-5 h-5" />
-                      Join VIP {vipLevel.level}
+                      <ShoppingBag className="w-5 h-5" />
+                      Deposit ${vipLevel.price.toFixed(2)}
                     </button>
                   )}
                 </div>
@@ -382,12 +400,12 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
                   Insufficient Funds
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  To purchase this VIP level you need <span className="font-bold text-[#f5b04c]">${requiredAmount.toFixed(2)}</span>,
-                  but your balance is <span className="font-bold text-red-600">${currentBalance.toFixed(2)}</span>
+                  To access this VIP level you need <span className="font-bold text-[#f5b04c]">${requiredAmount.toFixed(2)}</span> on your balance,
+                  but you have <span className="font-bold text-red-600">${currentBalance.toFixed(2)}</span>
                 </p>
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 w-full">
                   <p className="text-sm text-yellow-800">
-                    You need to deposit <span className="font-bold">${(requiredAmount - currentBalance).toFixed(2)}</span>
+                    Please deposit at least <span className="font-bold">${(requiredAmount - currentBalance).toFixed(2)}</span> to get access
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3 w-full">
@@ -426,15 +444,15 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
                   <CheckCircle className="w-12 h-12 text-green-600" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                  Request Sent!
+                  Deposit Successful!
                 </h3>
                 <p className="text-gray-600 mb-6">
                   Your VIP access request has been sent to the administrator for approval.
-                  Once approved, you can start completing tasks and earning commissions!
+                  Your balance remains intact and you can start earning commissions after approval!
                 </p>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 w-full">
                   <p className="text-sm text-blue-800">
-                    You will receive access after admin approval. Complete all 25 tasks to earn ~25% commission!
+                    After admin approval, complete all 25 tasks to earn ~25% in commissions. Your deposit stays on your balance!
                   </p>
                 </div>
                 <button
