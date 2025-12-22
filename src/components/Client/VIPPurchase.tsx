@@ -8,6 +8,7 @@ interface VIPLevel {
   level: number;
   name: string;
   commission: number;
+  commission_percentage: number;
   price: number;
   description: string;
   category: string;
@@ -63,7 +64,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
     try {
       const { data, error } = await supabase
         .from('vip_levels')
-        .select('id, level, name, price, commission, description, category, category_image_url, products_count, is_active')
+        .select('id, level, name, price, commission, commission_percentage, description, category, category_image_url, products_count, is_active')
         .eq('is_active', true)
         .order('level');
 
@@ -75,6 +76,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
         name: level.name,
         price: Number(level.price || 0),
         commission: Number(level.commission || 0),
+        commission_percentage: Number(level.commission_percentage || 0),
         description: level.description || '',
         category: level.category || '',
         category_image_url: level.category_image_url || '',
@@ -309,32 +311,32 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
                 <p className="text-sm text-gray-600">{vipLevel.description}</p>
 
                 <div className="bg-yellow-50 rounded-lg p-3">
-                  <div className="text-sm text-gray-600">Category Value</div>
+                  <div className="text-sm text-gray-600">Deposit Required</div>
                   <div className="text-2xl font-bold text-yellow-600">
                     ${vipLevel.price.toFixed(2)}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
-                    Earn ~25% after completing all tasks
+                    Balance required (not deducted)
                   </div>
                 </div>
 
                 <div className="bg-green-50 rounded-lg p-3">
-                  <div className="text-sm text-gray-600">Base Commission</div>
+                  <div className="text-sm text-gray-600">Total Commission</div>
                   <div className="text-2xl font-bold text-green-600">
-                    {vipLevel.commission.toFixed(0)}%
+                    {vipLevel.commission_percentage.toFixed(0)}%
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
-                    + increased commission on select products
+                    Earn ${(vipLevel.price * vipLevel.commission_percentage / 100).toFixed(2)} total
                   </div>
                 </div>
 
                 <div className="bg-blue-50 rounded-lg p-3">
-                  <div className="text-sm text-gray-600">Number of Products (Tasks)</div>
+                  <div className="text-sm text-gray-600">Tasks to Complete</div>
                   <div className="text-2xl font-bold text-blue-600">
                     {vipLevel.products_count}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
-                    Complete tasks and earn commissions
+                    ${((vipLevel.price * vipLevel.commission_percentage / 100) / vipLevel.products_count).toFixed(2)} per task
                   </div>
                 </div>
 
@@ -452,7 +454,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
                 </p>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 w-full">
                   <p className="text-sm text-blue-800">
-                    After admin approval, complete all 25 tasks to earn ~25% in commissions. Your deposit stays on your balance!
+                    After admin approval, complete all 25 tasks to earn commission. Your balance remains untouched!
                   </p>
                 </div>
                 <button

@@ -9,6 +9,7 @@ interface VIPLevel {
   name: string;
   price: number;
   commission: number;
+  commission_percentage: number;
   description: string;
   category: string;
   category_image_url: string;
@@ -251,7 +252,7 @@ export default function ActiveTasks({ onNavigateToDeposit }: ActiveTasksProps = 
                     <div className="flex items-center space-x-2 text-green-600">
                       <Package className="w-4 h-4" />
                       <span className="text-sm font-semibold">
-                        +{vipLevel.commission}% commission
+                        {vipLevel.commission_percentage}% total commission
                       </span>
                     </div>
                   </div>
