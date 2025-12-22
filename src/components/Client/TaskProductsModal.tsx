@@ -87,6 +87,9 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
           .eq('category_id', category.category)
           .eq('vip_level', category.level)
           .eq('status', 'approved')
+          .eq('is_completed', false)
+          .order('created_at', { ascending: false })
+          .limit(1)
           .maybeSingle(),
         supabase
           .from('vip_levels')
@@ -156,7 +159,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
         totalCommission += purchased.commission;
 
         if (i === normalizedProducts.length - 1) {
-          currentIndex = i;
+          currentIndex = normalizedProducts.length;
         }
       }
 
@@ -164,6 +167,8 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
         totalPurchased,
         totalCommission,
         totalProductsCount,
+        currentIndex,
+        normalizedProductsLength: normalizedProducts.length,
         vipPurchaseId: vipPurchase.id
       });
 
@@ -174,10 +179,12 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
         total_products_count: totalProductsCount
       });
 
-      if (totalPurchased >= totalProductsCount) {
+      if (totalPurchased >= totalProductsCount && totalPurchased > 0) {
         setProduct(null);
       } else if (normalizedProducts && normalizedProducts[currentIndex]) {
         setProduct(normalizedProducts[currentIndex]);
+      } else {
+        console.error('No product found at index:', currentIndex);
       }
     } catch (error) {
       console.error('Error loading products:', error);
