@@ -109,31 +109,6 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('balance')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (profileError) throw profileError;
-      if (!profile) throw new Error('Profile not found');
-
-      const currentBalance = Number(profile.balance);
-
-      if (currentBalance < price) {
-        setCurrentBalance(currentBalance);
-        setRequiredAmount(price);
-        setShowInsufficientFundsModal(true);
-        return;
-      }
-
-      const { error: updateBalanceError } = await supabase
-        .from('profiles')
-        .update({ balance: currentBalance - price })
-        .eq('id', user.id);
-
-      if (updateBalanceError) throw updateBalanceError;
-
       const { error: insertError } = await supabase
         .from('vip_purchases')
         .insert({
@@ -142,22 +117,12 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
           vip_level: vipLevel,
           category_id: categoryId,
           vip_price: price,
-          amount_paid: price,
+          amount_paid: 0,
           total_products: productsCount,
           status: 'pending'
         });
 
       if (insertError) throw insertError;
-
-      await supabase
-        .from('transactions')
-        .insert({
-          user_id: user.id,
-          type: 'vip_purchase',
-          amount: -price,
-          status: 'completed',
-          description: `VIP ${vipLevel} Purchase - ${categoryId}`
-        });
 
       setShowSuccessModal(true);
       loadPurchases();
@@ -166,7 +131,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
       setNotification({
         isOpen: true,
         type: 'error',
-        title: 'Payment Error',
+        title: 'Request Error',
         message: error.message
       });
     }
@@ -326,9 +291,12 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
                 <p className="text-sm text-gray-600">{vipLevel.description}</p>
 
                 <div className="bg-yellow-50 rounded-lg p-3">
-                  <div className="text-sm text-gray-600">Access Price</div>
+                  <div className="text-sm text-gray-600">Category Value</div>
                   <div className="text-2xl font-bold text-yellow-600">
                     ${vipLevel.price.toFixed(2)}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Earn ~25% after completing all tasks
                   </div>
                 </div>
 
@@ -363,8 +331,8 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
                       disabled={isPurchased}
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
-                      <ShoppingBag className="w-5 h-5" />
-                      Deposit ${vipLevel.price.toFixed(2)}
+                      <Crown className="w-5 h-5" />
+                      Join VIP {vipLevel.level}
                     </button>
                   )}
                 </div>
@@ -458,15 +426,15 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
                   <CheckCircle className="w-12 h-12 text-green-600" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                  Payment Successful!
+                  Request Sent!
                 </h3>
                 <p className="text-gray-600 mb-6">
                   Your VIP access request has been sent to the administrator for approval.
-                  You will receive access to the category after confirmation.
+                  Once approved, you can start completing tasks and earning commissions!
                 </p>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 w-full">
                   <p className="text-sm text-blue-800">
-                    Verification usually takes no more than 10-15 minutes. You can continue browsing other categories.
+                    You will receive access after admin approval. Complete all 25 tasks to earn ~25% commission!
                   </p>
                 </div>
                 <button
