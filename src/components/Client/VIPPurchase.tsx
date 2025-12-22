@@ -35,7 +35,6 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
   const [vipLevels, setVipLevels] = useState<VIPLevel[]>([]);
   const [purchases, setPurchases] = useState<VIPPurchaseRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedVIPLevel, setSelectedVIPLevel] = useState<number | 'all'>('all');
   const [notification, setNotification] = useState<{
     isOpen: boolean;
@@ -170,7 +169,6 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
         message: 'Your VIP purchase request has been submitted and is pending admin approval.'
       });
 
-      setShowSuccessModal(true);
       loadPurchases();
     } catch (error: any) {
       console.error('Error requesting VIP:', error);
@@ -409,42 +407,6 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
             ))}
           </div>
         </div>
-      )}
-
-      {showSuccessModal && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setShowSuccessModal(false)}
-          ></div>
-          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
-              <div className="flex flex-col items-center text-center">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4 animate-bounce">
-                  <CheckCircle className="w-12 h-12 text-green-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                  Deposit Successful!
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  Your VIP access request has been sent to the administrator for approval.
-                  Your balance remains intact and you can start earning commissions after approval!
-                </p>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 w-full">
-                  <p className="text-sm text-blue-800">
-                    After admin approval, complete all 25 tasks to earn commission. Your balance remains untouched!
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowSuccessModal(false)}
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
-                >
-                  Great!
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
       )}
 
       <NotificationModal
