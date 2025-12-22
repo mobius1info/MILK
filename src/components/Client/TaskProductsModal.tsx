@@ -262,8 +262,17 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
   }
 
   const nextProductNumber = progress.products_purchased + 1;
-  // Combo only works if: 9th product AND combo is enabled by admin AND user has completed VIP at least once
-  const isNextCombo = (nextProductNumber % 9 === 0) && comboEnabled && (vipCompletions >= 1);
+  // Combo only works if: 9th product AND combo is enabled by admin
+  const isNextCombo = (nextProductNumber % 9 === 0) && comboEnabled;
+
+  console.log('[TaskProductsModal] COMBO DEBUG:', {
+    nextProductNumber,
+    isNextCombo,
+    comboEnabled,
+    vipCompletions,
+    'isDivisibleBy9': nextProductNumber % 9 === 0,
+    'combo check': (nextProductNumber % 9 === 0) && comboEnabled
+  });
 
   const displayPrice = dynamicPrice !== null
     ? dynamicPrice

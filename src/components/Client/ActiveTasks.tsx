@@ -67,8 +67,13 @@ export default function ActiveTasks({ onNavigateToDeposit }: ActiveTasksProps = 
 
       if (profileError) throw profileError;
       if (profileData) {
+        console.log('[ActiveTasks] Profile data loaded:', profileData);
         setComboEnabled(profileData.combo_enabled || false);
         setVipCompletions(profileData.vip_completions_count || 0);
+        console.log('[ActiveTasks] COMBO state set:', {
+          comboEnabled: profileData.combo_enabled,
+          vipCompletions: profileData.vip_completions_count
+        });
       }
 
       const { data: activeData, error: activeError } = await supabase
