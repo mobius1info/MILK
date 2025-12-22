@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { X, DollarSign, TrendingUp, TrendingDown, Award, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { X, DollarSign, TrendingUp, TrendingDown, Award, Clock, CheckCircle, XCircle, AlertCircle, Zap } from 'lucide-react';
 
 interface ClientDetailsModalProps {
   clientId: string;
@@ -15,8 +15,12 @@ interface VIPPurchase {
   status: string;
   created_at: string;
   approved_at: string | null;
-  completed_count: number;
+  products_completed: number;
   total_products: number;
+  combo_enabled_at_approval: boolean | null;
+  combo_position_at_approval: number | null;
+  combo_multiplier_at_approval: number | null;
+  combo_deposit_percent_at_approval: number | null;
 }
 
 interface Transaction {
@@ -44,12 +48,16 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
   const [activeTab, setActiveTab] = useState<'vips' | 'transactions'>('vips');
 
   useEffect(() => {
-    loadClientDetails();
+    if (clientId) {
+      loadClientDetails();
+    }
   }, [clientId]);
 
   async function loadClientDetails() {
     try {
       setLoading(true);
+
+      console.log('Loading details for client:', clientId);
 
       const [profileRes, vipRes, transRes] = await Promise.all([
         supabase
@@ -59,7 +67,20 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
           .maybeSingle(),
         supabase
           .from('vip_purchases')
-          .select('id, vip_level, category_id, status, created_at, approved_at, completed_count, total_products')
+          .select(`
+            id,
+            vip_level,
+            category_id,
+            status,
+            created_at,
+            approved_at,
+            products_completed,
+            total_products,
+            combo_enabled_at_approval,
+            combo_position_at_approval,
+            combo_multiplier_at_approval,
+            combo_deposit_percent_at_approval
+          `)
           .eq('user_id', clientId)
           .order('created_at', { ascending: false }),
         supabase
@@ -67,7 +88,6 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
           .select('id, type, amount, status, description, created_at')
           .eq('user_id', clientId)
           .order('created_at', { ascending: false })
-          .limit(50)
       ]);
 
       if (profileRes.error) {
@@ -83,15 +103,16 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
         throw transRes.error;
       }
 
-      console.log('Profile data:', profileRes.data);
-      console.log('VIP purchases:', vipRes.data);
-      console.log('Transactions:', transRes.data);
+      console.log('Loaded profile:', profileRes.data);
+      console.log('Loaded VIP purchases:', vipRes.data);
+      console.log('Loaded transactions:', transRes.data);
 
       setProfile(profileRes.data);
       setVipPurchases(vipRes.data || []);
       setTransactions(transRes.data || []);
     } catch (error) {
       console.error('Error loading client details:', error);
+      alert('Error loading client details. Check console for details.');
     } finally {
       setLoading(false);
     }
@@ -228,7 +249,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
                               : 'bg-red-50 border-red-300'
                           }`}
                         >
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between mb-3">
                             <div>
                               <p className="font-bold text-gray-900">
                                 VIP {vip.vip_level} - {vip.category_id}
@@ -245,12 +266,34 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
                             {(status === 'approved' || status === 'completed') && (
                               <div className="text-right">
                                 <p className="text-2xl font-bold text-blue-600">
-                                  {vip.completed_count}/{vip.total_products}
+                                  {vip.products_completed || 0}/{vip.total_products}
                                 </p>
                                 <p className="text-xs text-gray-500">Products completed</p>
                               </div>
                             )}
                           </div>
+
+                          {status !== 'pending' && vip.combo_enabled_at_approval !== null && (
+                            <div className={`p-3 rounded-lg border flex items-center gap-3 ${
+                              vip.combo_enabled_at_approval
+                                ? 'bg-gradient-to-r from-yellow-100 to-orange-100 border-yellow-400'
+                                : 'bg-gray-100 border-gray-300'
+                            }`}>
+                              <Zap className={`w-5 h-5 ${vip.combo_enabled_at_approval ? 'text-yellow-600' : 'text-gray-500'}`} />
+                              <div className="flex-1">
+                                <div className="font-bold text-gray-900 text-sm">
+                                  Combo: {vip.combo_enabled_at_approval ? 'ENABLED' : 'DISABLED'}
+                                </div>
+                                {vip.combo_enabled_at_approval && (
+                                  <div className="text-xs text-gray-700 mt-1">
+                                    Position: {vip.combo_position_at_approval} |
+                                    Multiplier: {vip.combo_multiplier_at_approval}x |
+                                    Deposit: {vip.combo_deposit_percent_at_approval}%
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
