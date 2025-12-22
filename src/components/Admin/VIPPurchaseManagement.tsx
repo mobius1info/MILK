@@ -105,20 +105,31 @@ export default function VIPPurchaseManagement() {
 
   async function openApprovalModal(request: VIPPurchaseRequest) {
     try {
+      console.log('Opening approval modal for request:', request.id);
+      console.log('Loading combo settings for user:', request.user_id);
+
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('combo_enabled, combo_product_position, combo_multiplier, combo_deposit_percent')
         .eq('id', request.user_id)
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Profile error:', profileError);
+        throw profileError;
+      }
 
-      setComboSettings({
-        enabled: profileData?.combo_enabled || false,
-        position: profileData?.combo_product_position || 9,
-        multiplier: profileData?.combo_multiplier || 3,
-        depositPercent: profileData?.combo_deposit_percent || 50
-      });
+      console.log('Profile combo settings:', profileData);
+
+      const settings = {
+        enabled: profileData?.combo_enabled ?? false,
+        position: profileData?.combo_product_position ?? 9,
+        multiplier: profileData?.combo_multiplier ?? 3,
+        depositPercent: profileData?.combo_deposit_percent ?? 50
+      };
+
+      console.log('Setting combo settings:', settings);
+      setComboSettings(settings);
 
       setApprovalModal({
         isOpen: true,
@@ -143,23 +154,37 @@ export default function VIPPurchaseManagement() {
     if (!approvalModal) return;
 
     try {
+      console.log('Approving VIP purchase with combo settings:', {
+        requestId: approvalModal.requestId,
+        comboSettings
+      });
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      const updateData = {
+        status: 'approved',
+        approved_at: new Date().toISOString(),
+        approved_by: user.id,
+        combo_enabled_at_approval: comboSettings.enabled,
+        combo_position_at_approval: comboSettings.position,
+        combo_multiplier_at_approval: comboSettings.multiplier,
+        combo_deposit_percent_at_approval: comboSettings.depositPercent
+      };
+
+      console.log('Updating vip_purchases with:', updateData);
+
       const { error: updateError } = await supabase
         .from('vip_purchases')
-        .update({
-          status: 'approved',
-          approved_at: new Date().toISOString(),
-          approved_by: user.id,
-          combo_enabled_at_approval: comboSettings.enabled,
-          combo_position_at_approval: comboSettings.position,
-          combo_multiplier_at_approval: comboSettings.multiplier,
-          combo_deposit_percent_at_approval: comboSettings.depositPercent
-        })
+        .update(updateData)
         .eq('id', approvalModal.requestId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Update error:', updateError);
+        throw updateError;
+      }
+
+      console.log('VIP purchase updated successfully');
 
       const { error: accessError } = await supabase
         .from('category_access')
@@ -170,14 +195,17 @@ export default function VIPPurchaseManagement() {
         });
 
       if (accessError && accessError.code !== '23505') {
+        console.error('Access error:', accessError);
         throw accessError;
       }
+
+      console.log('Category access granted successfully');
 
       setNotification({
         isOpen: true,
         type: 'success',
         title: 'Success',
-        message: 'VIP access approved and granted to client',
+        message: `VIP access approved with combo ${comboSettings.enabled ? 'ENABLED' : 'DISABLED'}`,
       });
       setApprovalModal(null);
       loadRequests();
