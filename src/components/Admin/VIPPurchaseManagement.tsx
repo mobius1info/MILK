@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Crown, CheckCircle, XCircle, Clock, User, Bell, RefreshCw } from 'lucide-react';
+import { Crown, CheckCircle, XCircle, Clock, User, Bell, RefreshCw, Zap, X } from 'lucide-react';
 import NotificationModal from '../NotificationModal';
 
 interface VIPPurchaseRequest {
@@ -16,6 +16,13 @@ interface VIPPurchaseRequest {
     email: string;
     full_name: string;
   };
+}
+
+interface ComboSettings {
+  enabled: boolean;
+  position: number;
+  multiplier: number;
+  depositPercent: number;
 }
 
 export default function VIPPurchaseManagement() {
@@ -35,6 +42,20 @@ export default function VIPPurchaseManagement() {
     type: 'info',
     title: '',
     message: '',
+  });
+  const [approvalModal, setApprovalModal] = useState<{
+    isOpen: boolean;
+    requestId: string;
+    userId: string;
+    categoryId: string;
+    vipLevel: number;
+    clientEmail: string;
+  } | null>(null);
+  const [comboSettings, setComboSettings] = useState<ComboSettings>({
+    enabled: false,
+    position: 9,
+    multiplier: 3,
+    depositPercent: 50
   });
 
   useEffect(() => {
@@ -67,18 +88,48 @@ export default function VIPPurchaseManagement() {
     }
   }
 
-  async function approveRequest(requestId: string, userId: string, categoryId: string) {
+  async function openApprovalModal(request: VIPPurchaseRequest) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('combo_enabled, combo_product_position, combo_multiplier, combo_deposit_percent')
-        .eq('id', userId)
+        .eq('id', request.user_id)
         .single();
 
       if (profileError) throw profileError;
+
+      setComboSettings({
+        enabled: profileData?.combo_enabled || false,
+        position: profileData?.combo_product_position || 9,
+        multiplier: profileData?.combo_multiplier || 3,
+        depositPercent: profileData?.combo_deposit_percent || 50
+      });
+
+      setApprovalModal({
+        isOpen: true,
+        requestId: request.id,
+        userId: request.user_id,
+        categoryId: request.category_id,
+        vipLevel: request.vip_level,
+        clientEmail: request.profiles?.email || 'Unknown'
+      });
+    } catch (error) {
+      console.error('Error loading profile data:', error);
+      setNotification({
+        isOpen: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to load client combo settings',
+      });
+    }
+  }
+
+  async function approveRequest() {
+    if (!approvalModal) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
 
       const { error: updateError } = await supabase
         .from('vip_purchases')
@@ -86,20 +137,20 @@ export default function VIPPurchaseManagement() {
           status: 'approved',
           approved_at: new Date().toISOString(),
           approved_by: user.id,
-          combo_enabled_at_approval: profileData?.combo_enabled || false,
-          combo_position_at_approval: profileData?.combo_product_position || 9,
-          combo_multiplier_at_approval: profileData?.combo_multiplier || 3,
-          combo_deposit_percent_at_approval: profileData?.combo_deposit_percent || 50
+          combo_enabled_at_approval: comboSettings.enabled,
+          combo_position_at_approval: comboSettings.position,
+          combo_multiplier_at_approval: comboSettings.multiplier,
+          combo_deposit_percent_at_approval: comboSettings.depositPercent
         })
-        .eq('id', requestId);
+        .eq('id', approvalModal.requestId);
 
       if (updateError) throw updateError;
 
       const { error: accessError } = await supabase
         .from('category_access')
         .insert({
-          user_id: userId,
-          category: categoryId,
+          user_id: approvalModal.userId,
+          category: approvalModal.categoryId,
           is_enabled: true
         });
 
@@ -113,6 +164,7 @@ export default function VIPPurchaseManagement() {
         title: 'Success',
         message: 'VIP access approved and granted to client',
       });
+      setApprovalModal(null);
       loadRequests();
     } catch (error: any) {
       console.error('Error approving request:', error);
@@ -277,7 +329,7 @@ export default function VIPPurchaseManagement() {
                   {request.status === 'pending' ? (
                     <div className="flex gap-2">
                       <button
-                        onClick={() => approveRequest(request.id, request.user_id, request.category_id)}
+                        onClick={() => openApprovalModal(request)}
                         className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
                       >
                         <CheckCircle className="w-5 h-5" />
@@ -317,6 +369,133 @@ export default function VIPPurchaseManagement() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {approvalModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-green-600 to-blue-600">
+              <div className="text-white">
+                <h2 className="text-2xl font-bold">Approve VIP Access</h2>
+                <p className="text-green-100 mt-1">
+                  VIP {approvalModal.vipLevel} - {approvalModal.categoryId}
+                </p>
+                <p className="text-sm text-green-100 mt-1">{approvalModal.clientEmail}</p>
+              </div>
+              <button
+                onClick={() => setApprovalModal(null)}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors text-white"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-900">
+                  Configure combo settings for this VIP purchase. These settings will be applied when the client completes products.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Zap className={`w-6 h-6 ${comboSettings.enabled ? 'text-yellow-500' : 'text-gray-400'}`} />
+                    <div>
+                      <p className="font-bold text-gray-900">Combo Status</p>
+                      <p className="text-sm text-gray-600">Enable combo multiplier for this VIP</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setComboSettings({ ...comboSettings, enabled: !comboSettings.enabled })}
+                    className={`px-6 py-2 rounded-lg font-medium transition-all ${
+                      comboSettings.enabled
+                        ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg'
+                        : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                    }`}
+                  >
+                    {comboSettings.enabled ? 'ENABLED' : 'DISABLED'}
+                  </button>
+                </div>
+
+                {comboSettings.enabled && (
+                  <>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Combo Position
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="20"
+                          value={comboSettings.position}
+                          onChange={(e) => setComboSettings({ ...comboSettings, position: parseInt(e.target.value) || 1 })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Every Nth product</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Multiplier
+                        </label>
+                        <input
+                          type="number"
+                          min="2"
+                          max="10"
+                          value={comboSettings.multiplier}
+                          onChange={(e) => setComboSettings({ ...comboSettings, multiplier: parseInt(e.target.value) || 2 })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Times multiplier</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Deposit %
+                        </label>
+                        <input
+                          type="number"
+                          min="10"
+                          max="100"
+                          value={comboSettings.depositPercent}
+                          onChange={(e) => setComboSettings({ ...comboSettings, depositPercent: parseInt(e.target.value) || 50 })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Balance deposit %</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <p className="text-sm text-yellow-900 font-medium">
+                        Combo Preview: Every {comboSettings.position}
+                        {comboSettings.position === 1 ? 'st' : comboSettings.position === 2 ? 'nd' : comboSettings.position === 3 ? 'rd' : 'th'} product
+                        will receive {comboSettings.multiplier}x commission multiplier with {comboSettings.depositPercent}% deposited to balance
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50">
+              <button
+                onClick={() => setApprovalModal(null)}
+                className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={approveRequest}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+              >
+                <CheckCircle className="w-5 h-5" />
+                Approve & Grant Access
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

@@ -1,0 +1,330 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
+import { X, DollarSign, TrendingUp, TrendingDown, Award, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+
+interface ClientDetailsModalProps {
+  clientId: string;
+  clientEmail: string;
+  onClose: () => void;
+}
+
+interface VIPPurchase {
+  id: string;
+  vip_level: number;
+  category_id: string;
+  status: string;
+  created_at: string;
+  approved_at: string | null;
+  completed_count: number;
+  total_products: number;
+}
+
+interface Transaction {
+  id: string;
+  type: string;
+  amount: number;
+  status: string;
+  description: string;
+  created_at: string;
+}
+
+interface Profile {
+  balance: number;
+  username: string;
+  referral_code: string;
+  combo_enabled: boolean;
+  vip_completions_count: number;
+}
+
+export default function ClientDetailsModal({ clientId, clientEmail, onClose }: ClientDetailsModalProps) {
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [vipPurchases, setVipPurchases] = useState<VIPPurchase[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'vips' | 'transactions'>('vips');
+
+  useEffect(() => {
+    loadClientDetails();
+  }, [clientId]);
+
+  async function loadClientDetails() {
+    try {
+      setLoading(true);
+
+      const [profileRes, vipRes, transRes] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('balance, username, referral_code, combo_enabled, vip_completions_count')
+          .eq('id', clientId)
+          .single(),
+        supabase
+          .from('vip_purchases')
+          .select('id, vip_level, category_id, status, created_at, approved_at, completed_count, total_products')
+          .eq('user_id', clientId)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('transactions')
+          .select('id, type, amount, status, description, created_at')
+          .eq('user_id', clientId)
+          .order('created_at', { ascending: false })
+          .limit(50)
+      ]);
+
+      if (profileRes.error) throw profileRes.error;
+      if (vipRes.error) throw vipRes.error;
+      if (transRes.error) throw transRes.error;
+
+      setProfile(profileRes.data);
+      setVipPurchases(vipRes.data || []);
+      setTransactions(transRes.data || []);
+    } catch (error) {
+      console.error('Error loading client details:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const pendingVips = vipPurchases.filter(v => v.status === 'pending');
+  const approvedVips = vipPurchases.filter(v => v.status === 'approved');
+  const completedVips = vipPurchases.filter(v => v.status === 'completed');
+  const rejectedVips = vipPurchases.filter(v => v.status === 'rejected');
+
+  const deposits = transactions.filter(t => t.type === 'deposit');
+  const withdrawals = transactions.filter(t => t.type === 'withdrawal');
+  const totalDeposits = deposits.filter(t => t.status === 'completed').reduce((sum, t) => sum + Number(t.amount), 0);
+  const totalWithdrawals = withdrawals.filter(t => t.status === 'completed').reduce((sum, t) => sum + Number(t.amount), 0);
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg p-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full my-8">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-purple-600">
+          <div className="text-white">
+            <h2 className="text-2xl font-bold">Client Details</h2>
+            <p className="text-blue-100 mt-1">{clientEmail}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-white/20 rounded-lg transition-colors text-white"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="p-6">
+          {profile && (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-green-100 text-sm">Balance</p>
+                    <p className="text-2xl font-bold">${Number(profile.balance).toFixed(2)}</p>
+                  </div>
+                  <DollarSign className="w-10 h-10 text-green-200" />
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-blue-100 text-sm">Total Deposits</p>
+                    <p className="text-2xl font-bold">${totalDeposits.toFixed(2)}</p>
+                  </div>
+                  <TrendingUp className="w-10 h-10 text-blue-200" />
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-4 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-orange-100 text-sm">Total Withdrawals</p>
+                    <p className="text-2xl font-bold">${totalWithdrawals.toFixed(2)}</p>
+                  </div>
+                  <TrendingDown className="w-10 h-10 text-orange-200" />
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-purple-100 text-sm">VIP Completions</p>
+                    <p className="text-2xl font-bold">{profile.vip_completions_count}</p>
+                  </div>
+                  <Award className="w-10 h-10 text-purple-200" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-2 mb-4 bg-gray-100 p-1 rounded-lg">
+            <button
+              onClick={() => setActiveTab('vips')}
+              className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'vips'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              VIP Purchases ({vipPurchases.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('transactions')}
+              className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'transactions'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Transactions ({transactions.length})
+            </button>
+          </div>
+
+          {activeTab === 'vips' ? (
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {['pending', 'approved', 'completed', 'rejected'].map((status) => {
+                const statusVips = vipPurchases.filter(v => v.status === status);
+                if (statusVips.length === 0) return null;
+
+                return (
+                  <div key={status}>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 capitalize flex items-center gap-2">
+                      {status === 'pending' && <Clock className="w-5 h-5 text-yellow-500" />}
+                      {status === 'approved' && <CheckCircle className="w-5 h-5 text-green-500" />}
+                      {status === 'completed' && <Award className="w-5 h-5 text-blue-500" />}
+                      {status === 'rejected' && <XCircle className="w-5 h-5 text-red-500" />}
+                      {status} ({statusVips.length})
+                    </h3>
+                    <div className="grid gap-2">
+                      {statusVips.map((vip) => (
+                        <div
+                          key={vip.id}
+                          className={`border rounded-lg p-4 ${
+                            status === 'pending'
+                              ? 'bg-yellow-50 border-yellow-300'
+                              : status === 'approved'
+                              ? 'bg-green-50 border-green-300'
+                              : status === 'completed'
+                              ? 'bg-blue-50 border-blue-300'
+                              : 'bg-red-50 border-red-300'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-bold text-gray-900">
+                                VIP {vip.vip_level} - {vip.category_id}
+                              </p>
+                              <p className="text-sm text-gray-600 mt-1">
+                                Created: {new Date(vip.created_at).toLocaleString('en-US')}
+                              </p>
+                              {vip.approved_at && (
+                                <p className="text-sm text-gray-600">
+                                  Approved: {new Date(vip.approved_at).toLocaleString('en-US')}
+                                </p>
+                              )}
+                            </div>
+                            {(status === 'approved' || status === 'completed') && (
+                              <div className="text-right">
+                                <p className="text-2xl font-bold text-blue-600">
+                                  {vip.completed_count}/{vip.total_products}
+                                </p>
+                                <p className="text-xs text-gray-500">Products completed</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {vipPurchases.length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  <Award className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                  <p>No VIP purchases yet</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {transactions.map((transaction) => (
+                <div
+                  key={transaction.id}
+                  className={`border rounded-lg p-4 ${
+                    transaction.type === 'deposit'
+                      ? 'bg-green-50 border-green-200'
+                      : transaction.type === 'withdrawal'
+                      ? 'bg-orange-50 border-orange-200'
+                      : transaction.type === 'commission'
+                      ? 'bg-blue-50 border-blue-200'
+                      : 'bg-gray-50 border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        {transaction.type === 'deposit' && <TrendingUp className="w-5 h-5 text-green-600" />}
+                        {transaction.type === 'withdrawal' && <TrendingDown className="w-5 h-5 text-orange-600" />}
+                        {transaction.type === 'commission' && <Award className="w-5 h-5 text-blue-600" />}
+                        <span className="font-bold text-gray-900 capitalize">{transaction.type}</span>
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            transaction.status === 'completed'
+                              ? 'bg-green-100 text-green-800'
+                              : transaction.status === 'pending'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                        >
+                          {transaction.status}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">{transaction.description || 'No description'}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {new Date(transaction.created_at).toLocaleString('en-US')}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p
+                        className={`text-2xl font-bold ${
+                          transaction.type === 'withdrawal' ? 'text-orange-600' : 'text-green-600'
+                        }`}
+                      >
+                        {transaction.type === 'withdrawal' ? '-' : '+'}${Number(transaction.amount).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {transactions.length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  <DollarSign className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                  <p>No transactions yet</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

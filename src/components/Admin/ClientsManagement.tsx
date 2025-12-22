@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Users, Mail, User, DollarSign, Search, RefreshCw, Award, Zap, ChevronDown, ChevronUp } from 'lucide-react';
+import { Users, Mail, User, DollarSign, Search, RefreshCw, Award, Zap, ChevronDown, ChevronUp, Info } from 'lucide-react';
 import ComboSettingsModal from './ComboSettingsModal';
+import ClientDetailsModal from './ClientDetailsModal';
 
 interface Profile {
   id: string;
@@ -29,6 +30,7 @@ export default function ClientsManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedClient, setExpandedClient] = useState<string | null>(null);
   const [comboSettingsClient, setComboSettingsClient] = useState<{ id: string; email: string; status: boolean } | null>(null);
+  const [detailsClient, setDetailsClient] = useState<{ id: string; email: string } | null>(null);
 
   useEffect(() => {
     fetchProfiles();
@@ -220,6 +222,13 @@ export default function ClientsManagement() {
                         <div>
                           <p className="font-medium text-gray-900">{profile.email}</p>
                           <p className="text-xs text-gray-500">ID: {profile.id.slice(0, 8)}...</p>
+                          <button
+                            onClick={() => setDetailsClient({ id: profile.id, email: profile.email })}
+                            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium mt-1 transition-colors"
+                          >
+                            <Info className="w-3 h-3" />
+                            Details
+                          </button>
                         </div>
                       </div>
                     </td>
@@ -317,6 +326,14 @@ export default function ClientsManagement() {
           </div>
         )}
       </div>
+
+      {detailsClient && (
+        <ClientDetailsModal
+          clientId={detailsClient.id}
+          clientEmail={detailsClient.email}
+          onClose={() => setDetailsClient(null)}
+        />
+      )}
 
       {comboSettingsClient && (
         <ComboSettingsModal
