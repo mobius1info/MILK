@@ -333,24 +333,6 @@ export default function VIPLevelManagement() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Commission per Product (%) - DEPRECATED
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.commission}
-                  onChange={(e) => setFormData({ ...formData, commission: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border rounded-lg bg-gray-100"
-                  placeholder="5.00"
-                  disabled
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  This field is deprecated and not used
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Number of Products (tasks)
                 </label>
                 <input
