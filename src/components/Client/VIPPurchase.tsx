@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { ShoppingBag, Crown, CheckCircle, Clock, XCircle, Wallet } from 'lucide-react';
+import { ShoppingBag, Crown, CheckCircle, Clock, XCircle } from 'lucide-react';
 import NotificationModal from '../NotificationModal';
 
 interface VIPLevel {
@@ -35,10 +35,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
   const [vipLevels, setVipLevels] = useState<VIPLevel[]>([]);
   const [purchases, setPurchases] = useState<VIPPurchaseRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showInsufficientFundsModal, setShowInsufficientFundsModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [requiredAmount, setRequiredAmount] = useState(0);
-  const [currentBalance, setCurrentBalance] = useState(0);
   const [selectedVIPLevel, setSelectedVIPLevel] = useState<number | 'all'>('all');
   const [notification, setNotification] = useState<{
     isOpen: boolean;
@@ -111,25 +108,6 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('balance')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (profileError) throw profileError;
-      if (!profile) throw new Error('Profile not found');
-
-      const currentBalance = Number(profile.balance);
-
-      console.log('VIP Purchase Request:', {
-        price,
-        currentBalance,
-        hasEnoughBalance: currentBalance >= price
-      });
-
-      // Create VIP purchase request regardless of balance
-      // Admin will approve and user can work if they have enough balance
       const { error: insertError } = await supabase
         .from('vip_purchases')
         .insert({
@@ -145,21 +123,12 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
 
       if (insertError) throw insertError;
 
-      if (currentBalance >= price) {
-        setNotification({
-          isOpen: true,
-          type: 'success',
-          title: 'VIP Purchase Requested',
-          message: `Your balance ($${currentBalance.toFixed(2)}) is sufficient. Waiting for admin approval.`
-        });
-      } else {
-        setNotification({
-          isOpen: true,
-          type: 'info',
-          title: 'VIP Purchase Requested',
-          message: `Your request is pending. Current balance: $${currentBalance.toFixed(2)}. Required: $${price.toFixed(2)}`
-        });
-      }
+      setNotification({
+        isOpen: true,
+        type: 'success',
+        title: 'VIP Purchase Requested',
+        message: 'Your VIP purchase request has been submitted and is pending admin approval.'
+      });
 
       setShowSuccessModal(true);
       loadPurchases();
@@ -286,8 +255,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
           const categoryPurchase = purchases.find(
             p => p.vip_level === vipLevel.level &&
                  p.category_id === vipLevel.category &&
-                 p.status !== 'completed' &&
-                 !p.is_completed
+                 (p.status === 'pending' || (p.status === 'approved' && !p.is_completed))
           );
 
           return (
@@ -401,53 +369,6 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
             ))}
           </div>
         </div>
-      )}
-
-      {showInsufficientFundsModal && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setShowInsufficientFundsModal(false)}
-          ></div>
-          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
-              <div className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                  <Wallet className="w-8 h-8 text-red-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                  Insufficient Funds
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  To access this VIP level you need <span className="font-bold text-[#f5b04c]">${requiredAmount.toFixed(2)}</span> on your balance,
-                  but you have <span className="font-bold text-red-600">${currentBalance.toFixed(2)}</span>
-                </p>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 w-full">
-                  <p className="text-sm text-yellow-800">
-                    Please deposit at least <span className="font-bold">${(requiredAmount - currentBalance).toFixed(2)}</span> to get access
-                  </p>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-3 w-full">
-                  <button
-                    onClick={() => {
-                      setShowInsufficientFundsModal(false);
-                      onNavigateToDeposit();
-                    }}
-                    className="flex-1 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
-                  >
-                    Deposit Funds
-                  </button>
-                  <button
-                    onClick={() => setShowInsufficientFundsModal(false)}
-                    className="flex-1 border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
       )}
 
       {showSuccessModal && (
