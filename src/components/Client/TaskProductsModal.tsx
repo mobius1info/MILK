@@ -33,6 +33,13 @@ interface TaskProductsModalProps {
   onNavigateToDeposit?: () => void;
 }
 
+interface ComboSettings {
+  enabled: boolean;
+  position: number;
+  multiplier: number;
+  depositPercent: number;
+}
+
 interface ProductProgress {
   current_product_index: number;
   products_purchased: number;
@@ -61,6 +68,12 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
   const [dynamicPrice, setDynamicPrice] = useState<number | null>(null);
   const [dynamicCommission, setDynamicCommission] = useState<number | null>(null);
   const [vipPrice, setVipPrice] = useState<number>(100);
+  const [comboSettings, setComboSettings] = useState<ComboSettings>({
+    enabled: false,
+    position: 9,
+    multiplier: 3,
+    depositPercent: 50
+  });
   const [notification, setNotification] = useState({
     isOpen: false,
     type: 'success' as 'success' | 'error' | 'warning' | 'info',
@@ -109,6 +122,14 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
       const totalProductsCount = vipLevelData?.products_count || 25;
       const purchaseVipPrice = vipPurchase.vip_price || category.price || 100;
       setVipPrice(purchaseVipPrice);
+
+      // Load combo settings from VIP purchase snapshot
+      setComboSettings({
+        enabled: vipPurchase.combo_enabled_at_approval || false,
+        position: vipPurchase.combo_position_at_approval || 9,
+        multiplier: vipPurchase.combo_multiplier_at_approval || 3,
+        depositPercent: vipPurchase.combo_deposit_percent_at_approval || 50
+      });
 
       const { data: productsData, error: productsError } = await supabase
         .from('products')
@@ -263,23 +284,25 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
   }
 
   const nextProductNumber = progress.products_purchased + 1;
-  // Combo only works if: 9th product AND combo is enabled by admin
-  const isNextCombo = (nextProductNumber % 9 === 0) && comboEnabled;
+  // FIXED: COMBO only happens ONCE at exact position (not every N products)
+  const isNextCombo = (nextProductNumber === comboSettings.position) && comboSettings.enabled;
+
+  // FIXED: COMBO price = VIP price * (Deposit % / 100)
+  const comboPrice = vipPrice * (comboSettings.depositPercent / 100);
 
   const displayPrice = dynamicPrice !== null
     ? dynamicPrice
     : isNextCombo
-      ? vipPrice * 1.75
+      ? comboPrice
       : product?.price || 0;
 
   // New commission logic: based on VIP price and percentage, not product price
-  const totalVipCommission = (category.price * (category.commission_percentage || 15) / 100);
-  const commissionPerTask = totalVipCommission / 25;
-  const comboMultiplier = 3; // Commission multiplier for combo products
+  const totalVipCommission = (vipPrice * (category.commission_percentage || 15) / 100);
+  const commissionPerTask = totalVipCommission / progress.total_products_count;
   const potentialCommission = dynamicCommission !== null
     ? dynamicCommission
     : isNextCombo
-      ? commissionPerTask * comboMultiplier
+      ? commissionPerTask * comboSettings.multiplier
       : commissionPerTask;
 
   if (loading) {
