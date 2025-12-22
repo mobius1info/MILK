@@ -8,6 +8,7 @@ interface VIPLevel {
   level: number;
   name: string;
   commission: number;
+  commission_percentage: number;
   price: number;
   description: string;
   category: string;
@@ -37,6 +38,7 @@ export default function VIPLevelManagement() {
     level: 0,
     name: '',
     commission: 0,
+    commission_percentage: 15,
     price: 0,
     description: '',
     category: '',
@@ -65,6 +67,7 @@ export default function VIPLevelManagement() {
       const levels = (data || []).map(level => ({
         ...level,
         commission: parseFloat(level.commission) || 0,
+        commission_percentage: parseFloat(level.commission_percentage) || 15,
         price: parseFloat(level.price) || 0
       }));
       console.log('[Admin] Processed VIP levels:', levels);
@@ -82,6 +85,7 @@ export default function VIPLevelManagement() {
       level: level.level,
       name: level.name,
       commission: Number(level.commission),
+      commission_percentage: Number(level.commission_percentage) || 15,
       price: Number(level.price),
       description: level.description,
       category: level.category,
@@ -100,6 +104,7 @@ export default function VIPLevelManagement() {
       level: 0,
       name: '',
       commission: 0,
+      commission_percentage: 15,
       price: 0,
       description: '',
       category: '',
@@ -142,6 +147,7 @@ export default function VIPLevelManagement() {
       const levelData = {
         name: formData.name,
         commission: formData.commission,
+        commission_percentage: formData.commission_percentage,
         price: formData.price,
         description: formData.description,
         category: formData.category.trim(),
@@ -255,6 +261,7 @@ export default function VIPLevelManagement() {
                 level: vipLevels.length + 1,
                 name: `VIP ${vipLevels.length + 1}`,
                 commission: 0,
+                commission_percentage: 15,
                 price: 0,
                 description: '',
                 category: '',
@@ -307,16 +314,19 @@ export default function VIPLevelManagement() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Commission (%)
+                  Total Commission (%)
                 </label>
                 <input
                   type="number"
-                  step="0.01"
-                  value={formData.commission}
-                  onChange={(e) => setFormData({ ...formData, commission: parseFloat(e.target.value) || 0 })}
+                  step="1"
+                  value={formData.commission_percentage}
+                  onChange={(e) => setFormData({ ...formData, commission_percentage: parseFloat(e.target.value) || 15 })}
                   className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="5.00"
+                  placeholder="15"
                 />
+                <p className="mt-1 text-xs text-gray-500">
+                  Client earns this % of VIP price total (divided by 25 tasks)
+                </p>
               </div>
 
               <div>
@@ -331,6 +341,24 @@ export default function VIPLevelManagement() {
                   className="w-full px-3 py-2 border rounded-lg"
                   placeholder="100.00"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Commission per Product (%) - DEPRECATED
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.commission}
+                  onChange={(e) => setFormData({ ...formData, commission: parseFloat(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 border rounded-lg bg-gray-100"
+                  placeholder="5.00"
+                  disabled
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  This field is deprecated and not used
+                </p>
               </div>
 
               <div>
@@ -507,19 +535,22 @@ export default function VIPLevelManagement() {
                       </div>
 
                       <div className="bg-green-50 rounded-lg p-3">
-                        <div className="text-sm text-gray-600">Commission per Product</div>
+                        <div className="text-sm text-gray-600">Total Commission</div>
                         <div className="text-2xl font-bold text-green-600">
-                          {level.commission.toFixed(0)}%
+                          {level.commission_percentage.toFixed(0)}%
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
-                          COMBO (every {level.combo_product_position || 9}th): {(level.commission * (level.commission_multiplier || 3)).toFixed(0)}% ({level.commission_multiplier || 3}x)
+                          ${(level.price * level.commission_percentage / 100).toFixed(2)} total
                         </div>
                       </div>
 
                       <div className="bg-purple-50 rounded-lg p-3">
-                        <div className="text-sm text-gray-600">Products (tasks)</div>
+                        <div className="text-sm text-gray-600">Per Task</div>
                         <div className="text-2xl font-bold text-purple-600">
-                          {level.products_count}
+                          ${((level.price * level.commission_percentage / 100) / level.products_count).toFixed(2)}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {level.products_count} tasks total
                         </div>
                       </div>
 

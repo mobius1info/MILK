@@ -19,6 +19,7 @@ interface VIPLevel {
   name: string;
   price: number;
   commission: number;
+  commission_percentage: number;
   description: string;
   category: string;
   category_image_url: string;
@@ -270,10 +271,12 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
       ? vipPrice * 1.75
       : product?.price || 0;
 
-  const commissionPercentage = category.commission;
-  const potentialCommission = isNextCombo
-    ? (displayPrice * (commissionPercentage / 100) * 3)
-    : (displayPrice * (commissionPercentage / 100));
+  // New commission logic: based on VIP price and percentage, not product price
+  const totalVipCommission = (category.price * (category.commission_percentage || 15) / 100);
+  const commissionPerTask = totalVipCommission / 25;
+  const potentialCommission = dynamicCommission !== null
+    ? dynamicCommission
+    : commissionPerTask;
 
   if (loading) {
     return (
