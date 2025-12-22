@@ -35,6 +35,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
   const [vipLevels, setVipLevels] = useState<VIPLevel[]>([]);
   const [purchases, setPurchases] = useState<VIPPurchaseRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [requesting, setRequesting] = useState(false);
   const [selectedVIPLevel, setSelectedVIPLevel] = useState<number | 'all'>('all');
   const [notification, setNotification] = useState<{
     isOpen: boolean;
@@ -103,7 +104,11 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
   }
 
   async function requestVIPAccess(vipLevelId: string, vipLevel: number, categoryId: string, price: number, productsCount: number) {
+    if (requesting) return;
+
     try {
+      setRequesting(true);
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
@@ -178,6 +183,8 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
         title: 'Request Error',
         message: error.message
       });
+    } finally {
+      setRequesting(false);
     }
   }
 
@@ -371,11 +378,20 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
                   ) : (
                     <button
                       onClick={() => requestVIPAccess(vipLevel.id, vipLevel.level, vipLevel.category, vipLevel.price, vipLevel.products_count)}
-                      disabled={isPurchased}
+                      disabled={isPurchased || requesting}
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
-                      <ShoppingBag className="w-5 h-5" />
-                      Deposit ${vipLevel.price.toFixed(2)}
+                      {requesting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingBag className="w-5 h-5" />
+                          Deposit ${vipLevel.price.toFixed(2)}
+                        </>
+                      )}
                     </button>
                   )}
                 </div>
