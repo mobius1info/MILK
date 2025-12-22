@@ -263,12 +263,33 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
         setDynamicCommission(result.commission);
         setMessage(result.message);
 
-        setNotification({
-          isOpen: true,
-          type: 'success',
-          title: result.is_ninth_product ? 'COMBO product purchased!' : 'Success!',
-          message: result.message
-        });
+        // If all products completed, show total commission earned
+        if (result.is_completed) {
+          // Reload progress to get updated total_commission_earned
+          const { data: updatedProgress } = await supabase
+            .from('product_progress')
+            .select('*')
+            .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+            .eq('category_id', category.category)
+            .eq('vip_level', category.level)
+            .maybeSingle();
+
+          const totalCommission = updatedProgress?.total_commission_earned || 0;
+
+          setNotification({
+            isOpen: true,
+            type: 'success',
+            title: 'Success!',
+            message: `All products in this category completed!\n\nTotal profit earned: $${totalCommission.toFixed(2)}`
+          });
+        } else {
+          setNotification({
+            isOpen: true,
+            type: 'success',
+            title: result.is_ninth_product ? 'COMBO product purchased!' : 'Success!',
+            message: result.message
+          });
+        }
       }
     } catch (error: any) {
       console.error('Error purchasing product:', error);
