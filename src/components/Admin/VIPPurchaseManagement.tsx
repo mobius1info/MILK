@@ -585,9 +585,8 @@ export default function VIPPurchaseManagement() {
 
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                       <p className="text-sm text-yellow-900 font-medium">
-                        Combo Preview: Every {comboSettings.position}
-                        {comboSettings.position === 1 ? 'st' : comboSettings.position === 2 ? 'nd' : comboSettings.position === 3 ? 'rd' : 'th'} product
-                        will receive {comboSettings.multiplier}x commission multiplier with {comboSettings.depositPercent}% deposited to balance
+                        Combo Preview: Product #{comboSettings.position} (out of 25 products)
+                        will receive {comboSettings.multiplier}x commission multiplier with {comboSettings.depositPercent}% balance deposit required
                       </p>
                     </div>
                   </>
