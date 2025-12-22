@@ -125,10 +125,10 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
 
       // Load combo settings from VIP purchase snapshot
       setComboSettings({
-        enabled: vipPurchase.combo_enabled_at_approval || false,
-        position: vipPurchase.combo_position_at_approval || 9,
-        multiplier: vipPurchase.combo_multiplier_at_approval || 3,
-        depositPercent: vipPurchase.combo_deposit_percent_at_approval || 50
+        enabled: vipPurchase.combo_enabled_at_approval ?? false,
+        position: Number(vipPurchase.combo_position_at_approval ?? 9),
+        multiplier: Number(vipPurchase.combo_multiplier_at_approval ?? 3),
+        depositPercent: Number(vipPurchase.combo_deposit_percent_at_approval ?? 50)
       });
 
       const { data: productsData, error: productsError } = await supabase
@@ -447,7 +447,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
               </div>
               <div className={`rounded-lg p-2.5 sm:p-3 ${isNextCombo ? 'bg-yellow-50 border-2 border-yellow-300' : 'bg-green-50'}`}>
                 <div className="text-xs text-gray-600 mb-1">
-                  {isNextCombo ? 'Earn x3' : 'Earn'}
+                  {isNextCombo ? `Earn x${comboSettings.multiplier}` : 'Earn'}
                 </div>
                 <div className={`text-lg sm:text-2xl font-bold ${isNextCombo ? 'text-yellow-600' : 'text-green-600'}`}>
                   ${potentialCommission.toFixed(2)}
@@ -475,7 +475,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
               <div className="flex items-start gap-1.5 sm:gap-2">
                 <Star className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-orange-600 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <div className="font-semibold text-orange-900 mb-0.5 text-xs sm:text-sm">COMBO - Triple Commission!</div>
+                  <div className="font-semibold text-orange-900 mb-0.5 text-xs sm:text-sm">COMBO - {comboSettings.multiplier}x Commission!</div>
                   <p className="text-xs text-orange-800 leading-snug sm:leading-relaxed">
                     Balance ${displayPrice.toFixed(2)} required. Earn ${potentialCommission.toFixed(2)}!
                   </p>
@@ -537,10 +537,10 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
                 <>
                   <ShoppingBag className="w-5 h-5 flex-shrink-0" />
                   <span className="hidden sm:inline">
-                    {isNextCombo ? `COMBO: Buy for $${displayPrice.toFixed(2)} and get $${potentialCommission.toFixed(2)}` : `Buy and get $${potentialCommission.toFixed(2)}`}
+                    {isNextCombo ? `COMBO: Buy for $${displayPrice.toFixed(2)} and get $${potentialCommission.toFixed(2)} (x${comboSettings.multiplier})` : `Buy and get $${potentialCommission.toFixed(2)}`}
                   </span>
                   <span className="sm:hidden truncate">
-                    {isNextCombo ? `COMBO $${displayPrice.toFixed(2)} → +$${potentialCommission.toFixed(2)}` : `Buy & Get +$${potentialCommission.toFixed(2)}`}
+                    {isNextCombo ? `COMBO $${displayPrice.toFixed(2)} → +$${potentialCommission.toFixed(2)} (x${comboSettings.multiplier})` : `Buy & Get +$${potentialCommission.toFixed(2)}`}
                   </span>
                 </>
               )}
