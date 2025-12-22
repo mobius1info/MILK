@@ -142,14 +142,14 @@ export default function ComboSettingsModal({ clientId, clientEmail, currentStatu
                     onChange={(e) => setComboProductPosition(Number(e.target.value))}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   >
-                    {[3, 5, 7, 9, 10, 12, 15, 20, 25].map((num) => (
+                    {Array.from({ length: 25 }, (_, i) => i + 1).map((num) => (
                       <option key={num} value={num}>
-                        Every {num}th product (e.g., {num}, {num * 2}, {num * 3})
+                        Product #{num}
                       </option>
                     ))}
                   </select>
                   <p className="text-xs text-gray-500 mt-1">
-                    Client will see COMBO at positions: {comboProductPosition}, {comboProductPosition * 2}, {comboProductPosition * 3}, etc.
+                    Client will see COMBO on product #{comboProductPosition}
                   </p>
                 </div>
 
