@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Users, Mail, User, DollarSign, Search, RefreshCw, Award, Zap } from 'lucide-react';
+import { Users, Mail, User, DollarSign, Search, RefreshCw, Award, Zap, ChevronDown, ChevronUp } from 'lucide-react';
+import ComboSettingsModal from './ComboSettingsModal';
 
 interface Profile {
   id: string;
@@ -13,12 +14,21 @@ interface Profile {
   role: string;
   combo_enabled: boolean;
   vip_completions_count: number;
+  vip_completions_by_level?: { [key: string]: number };
+}
+
+interface VIPCompletion {
+  vip_level: number;
+  category: string;
+  count: number;
 }
 
 export default function ClientsManagement() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [expandedClient, setExpandedClient] = useState<string | null>(null);
+  const [comboSettingsClient, setComboSettingsClient] = useState<{ id: string; email: string; status: boolean } | null>(null);
 
   useEffect(() => {
     fetchProfiles();
@@ -35,10 +45,15 @@ export default function ClientsManagement() {
 
       if (error) throw error;
 
-      const profilesWithDefaults = (data || []).map(profile => ({
-        ...profile,
-        combo_enabled: profile.combo_enabled ?? false,
-        vip_completions_count: profile.vip_completions_count ?? 0
+      const profilesWithDefaults = await Promise.all((data || []).map(async (profile) => {
+        const completionsByLevel = await fetchVIPCompletions(profile.id);
+
+        return {
+          ...profile,
+          combo_enabled: profile.combo_enabled ?? false,
+          vip_completions_count: profile.vip_completions_count ?? 0,
+          vip_completions_by_level: completionsByLevel
+        };
       }));
 
       setProfiles(profilesWithDefaults);
@@ -49,22 +64,37 @@ export default function ClientsManagement() {
     }
   }
 
-  async function toggleCombo(profileId: string, currentStatus: boolean) {
+  async function fetchVIPCompletions(userId: string): Promise<{ [key: string]: number }> {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ combo_enabled: !currentStatus })
-        .eq('id', profileId);
+      const { data, error } = await supabase
+        .from('vip_purchases')
+        .select('vip_level, category_id')
+        .eq('user_id', userId)
+        .eq('status', 'completed');
 
       if (error) throw error;
 
-      setProfiles(profiles.map(p =>
-        p.id === profileId ? { ...p, combo_enabled: !currentStatus } : p
-      ));
+      const completions: { [key: string]: number } = {};
+
+      (data || []).forEach((purchase) => {
+        const key = `VIP ${purchase.vip_level} - ${purchase.category_id}`;
+        completions[key] = (completions[key] || 0) + 1;
+      });
+
+      return completions;
     } catch (error) {
-      console.error('Error toggling combo:', error);
-      alert('Failed to update combo status');
+      console.error('Error fetching VIP completions:', error);
+      return {};
     }
+  }
+
+  function openComboSettings(profileId: string, email: string, currentStatus: boolean) {
+    setComboSettingsClient({ id: profileId, email, status: currentStatus });
+  }
+
+  function closeComboSettings() {
+    setComboSettingsClient(null);
+    fetchProfiles();
   }
 
   const filteredProfiles = profiles.filter(profile => {
@@ -213,14 +243,40 @@ export default function ClientsManagement() {
                         <span className="text-lg font-bold text-gray-900">
                           {profile.vip_completions_count ?? 0}
                         </span>
+                        <button
+                          onClick={() => setExpandedClient(expandedClient === profile.id ? null : profile.id)}
+                          className="p-1 hover:bg-gray-200 rounded transition-colors"
+                        >
+                          {expandedClient === profile.id ? (
+                            <ChevronUp className="w-4 h-4 text-gray-600" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 text-gray-600" />
+                          )}
+                        </button>
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {(profile.vip_completions_count ?? 0) >= 1 ? 'Combo eligible' : 'Need 1 completion'}
-                      </p>
+                      {expandedClient === profile.id && profile.vip_completions_by_level && (
+                        <div className="mt-2 p-2 bg-blue-50 rounded text-xs space-y-1">
+                          {Object.keys(profile.vip_completions_by_level).length > 0 ? (
+                            Object.entries(profile.vip_completions_by_level).map(([key, count]) => (
+                              <div key={key} className="flex justify-between">
+                                <span className="text-gray-700">{key}:</span>
+                                <span className="font-bold text-blue-600">{count}x</span>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-gray-500 italic">No completions yet</p>
+                          )}
+                        </div>
+                      )}
+                      {!expandedClient || expandedClient !== profile.id ? (
+                        <p className="text-xs text-gray-500 mt-1">
+                          {(profile.vip_completions_count ?? 0) >= 1 ? 'Combo eligible' : 'Need 1 completion'}
+                        </p>
+                      ) : null}
                     </td>
                     <td className="px-6 py-4">
                       <button
-                        onClick={() => toggleCombo(profile.id, profile.combo_enabled ?? false)}
+                        onClick={() => openComboSettings(profile.id, profile.email, profile.combo_enabled ?? false)}
                         className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all ${
                           profile.combo_enabled
                             ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg hover:shadow-xl'
@@ -230,9 +286,9 @@ export default function ClientsManagement() {
                         <Zap className={`w-4 h-4 ${profile.combo_enabled ? 'animate-pulse' : ''}`} />
                         {profile.combo_enabled ? 'ENABLED' : 'DISABLED'}
                       </button>
-                      {!profile.combo_enabled && (profile.vip_completions_count ?? 0) >= 1 && (
-                        <p className="text-xs text-amber-600 mt-1">Click to enable combo</p>
-                      )}
+                      <p className="text-xs text-gray-500 mt-1">
+                        Click to configure
+                      </p>
                     </td>
                     <td className="px-6 py-4">
                       <code className="px-2 py-1 bg-gray-100 rounded text-sm font-mono text-gray-700">
@@ -261,6 +317,16 @@ export default function ClientsManagement() {
           </div>
         )}
       </div>
+
+      {comboSettingsClient && (
+        <ComboSettingsModal
+          clientId={comboSettingsClient.id}
+          clientEmail={comboSettingsClient.email}
+          currentStatus={comboSettingsClient.status}
+          onClose={closeComboSettings}
+          onUpdate={closeComboSettings}
+        />
+      )}
     </div>
   );
 }
