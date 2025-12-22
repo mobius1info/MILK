@@ -241,17 +241,6 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
           title: result.is_ninth_product ? 'COMBO product purchased!' : 'Success!',
           message: result.message
         });
-
-        setTimeout(async () => {
-          setNotification({ isOpen: false, type: 'success', title: '', message: '' });
-          await new Promise(resolve => setTimeout(resolve, 500));
-
-          setDynamicPrice(null);
-          setDynamicCommission(null);
-          setMessage('');
-          setInsufficientBalance(null);
-          await loadProductsAndProgress();
-        }, 2000);
       }
     } catch (error: any) {
       console.error('Error purchasing product:', error);
@@ -508,7 +497,17 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
 
       <NotificationModal
         isOpen={notification.isOpen}
-        onClose={() => setNotification({ ...notification, isOpen: false })}
+        onClose={async () => {
+          setNotification({ ...notification, isOpen: false });
+          if (notification.type === 'success') {
+            await new Promise(resolve => setTimeout(resolve, 300));
+            setDynamicPrice(null);
+            setDynamicCommission(null);
+            setMessage('');
+            setInsufficientBalance(null);
+            await loadProductsAndProgress();
+          }
+        }}
         type={notification.type}
         title={notification.title}
         message={notification.message}
