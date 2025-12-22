@@ -268,9 +268,12 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
   // New commission logic: based on VIP price and percentage, not product price
   const totalVipCommission = (category.price * (category.commission_percentage || 15) / 100);
   const commissionPerTask = totalVipCommission / 25;
+  const comboMultiplier = 3; // Commission multiplier for combo products
   const potentialCommission = dynamicCommission !== null
     ? dynamicCommission
-    : commissionPerTask;
+    : isNextCombo
+      ? commissionPerTask * comboMultiplier
+      : commissionPerTask;
 
   if (loading) {
     return (
