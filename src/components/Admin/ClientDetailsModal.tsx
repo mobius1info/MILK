@@ -56,7 +56,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
           .from('profiles')
           .select('balance, username, referral_code, combo_enabled, vip_completions_count')
           .eq('id', clientId)
-          .single(),
+          .maybeSingle(),
         supabase
           .from('vip_purchases')
           .select('id, vip_level, category_id, status, created_at, approved_at, completed_count, total_products')
@@ -70,9 +70,22 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
           .limit(50)
       ]);
 
-      if (profileRes.error) throw profileRes.error;
-      if (vipRes.error) throw vipRes.error;
-      if (transRes.error) throw transRes.error;
+      if (profileRes.error) {
+        console.error('Profile error:', profileRes.error);
+        throw profileRes.error;
+      }
+      if (vipRes.error) {
+        console.error('VIP purchases error:', vipRes.error);
+        throw vipRes.error;
+      }
+      if (transRes.error) {
+        console.error('Transactions error:', transRes.error);
+        throw transRes.error;
+      }
+
+      console.log('Profile data:', profileRes.data);
+      console.log('VIP purchases:', vipRes.data);
+      console.log('Transactions:', transRes.data);
 
       setProfile(profileRes.data);
       setVipPurchases(vipRes.data || []);
@@ -121,49 +134,47 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
         </div>
 
         <div className="p-6">
-          {profile && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-green-100 text-sm">Balance</p>
-                    <p className="text-2xl font-bold">${Number(profile.balance).toFixed(2)}</p>
-                  </div>
-                  <DollarSign className="w-10 h-10 text-green-200" />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-100 text-sm">Balance</p>
+                  <p className="text-2xl font-bold">${Number(profile?.balance || 0).toFixed(2)}</p>
                 </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-blue-100 text-sm">Total Deposits</p>
-                    <p className="text-2xl font-bold">${totalDeposits.toFixed(2)}</p>
-                  </div>
-                  <TrendingUp className="w-10 h-10 text-blue-200" />
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-4 text-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-orange-100 text-sm">Total Withdrawals</p>
-                    <p className="text-2xl font-bold">${totalWithdrawals.toFixed(2)}</p>
-                  </div>
-                  <TrendingDown className="w-10 h-10 text-orange-200" />
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 text-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-purple-100 text-sm">VIP Completions</p>
-                    <p className="text-2xl font-bold">{profile.vip_completions_count}</p>
-                  </div>
-                  <Award className="w-10 h-10 text-purple-200" />
-                </div>
+                <DollarSign className="w-10 h-10 text-green-200" />
               </div>
             </div>
-          )}
+
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-100 text-sm">Total Deposits</p>
+                  <p className="text-2xl font-bold">${totalDeposits.toFixed(2)}</p>
+                </div>
+                <TrendingUp className="w-10 h-10 text-blue-200" />
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-orange-100 text-sm">Total Withdrawals</p>
+                  <p className="text-2xl font-bold">${totalWithdrawals.toFixed(2)}</p>
+                </div>
+                <TrendingDown className="w-10 h-10 text-orange-200" />
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-100 text-sm">VIP Completions</p>
+                  <p className="text-2xl font-bold">{profile?.vip_completions_count || 0}</p>
+                </div>
+                <Award className="w-10 h-10 text-purple-200" />
+              </div>
+            </div>
+          </div>
 
           <div className="flex gap-2 mb-4 bg-gray-100 p-1 rounded-lg">
             <button

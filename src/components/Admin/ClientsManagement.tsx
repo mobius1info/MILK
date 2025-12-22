@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Users, Mail, User, DollarSign, Search, RefreshCw, Award, Zap, ChevronDown, ChevronUp, Info } from 'lucide-react';
-import ComboSettingsModal from './ComboSettingsModal';
+import { Users, Mail, User, DollarSign, Search, RefreshCw, Award, ChevronDown, ChevronUp, Info } from 'lucide-react';
 import ClientDetailsModal from './ClientDetailsModal';
 
 interface Profile {
@@ -29,7 +28,6 @@ export default function ClientsManagement() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedClient, setExpandedClient] = useState<string | null>(null);
-  const [comboSettingsClient, setComboSettingsClient] = useState<{ id: string; email: string; status: boolean } | null>(null);
   const [detailsClient, setDetailsClient] = useState<{ id: string; email: string } | null>(null);
 
   useEffect(() => {
@@ -90,14 +88,6 @@ export default function ClientsManagement() {
     }
   }
 
-  function openComboSettings(profileId: string, email: string, currentStatus: boolean) {
-    setComboSettingsClient({ id: profileId, email, status: currentStatus });
-  }
-
-  function closeComboSettings() {
-    setComboSettingsClient(null);
-    fetchProfiles();
-  }
 
   const filteredProfiles = profiles.filter(profile => {
     const query = searchQuery.toLowerCase();
@@ -201,9 +191,6 @@ export default function ClientsManagement() {
                     VIP Completions
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Combo Status
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Referral Code
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -277,27 +264,6 @@ export default function ClientsManagement() {
                           )}
                         </div>
                       )}
-                      {!expandedClient || expandedClient !== profile.id ? (
-                        <p className="text-xs text-gray-500 mt-1">
-                          {(profile.vip_completions_count ?? 0) >= 1 ? 'Combo eligible' : 'Need 1 completion'}
-                        </p>
-                      ) : null}
-                    </td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => openComboSettings(profile.id, profile.email, profile.combo_enabled ?? false)}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all ${
-                          profile.combo_enabled
-                            ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg hover:shadow-xl'
-                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                        }`}
-                      >
-                        <Zap className={`w-4 h-4 ${profile.combo_enabled ? 'animate-pulse' : ''}`} />
-                        {profile.combo_enabled ? 'ENABLED' : 'DISABLED'}
-                      </button>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Click to configure
-                      </p>
                     </td>
                     <td className="px-6 py-4">
                       <code className="px-2 py-1 bg-gray-100 rounded text-sm font-mono text-gray-700">
@@ -332,16 +298,6 @@ export default function ClientsManagement() {
           clientId={detailsClient.id}
           clientEmail={detailsClient.email}
           onClose={() => setDetailsClient(null)}
-        />
-      )}
-
-      {comboSettingsClient && (
-        <ComboSettingsModal
-          clientId={comboSettingsClient.id}
-          clientEmail={comboSettingsClient.email}
-          currentStatus={comboSettingsClient.status}
-          onClose={closeComboSettings}
-          onUpdate={closeComboSettings}
         />
       )}
     </div>

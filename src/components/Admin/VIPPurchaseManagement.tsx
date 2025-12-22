@@ -12,6 +12,10 @@ interface VIPPurchaseRequest {
   created_at: string;
   approved_at: string | null;
   approved_by: string | null;
+  combo_enabled_at_approval: boolean | null;
+  combo_position_at_approval: number | null;
+  combo_multiplier_at_approval: number | null;
+  combo_deposit_percent_at_approval: number | null;
   profiles: {
     email: string;
     full_name: string;
@@ -71,7 +75,18 @@ export default function VIPPurchaseManagement() {
       const { data, error } = await supabase
         .from('vip_purchases')
         .select(`
-          *,
+          id,
+          user_id,
+          vip_level,
+          category_id,
+          status,
+          created_at,
+          approved_at,
+          approved_by,
+          combo_enabled_at_approval,
+          combo_position_at_approval,
+          combo_multiplier_at_approval,
+          combo_deposit_percent_at_approval,
           profiles:user_id (
             email,
             full_name
@@ -314,6 +329,28 @@ export default function VIPPurchaseManagement() {
                       </div>
                     </div>
                   </div>
+
+                  {request.status !== 'pending' && request.combo_enabled_at_approval !== null && (
+                    <div className={`mt-4 p-3 rounded-lg border flex items-center gap-3 ${
+                      request.combo_enabled_at_approval
+                        ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-300'
+                        : 'bg-gray-100 border-gray-300'
+                    }`}>
+                      <Zap className={`w-5 h-5 ${request.combo_enabled_at_approval ? 'text-yellow-600' : 'text-gray-500'}`} />
+                      <div className="flex-1">
+                        <div className="font-bold text-gray-900">
+                          Combo: {request.combo_enabled_at_approval ? 'ENABLED' : 'DISABLED'}
+                        </div>
+                        {request.combo_enabled_at_approval && (
+                          <div className="text-sm text-gray-700 mt-1">
+                            Position: {request.combo_position_at_approval} |
+                            Multiplier: {request.combo_multiplier_at_approval}x |
+                            Deposit: {request.combo_deposit_percent_at_approval}%
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {request.status === 'pending' && (
                     <div className="mt-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg flex items-center gap-2 text-yellow-800">
