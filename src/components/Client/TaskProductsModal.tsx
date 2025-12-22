@@ -128,9 +128,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
       const { data: purchasedProducts, error: purchasedError } = await supabase
         .from('product_purchases')
         .select('product_id, quantity_count, commission_earned')
-        .eq('user_id', user.id)
-        .eq('category_id', category.category)
-        .eq('vip_level', category.level);
+        .eq('vip_purchase_id', vipPurchase.id);
 
       if (purchasedError) throw purchasedError;
 
@@ -161,6 +159,13 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
           currentIndex = i;
         }
       }
+
+      console.log('Progress calculated:', {
+        totalPurchased,
+        totalCommission,
+        totalProductsCount,
+        vipPurchaseId: vipPurchase.id
+      });
 
       setProgress({
         current_product_index: currentIndex,

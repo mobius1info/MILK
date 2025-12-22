@@ -122,13 +122,14 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
 
       const currentBalance = Number(profile.balance);
 
-      if (currentBalance < price) {
-        setCurrentBalance(currentBalance);
-        setRequiredAmount(price);
-        setShowInsufficientFundsModal(true);
-        return;
-      }
+      console.log('VIP Purchase Request:', {
+        price,
+        currentBalance,
+        hasEnoughBalance: currentBalance >= price
+      });
 
+      // Create VIP purchase request regardless of balance
+      // Admin will approve and user can work if they have enough balance
       const { error: insertError } = await supabase
         .from('vip_purchases')
         .insert({
@@ -143,6 +144,22 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
         });
 
       if (insertError) throw insertError;
+
+      if (currentBalance >= price) {
+        setNotification({
+          isOpen: true,
+          type: 'success',
+          title: 'VIP Purchase Requested',
+          message: `Your balance ($${currentBalance.toFixed(2)}) is sufficient. Waiting for admin approval.`
+        });
+      } else {
+        setNotification({
+          isOpen: true,
+          type: 'info',
+          title: 'VIP Purchase Requested',
+          message: `Your request is pending. Current balance: $${currentBalance.toFixed(2)}. Required: $${price.toFixed(2)}`
+        });
+      }
 
       setShowSuccessModal(true);
       loadPurchases();

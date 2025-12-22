@@ -86,16 +86,36 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
       const totalProductsCount = vipLevelData?.products_count || 25;
 
       if (!vipPurchase) {
-        const { data: purchasedProducts } = await supabase
-          .from('product_purchases')
-          .select('commission_earned')
+        // No active purchase - find the last completed one
+        const { data: lastCompletedPurchase } = await supabase
+          .from('vip_purchases')
+          .select('id')
           .eq('user_id', user.id)
           .eq('category_id', categoryId)
-          .eq('vip_level', vipLevel);
+          .eq('vip_level', vipLevel)
+          .eq('status', 'approved')
+          .eq('is_completed', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
         let totalCommission = 0;
-        (purchasedProducts || []).forEach(pp => {
-          totalCommission += Number((pp as any).commission_earned || 0);
+
+        if (lastCompletedPurchase) {
+          const { data: purchasedProducts } = await supabase
+            .from('product_purchases')
+            .select('commission_earned')
+            .eq('vip_purchase_id', lastCompletedPurchase.id);
+
+          (purchasedProducts || []).forEach(pp => {
+            totalCommission += Number((pp as any).commission_earned || 0);
+          });
+        }
+
+        console.log('All products completed:', {
+          totalCommission,
+          totalProductsCount,
+          lastCompletedPurchaseId: lastCompletedPurchase?.id
         });
 
         setProgress({
@@ -131,9 +151,7 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
       const { data: purchasedProducts, error: purchasedError } = await supabase
         .from('product_purchases')
         .select('product_id, quantity_count, commission_earned')
-        .eq('user_id', user.id)
-        .eq('category_id', categoryId)
-        .eq('vip_level', vipLevel)
+        .eq('vip_purchase_id', vipPurchase.id)
         .order('created_at');
 
       if (purchasedError) throw purchasedError;
@@ -146,6 +164,12 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
         totalQuantityPurchased += pp.quantity_count || 1;
         purchasedProductIds.add(pp.product_id);
         totalCommission += Number((pp as any).commission_earned || 0);
+      });
+
+      console.log('VIPProductModal progress:', {
+        totalQuantityPurchased,
+        totalCommission,
+        vipPurchaseId: vipPurchase.id
       });
 
       setProgress({
