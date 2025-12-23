@@ -26,13 +26,40 @@ interface VIPCompletion {
 export default function ClientsManagement() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [expandedClient, setExpandedClient] = useState<string | null>(null);
-  const [detailsClient, setDetailsClient] = useState<{ id: string; email: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState(() => {
+    return localStorage.getItem('clientsManagement_searchQuery') || '';
+  });
+  const [expandedClient, setExpandedClient] = useState<string | null>(() => {
+    return localStorage.getItem('clientsManagement_expandedClient');
+  });
+  const [detailsClient, setDetailsClient] = useState<{ id: string; email: string } | null>(() => {
+    const saved = localStorage.getItem('clientsManagement_detailsClient');
+    return saved ? JSON.parse(saved) : null;
+  });
 
   useEffect(() => {
     fetchProfiles();
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('clientsManagement_searchQuery', searchQuery);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (expandedClient) {
+      localStorage.setItem('clientsManagement_expandedClient', expandedClient);
+    } else {
+      localStorage.removeItem('clientsManagement_expandedClient');
+    }
+  }, [expandedClient]);
+
+  useEffect(() => {
+    if (detailsClient) {
+      localStorage.setItem('clientsManagement_detailsClient', JSON.stringify(detailsClient));
+    } else {
+      localStorage.removeItem('clientsManagement_detailsClient');
+    }
+  }, [detailsClient]);
 
   async function fetchProfiles() {
     try {
