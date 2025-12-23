@@ -275,37 +275,23 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
 
         // If all products completed, show total commission earned
         if (result.is_completed) {
-          // Get the active VIP purchase to find all product purchases
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            const { data: vipPurchaseData } = await supabase
-              .from('vip_purchases')
-              .select('id')
-              .eq('user_id', user.id)
-              .eq('category_id', category.category)
-              .eq('vip_level', category.level)
-              .order('created_at', { ascending: false })
-              .limit(1)
-              .maybeSingle();
+          // Calculate total commission from current progress + this commission
+          const totalCommission = progress.total_commission_earned + result.commission;
 
-            let totalCommission = 0;
-            if (vipPurchaseData) {
-              // Sum up all commissions from product purchases for this VIP purchase
-              const { data: productPurchases } = await supabase
-                .from('product_purchases')
-                .select('commission_earned')
-                .eq('vip_purchase_id', vipPurchaseData.id);
+          console.log('Completion Summary:', {
+            previousEarnings: progress.total_commission_earned,
+            thisCommission: result.commission,
+            totalCommission,
+            productsPurchased: result.products_purchased,
+            totalProducts: result.total_products
+          });
 
-              totalCommission = (productPurchases || []).reduce((sum, p) => sum + Number(p.commission_earned || 0), 0);
-            }
-
-            setNotification({
-              isOpen: true,
-              type: 'success',
-              title: 'Success!',
-              message: `All products in this category completed!\n\nTotal profit earned: $${totalCommission.toFixed(2)}`
-            });
-          }
+          setNotification({
+            isOpen: true,
+            type: 'success',
+            title: 'Success!',
+            message: `All products in this category completed!\n\nTotal profit earned: $${totalCommission.toFixed(2)}`
+          });
         } else {
           setNotification({
             isOpen: true,
