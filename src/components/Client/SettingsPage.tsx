@@ -112,13 +112,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack }) => {
       setNotification({
         isOpen: true,
         type: 'success',
-        title: 'Success',
+        title: 'Password Changed Successfully',
         message: 'Your password has been successfully changed. You can now use your new password to log in.'
       });
-
-      setTimeout(() => {
-        onBack();
-      }, 2000);
 
     } catch (error: any) {
       setNotification({
@@ -264,7 +260,12 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack }) => {
 
       <NotificationModal
         isOpen={notification.isOpen}
-        onClose={() => setNotification({ ...notification, isOpen: false })}
+        onClose={() => {
+          setNotification({ ...notification, isOpen: false });
+          if (notification.type === 'success' && notification.title === 'Password Changed Successfully') {
+            onBack();
+          }
+        }}
         type={notification.type}
         title={notification.title}
         message={notification.message}
