@@ -290,6 +290,7 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
             </button>
 
             <button
+              onClick={() => handleTabChange('balance-history')}
               className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105"
             >
               <DollarSign className="w-8 h-8 mb-2 text-emerald-500" />
