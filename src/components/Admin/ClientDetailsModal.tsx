@@ -77,7 +77,6 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
   const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [activeVipProgress, setActiveVipProgress] = useState<ProductProgress[]>([]);
   const [activeVip, setActiveVip] = useState<VIPPurchase | null>(null);
-  const [settingCombo, setSettingCombo] = useState(false);
   const [showComboSettings, setShowComboSettings] = useState(false);
   const [showVipTaskComboSettings, setShowVipTaskComboSettings] = useState(false);
 
@@ -239,31 +238,6 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
     }
   }
 
-  async function handleSetCombo(productIndex: number) {
-    if (!activeVip) return;
-
-    const confirmed = confirm(`Set combo on product ${productIndex}? This will trigger combo bonus on this product.`);
-    if (!confirmed) return;
-
-    try {
-      setSettingCombo(true);
-
-      const { data, error } = await supabase.rpc('admin_set_combo_on_product', {
-        p_vip_purchase_id: activeVip.id,
-        p_product_index: productIndex
-      });
-
-      if (error) throw error;
-
-      alert(data.message || 'Combo set successfully');
-      await loadClientDetails();
-    } catch (error: any) {
-      console.error('Error setting combo:', error);
-      alert(error.message || 'Failed to set combo');
-    } finally {
-      setSettingCombo(false);
-    }
-  }
 
   async function handlePasswordChange() {
     if (!newPassword || newPassword.length < 6) {
@@ -575,10 +549,10 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
                             <Zap className="w-6 h-6 text-purple-600" />
                             <div>
                               <div className="font-bold text-gray-900">
-                                Individual Task Combo
+                                VIP Task Combo Activations
                               </div>
                               <div className="text-sm text-gray-700 mt-1">
-                                Override combo settings only for this VIP task
+                                Add multiple combo activations at different positions
                               </div>
                             </div>
                           </div>
@@ -587,7 +561,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
                             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2 font-medium"
                           >
                             <Edit2 className="w-4 h-4" />
-                            Task Combo
+                            Manage
                           </button>
                         </div>
                       </div>
@@ -601,7 +575,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
                         Product Progress
                       </h4>
                       <p className="text-xs text-gray-600 mt-1">
-                        Click "Set Combo" to manually trigger combo on any future product
+                        Track completion of products for this VIP task
                       </p>
                     </div>
 
@@ -609,7 +583,6 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
                       {activeVipProgress.map((progress) => {
                         const isCurrentProduct = progress.product_index === activeVip.products_completed + 1;
                         const isCompleted = progress.completed;
-                        const isFuture = progress.product_index > activeVip.products_completed + 1;
                         const isComboProduct = progress.product_index === activeVip.combo_position_at_approval;
 
                         return (
@@ -662,17 +635,6 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
                                   </div>
                                 )}
                               </div>
-
-                              {!isCompleted && (isCurrentProduct || isFuture) && (
-                                <button
-                                  onClick={() => handleSetCombo(progress.product_index)}
-                                  disabled={settingCombo}
-                                  className="ml-4 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 font-medium shadow-md"
-                                >
-                                  <Zap className="w-4 h-4" />
-                                  Set Combo
-                                </button>
-                              )}
                             </div>
                           </div>
                         );
