@@ -525,6 +525,7 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
             </button>
 
             <button
+              onClick={() => handleTabChange('balance-history')}
               className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105"
             >
               <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mb-2">
