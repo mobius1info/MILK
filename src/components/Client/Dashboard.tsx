@@ -10,6 +10,7 @@ import BalanceHistory from './BalanceHistory';
 import WithdrawalsPage from './WithdrawalsPage';
 import TermsPage from './TermsPage';
 import AboutPage from './AboutPage';
+import FAQPage from './FAQPage';
 import NotificationModal from '../NotificationModal';
 
 interface DashboardProps {
@@ -22,7 +23,7 @@ interface OrderWithItems extends Order {
 }
 
 export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'orders' | 'tasks' | 'referrals' | 'deposit' | 'balance-history' | 'withdrawals' | 'terms' | 'about'>(() => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'orders' | 'tasks' | 'referrals' | 'deposit' | 'balance-history' | 'withdrawals' | 'terms' | 'about' | 'faq'>(() => {
     const savedTab = localStorage.getItem('activeTab');
     return (savedTab as typeof activeTab) || 'overview';
   });
@@ -67,7 +68,8 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
       'balance-history': 'ML MALL - Balance History',
       'withdrawals': 'ML MALL - Withdrawals',
       'terms': 'ML MALL - Terms',
-      'about': 'ML MALL - About Us'
+      'about': 'ML MALL - About Us',
+      'faq': 'ML MALL - FAQ'
     };
     document.title = titles[activeTab];
   }, [activeTab]);
@@ -280,6 +282,7 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
             </button>
 
             <button
+              onClick={() => handleTabChange('faq')}
               className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105"
             >
               <HelpCircle className="w-8 h-8 mb-2 text-pink-500" />
@@ -385,6 +388,8 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
       {activeTab === 'terms' && <TermsPage />}
 
       {activeTab === 'about' && <AboutPage />}
+
+      {activeTab === 'faq' && <FAQPage />}
 
       {activeTab === 'referrals' && (
         <div className="space-y-4 sm:space-y-6">
