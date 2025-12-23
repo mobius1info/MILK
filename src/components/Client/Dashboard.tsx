@@ -495,6 +495,7 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
             </button>
 
             <button
+              onClick={() => window.open('https://t.me/mgsouk', '_blank')}
               className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105"
             >
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-2">
@@ -514,6 +515,7 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
             </button>
 
             <button
+              onClick={() => window.open('https://t.me/mgsouk', '_blank')}
               className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105"
             >
               <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-2">
