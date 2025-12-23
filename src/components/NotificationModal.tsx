@@ -17,40 +17,38 @@ export default function NotificationModal({
   message,
   onConfirm
 }: NotificationModalProps) {
-  console.log('NotificationModal render:', { isOpen, type, title });
-
   if (!isOpen) return null;
 
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return <CheckCircle className="w-16 h-16 text-[#f5b04c]" />;
+        return <CheckCircle className="w-20 h-20 text-green-500" />;
       case 'error':
-        return <XCircle className="w-16 h-16 text-red-600" />;
+        return <XCircle className="w-20 h-20 text-red-500" />;
       case 'warning':
-        return <AlertCircle className="w-16 h-16 text-yellow-600" />;
+        return <AlertCircle className="w-20 h-20 text-yellow-500" />;
       case 'info':
-        return <Info className="w-16 h-16 text-blue-600" />;
+        return <Info className="w-20 h-20 text-blue-500" />;
     }
   };
 
   const getBackgroundColor = () => {
     switch (type) {
       case 'success':
-        return 'bg-gradient-to-br from-[#f5b04c]/10 to-[#2a5f64]/10';
+        return 'bg-green-50';
       case 'error':
-        return 'bg-red-100';
+        return 'bg-red-50';
       case 'warning':
-        return 'bg-yellow-100';
+        return 'bg-yellow-50';
       case 'info':
-        return 'bg-blue-100';
+        return 'bg-blue-50';
     }
   };
 
   const getButtonColor = () => {
     switch (type) {
       case 'success':
-        return 'from-[#f5b04c] to-[#2a5f64]';
+        return 'from-green-500 to-emerald-600';
       case 'error':
         return 'from-red-500 to-rose-600';
       case 'warning':
@@ -60,38 +58,34 @@ export default function NotificationModal({
     }
   };
 
-  console.log('Rendering NotificationModal with isOpen=true');
-
   const handleConfirm = async () => {
-    console.log('>>> NotificationModal OK button clicked');
     if (onConfirm) {
-      console.log('>>> Calling onConfirm()');
       await onConfirm();
-    } else {
-      console.log('>>> No onConfirm callback');
     }
-    console.log('>>> Calling onClose()');
     onClose();
   };
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 z-[9998] animate-fadeIn"></div>
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998] animate-fadeIn"
+        onClick={handleConfirm}
+      ></div>
       <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4 pointer-events-none">
-        <div className="bg-white rounded-lg shadow-2xl p-6 max-w-md w-full animate-scaleIn pointer-events-auto">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full animate-scaleIn pointer-events-auto border-2 border-gray-100">
           <div className="flex flex-col items-center text-center">
-            <div className={`w-20 h-20 ${getBackgroundColor()} rounded-full flex items-center justify-center mb-4`}>
+            <div className={`w-24 h-24 ${getBackgroundColor()} rounded-full flex items-center justify-center mb-6 shadow-lg`}>
               {getIcon()}
             </div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-3">
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">
               {title}
             </h3>
-            <p className="text-gray-600 mb-6 leading-relaxed">
+            <p className="text-gray-700 mb-8 leading-relaxed text-lg">
               {message}
             </p>
             <button
               onClick={handleConfirm}
-              className={`w-full bg-gradient-to-r ${getButtonColor()} text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity shadow-lg`}
+              className={`w-full bg-gradient-to-r ${getButtonColor()} text-white py-4 rounded-xl font-semibold hover:opacity-90 transition-all shadow-lg hover:shadow-xl transform hover:scale-105`}
             >
               OK
             </button>
