@@ -140,13 +140,15 @@ export default function VIPLevelManagement() {
         name: formData.name,
         commission: formData.commission,
         commission_percentage: formData.commission_percentage,
-        price: formData.price,
+        price: Number(formData.price),
         description: formData.description,
         category: formData.category.trim(),
         category_image_url: imageUrl,
         products_count: formData.products_count,
         is_active: formData.is_active
       };
+
+      console.log('[Admin] Saving VIP level:', levelData);
 
       if (editingId && editingId !== 'new') {
         const { error } = await supabase
@@ -155,11 +157,14 @@ export default function VIPLevelManagement() {
           .eq('id', editingId);
 
         if (error) throw error;
+
+        console.log('[Admin] VIP level updated successfully');
+
         setNotification({
           isOpen: true,
           type: 'success',
           title: 'Success',
-          message: 'VIP level updated',
+          message: 'VIP level updated successfully. Changes will be visible to all users immediately.',
         });
       } else {
         const { error } = await supabase
@@ -181,7 +186,7 @@ export default function VIPLevelManagement() {
       cancelEdit();
       await loadVIPLevels();
     } catch (error: any) {
-      console.error('Error saving VIP level:', error);
+      console.error('[Admin] Error saving VIP level:', error);
       setNotification({
         isOpen: true,
         type: 'error',
