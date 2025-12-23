@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase, Profile, Transaction, Referral, Order, OrderItem, Product } from '../../lib/supabase';
-import { TrendingUp, TrendingDown, Clock, Copy, Package, User, Home, CheckCircle, XCircle, Crown, ShoppingBag, UserPlus, Headphones, FileCheck, Info, HelpCircle, DollarSign, FileText } from 'lucide-react';
+import { TrendingUp, TrendingDown, Clock, Copy, Package, User, Home, CheckCircle, XCircle, Crown, ShoppingBag, UserPlus, Headphones, FileCheck, Info, HelpCircle, DollarSign } from 'lucide-react';
 import BannerSection from '../BannerSection';
 import VIPPurchase from './VIPPurchase';
 import VIPCategories from './VIPCategories';
@@ -262,6 +262,7 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
             </button>
 
             <button
+              onClick={() => handleTabChange('terms')}
               className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105"
             >
               <FileCheck className="w-8 h-8 mb-2 text-orange-500" />
@@ -595,10 +596,10 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
 
       {/* Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
-        <div className="grid grid-cols-6 py-2">
+        <div className="flex items-center justify-around py-2">
           <button
             onClick={() => handleTabChange('overview')}
-            className={`flex flex-col items-center justify-center py-2 rounded-lg transition-all ${
+            className={`flex flex-col items-center justify-center px-2 py-2 rounded-lg transition-all ${
               activeTab === 'overview'
                 ? 'text-[#f5b04c]'
                 : 'text-gray-600 hover:text-gray-800'
@@ -610,7 +611,7 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
 
           <button
             onClick={() => handleTabChange('orders')}
-            className={`flex flex-col items-center justify-center py-2 rounded-lg transition-all ${
+            className={`flex flex-col items-center justify-center px-2 py-2 rounded-lg transition-all ${
               activeTab === 'orders'
                 ? 'text-[#f5b04c]'
                 : 'text-gray-600 hover:text-gray-800'
@@ -622,7 +623,7 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
 
           <button
             onClick={() => handleTabChange('tasks')}
-            className={`flex flex-col items-center justify-center py-2 rounded-lg transition-all ${
+            className={`flex flex-col items-center justify-center px-2 py-2 rounded-lg transition-all ${
               activeTab === 'tasks'
                 ? 'text-[#f5b04c]'
                 : 'text-gray-600 hover:text-gray-800'
@@ -634,7 +635,7 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
 
           <button
             onClick={() => handleTabChange('deposit')}
-            className={`flex flex-col items-center justify-center py-2 rounded-lg transition-all ${
+            className={`flex flex-col items-center justify-center px-2 py-2 rounded-lg transition-all ${
               activeTab === 'deposit'
                 ? 'text-[#f5b04c]'
                 : 'text-gray-600 hover:text-gray-800'
@@ -645,20 +646,8 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
           </button>
 
           <button
-            onClick={() => handleTabChange('terms')}
-            className={`flex flex-col items-center justify-center py-2 rounded-lg transition-all ${
-              activeTab === 'terms'
-                ? 'text-[#f5b04c]'
-                : 'text-gray-600 hover:text-gray-800'
-            }`}
-          >
-            <FileText className="w-5 h-5 mb-1" />
-            <span className="text-xs font-medium">Terms</span>
-          </button>
-
-          <button
             onClick={() => handleTabChange('profile')}
-            className={`flex flex-col items-center justify-center py-2 rounded-lg transition-all ${
+            className={`flex flex-col items-center justify-center px-2 py-2 rounded-lg transition-all ${
               activeTab === 'profile'
                 ? 'text-[#f5b04c]'
                 : 'text-gray-600 hover:text-gray-800'
