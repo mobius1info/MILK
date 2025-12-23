@@ -167,6 +167,11 @@ export default function VIPLevelManagement() {
       if (editingId && editingId !== 'new') {
         console.log('[Admin] Executing UPDATE for id:', editingId);
 
+        // DEBUG: Check JWT and session
+        const { data: sessionData } = await supabase.auth.getSession();
+        console.log('[Admin] Session user:', sessionData.session?.user);
+        console.log('[Admin] Session user role:', sessionData.session?.user?.app_metadata?.role);
+
         const { data: updateResult, error } = await supabase
           .from('vip_levels')
           .update(levelData)
