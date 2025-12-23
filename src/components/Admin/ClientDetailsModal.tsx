@@ -132,11 +132,30 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
     setPasswordMessage(null);
 
     try {
-      const { error } = await supabase.auth.admin.updateUserById(clientId, {
-        password: newPassword
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
+
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-change-user-password`;
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: clientId,
+          newPassword: newPassword,
+        }),
       });
 
-      if (error) throw error;
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to change password');
+      }
 
       setPasswordMessage({ type: 'success', text: 'Password changed successfully' });
       setNewPassword('');

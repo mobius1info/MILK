@@ -75,28 +75,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onBack }) => {
     setLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user?.email) {
-        throw new Error('User not found');
-      }
-
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: currentPassword,
-      });
-
-      if (signInError) {
-        setNotification({
-          isOpen: true,
-          type: 'error',
-          title: 'Incorrect Password',
-          message: 'Current password is incorrect'
-        });
-        setLoading(false);
-        return;
-      }
-
       const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword
       });
