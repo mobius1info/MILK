@@ -9,6 +9,7 @@ import ActiveTasks from './ActiveTasks';
 import BalanceHistory from './BalanceHistory';
 import WithdrawalsPage from './WithdrawalsPage';
 import TermsPage from './TermsPage';
+import AboutPage from './AboutPage';
 import NotificationModal from '../NotificationModal';
 
 interface DashboardProps {
@@ -21,7 +22,7 @@ interface OrderWithItems extends Order {
 }
 
 export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'orders' | 'tasks' | 'referrals' | 'deposit' | 'balance-history' | 'withdrawals' | 'terms'>(() => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'orders' | 'tasks' | 'referrals' | 'deposit' | 'balance-history' | 'withdrawals' | 'terms' | 'about'>(() => {
     const savedTab = localStorage.getItem('activeTab');
     return (savedTab as typeof activeTab) || 'overview';
   });
@@ -65,7 +66,8 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
       'deposit': 'ML MALL - Deposit',
       'balance-history': 'ML MALL - Balance History',
       'withdrawals': 'ML MALL - Withdrawals',
-      'terms': 'ML MALL - Terms'
+      'terms': 'ML MALL - Terms',
+      'about': 'ML MALL - About Us'
     };
     document.title = titles[activeTab];
   }, [activeTab]);
@@ -270,6 +272,7 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
             </button>
 
             <button
+              onClick={() => handleTabChange('about')}
               className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105"
             >
               <Info className="w-8 h-8 mb-2 text-cyan-500" />
@@ -380,6 +383,8 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
       )}
 
       {activeTab === 'terms' && <TermsPage />}
+
+      {activeTab === 'about' && <AboutPage />}
 
       {activeTab === 'referrals' && (
         <div className="space-y-4 sm:space-y-6">
