@@ -241,34 +241,40 @@ export default function DepositPage({ userId, onBack, onSuccess }: DepositPagePr
                   {selectedMethod.name} Deposit
                 </h2>
 
-                <div className="bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] rounded-lg p-6 mb-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <p className="text-white text-sm mb-2 font-medium">
-                        {selectedMethod.network ? `${selectedMethod.network} Address` : 'Wallet Address'}
-                      </p>
-                      <p className="text-white font-mono text-sm sm:text-base break-all">
-                        {selectedMethod.wallet_address}
-                      </p>
+                {!(selectedMethod.name.toLowerCase().includes('card payment') ||
+                  selectedMethod.name.toLowerCase().includes('western union') ||
+                  selectedMethod.name.toLowerCase().includes('moneygram') ||
+                  selectedMethod.name.toLowerCase().includes('ria') ||
+                  selectedMethod.name.toLowerCase().includes('ricogram')) && (
+                  <div className="bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] rounded-lg p-6 mb-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <p className="text-white text-sm mb-2 font-medium">
+                          {selectedMethod.network ? `${selectedMethod.network} Address` : 'Wallet Address'}
+                        </p>
+                        <p className="text-white font-mono text-sm sm:text-base break-all">
+                          {selectedMethod.wallet_address}
+                        </p>
+                      </div>
                     </div>
+                    <button
+                      onClick={() => copyToClipboard(selectedMethod.wallet_address)}
+                      className="w-full bg-white text-[#f5b04c] py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-5 h-5" />
+                          <span>Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-5 h-5" />
+                          <span>Copy Address</span>
+                        </>
+                      )}
+                    </button>
                   </div>
-                  <button
-                    onClick={() => copyToClipboard(selectedMethod.wallet_address)}
-                    className="w-full bg-white text-[#f5b04c] py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2"
-                  >
-                    {copied ? (
-                      <>
-                        <Check className="w-5 h-5" />
-                        <span>Copied!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-5 h-5" />
-                        <span>Copy Address</span>
-                      </>
-                    )}
-                  </button>
-                </div>
+                )}
 
                 {selectedMethod.instructions && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
