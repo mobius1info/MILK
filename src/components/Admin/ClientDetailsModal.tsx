@@ -19,6 +19,7 @@ interface VIPPurchase {
   approved_at: string | null;
   products_completed: number;
   total_products: number;
+  vip_price: number;
   combo_enabled_at_approval: boolean | null;
   combo_position_at_approval: number | null;
   combo_multiplier_at_approval: number | null;
@@ -113,6 +114,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
             approved_at,
             products_completed,
             total_products,
+            vip_price,
             is_completed,
             combo_enabled_at_approval,
             combo_position_at_approval,
@@ -865,6 +867,9 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
           vipPurchaseId={activeVip.id}
           vipLevel={activeVip.vip_level}
           categoryId={activeVip.category_id}
+          currentPosition={activeVip.products_completed}
+          totalProducts={activeVip.total_products}
+          vipPrice={Number(activeVip.vip_price || 0)}
           onClose={() => setShowVipTaskComboSettings(false)}
           onUpdate={() => {
             loadClientDetails();
