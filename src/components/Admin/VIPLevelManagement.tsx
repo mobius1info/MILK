@@ -53,6 +53,8 @@ export default function VIPLevelManagement() {
 
   async function loadVIPLevels() {
     try {
+      await supabase.auth.refreshSession();
+
       const { data, error } = await supabase
         .from('vip_levels')
         .select('*')
