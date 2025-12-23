@@ -116,7 +116,17 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
       const vipLevelData = vipLevelResult.data;
 
       if (!vipPurchase) {
-        throw new Error('VIP purchase not found');
+        // VIP purchase not found or already completed - show completion screen
+        const totalProductsCount = vipLevelData?.products_count || 25;
+        setProgress({
+          current_product_index: totalProductsCount,
+          products_purchased: totalProductsCount,
+          total_commission_earned: 0,
+          total_products_count: totalProductsCount
+        });
+        setProduct(null);
+        setLoading(false);
+        return;
       }
 
       const totalProductsCount = vipLevelData?.products_count || 25;
@@ -555,11 +565,19 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
           setNotification({ ...notification, isOpen: false });
           if (notification.type === 'success') {
             await new Promise(resolve => setTimeout(resolve, 300));
-            setDynamicPrice(null);
-            setDynamicCommission(null);
-            setMessage('');
-            setInsufficientBalance(null);
-            await loadProductsAndProgress();
+
+            // Check if all products are completed
+            if (notification.message.includes('All products') && notification.message.includes('completed')) {
+              // Close the modal completely when all products are done
+              onClose();
+            } else {
+              // For regular purchases, reload progress
+              setDynamicPrice(null);
+              setDynamicCommission(null);
+              setMessage('');
+              setInsufficientBalance(null);
+              await loadProductsAndProgress();
+            }
           }
         }}
         type={notification.type}
