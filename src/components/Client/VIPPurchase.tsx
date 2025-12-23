@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { ShoppingBag, Crown, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { ShoppingBag, Crown, CheckCircle, Clock, XCircle, RefreshCw } from 'lucide-react';
 import NotificationModal from '../NotificationModal';
 
 interface VIPLevel {
@@ -35,6 +35,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
   const [vipLevels, setVipLevels] = useState<VIPLevel[]>([]);
   const [purchases, setPurchases] = useState<VIPPurchaseRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [requesting, setRequesting] = useState<Record<string, boolean>>({});
   const [selectedVIPLevel, setSelectedVIPLevel] = useState<number | 'all'>('all');
   const [notification, setNotification] = useState<{
@@ -51,10 +52,34 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
 
   useEffect(() => {
     loadData();
+
+    // Subscribe to VIP levels changes
+    const channel = supabase
+      .channel('vip_purchase_updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'vip_levels'
+        },
+        () => {
+          console.log('VIP levels updated, reloading...');
+          loadVIPLevels();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   async function loadData() {
+    setLoading(true);
     await Promise.all([loadVIPLevels(), loadPurchases()]);
+    setLoading(false);
+    setRefreshing(false);
   }
 
   async function loadVIPLevels() {
@@ -81,12 +106,16 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
         is_active: level.is_active
       }));
 
+      console.log('Loaded VIP levels:', levels);
       setVipLevels(levels);
     } catch (error: any) {
       console.error('Error loading VIP levels:', error);
-    } finally {
-      setLoading(false);
     }
+  }
+
+  async function refreshData() {
+    setRefreshing(true);
+    await loadData();
   }
 
   async function loadPurchases() {
@@ -256,13 +285,26 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] rounded-lg p-6 text-white">
-        <div className="flex items-center gap-3 mb-2">
-          <Crown className="w-8 h-8" />
-          <h2 className="text-2xl font-bold">VIP Levels ({vipLevels.length})</h2>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <Crown className="w-8 h-8" />
+              <h2 className="text-2xl font-bold">VIP Levels ({vipLevels.length})</h2>
+            </div>
+            <p className="text-white/90">
+              Each VIP level gives you access to a unique product category and commission percentage for each task!
+            </p>
+          </div>
+          <button
+            onClick={refreshData}
+            disabled={refreshing}
+            className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors disabled:opacity-50"
+            title="Refresh VIP levels"
+          >
+            <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
         </div>
-        <p className="text-white/90">
-          Each VIP level gives you access to a unique product category and commission percentage for each task!
-        </p>
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-4">
