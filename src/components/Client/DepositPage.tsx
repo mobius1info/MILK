@@ -109,6 +109,17 @@ export default function DepositPage({ userId, onBack, onSuccess }: DepositPagePr
       return;
     }
 
+    // Check if Cryptocurrency is selected
+    if (selectedMethod.name.toLowerCase().includes('cryptocurrency')) {
+      setNotification({
+        isOpen: true,
+        type: 'info',
+        title: 'Deposit Instructions',
+        message: 'Please transfer the deposit to the wallet number specified in the method and please contact the manager for confirmation.'
+      });
+      return;
+    }
+
     setSubmitting(true);
     try {
       const { error } = await supabase.from('transactions').insert([
