@@ -329,8 +329,9 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
                 {(() => {
                   const generateMaskedName = (index: number) => {
                     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                    const firstLetter = letters[index % 26];
-                    const starsCount = 3 + (index % 5);
+                    const seed = (index * 7919 + 31337) % 26;
+                    const firstLetter = letters[seed];
+                    const starsCount = 3 + ((index * 1103) % 5);
                     return firstLetter + '*'.repeat(starsCount);
                   };
 
