@@ -137,7 +137,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
       const activeVipPurchase = vipRes.data?.find(v => v.status === 'approved');
       if (activeVipPurchase) {
         setActiveVip(activeVipPurchase);
-        await loadActiveVipProgress(activeVipPurchase.id);
+        await loadActiveVipProgress(activeVipPurchase);
       }
     } catch (error) {
       console.error('Error loading client details:', error);
@@ -147,36 +147,61 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
     }
   }
 
-  async function loadActiveVipProgress(vipPurchaseId: string) {
+  async function loadActiveVipProgress(vipPurchase: VIPPurchase) {
     try {
-      const { data, error } = await supabase
-        .from('product_progress')
-        .select(`
-          id,
-          product_id,
-          product_index,
-          times_purchased,
-          quantity_purchased,
-          times_needed,
-          quantity_needed,
-          completed,
-          products (
-            name,
-            price,
-            quantity_multiplier
-          )
-        `)
-        .eq('vip_purchase_id', vipPurchaseId)
-        .order('product_index', { ascending: true });
+      console.log('Loading progress for VIP:', vipPurchase);
 
-      if (error) throw error;
+      const { data: products, error: productsError } = await supabase
+        .from('products')
+        .select('id, name, price, quantity_multiplier')
+        .eq('category', vipPurchase.category_id)
+        .eq('vip_level', vipPurchase.vip_level)
+        .eq('is_active', true)
+        .order('created_at', { ascending: true });
 
-      const formattedData = (data || []).map(item => ({
-        ...item,
-        product: Array.isArray(item.products) ? item.products[0] : item.products
-      }));
+      if (productsError) {
+        console.error('Products error:', productsError);
+        throw productsError;
+      }
 
-      setActiveVipProgress(formattedData);
+      console.log('Loaded products:', products);
+
+      const { data: purchases, error: purchasesError } = await supabase
+        .from('product_purchases')
+        .select('product_id, quantity, status')
+        .eq('vip_purchase_id', vipPurchase.id);
+
+      if (purchasesError) {
+        console.error('Purchases error:', purchasesError);
+        throw purchasesError;
+      }
+
+      console.log('Loaded purchases:', purchases);
+
+      const progressData: ProductProgress[] = (products || []).map((product, index) => {
+        const productPurchases = purchases?.filter(p => p.product_id === product.id) || [];
+        const completedPurchases = productPurchases.filter(p => p.status === 'completed');
+        const totalQuantity = completedPurchases.reduce((sum, p) => sum + (p.quantity || 0), 0);
+
+        return {
+          id: product.id,
+          product_id: product.id,
+          product_index: index + 1,
+          times_purchased: completedPurchases.length,
+          quantity_purchased: totalQuantity,
+          times_needed: 1,
+          quantity_needed: product.quantity_multiplier || 1,
+          completed: totalQuantity >= (product.quantity_multiplier || 1),
+          product: {
+            name: product.name,
+            price: Number(product.price),
+            quantity_multiplier: product.quantity_multiplier || 1
+          }
+        };
+      });
+
+      console.log('Progress data:', progressData);
+      setActiveVipProgress(progressData);
     } catch (error) {
       console.error('Error loading active VIP progress:', error);
     }
