@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Crown, CheckCircle, XCircle, Clock, User, Bell, RefreshCw, Zap, X } from 'lucide-react';
+import { Crown, CheckCircle, XCircle, Clock, User, Bell, RefreshCw, Zap, X, Settings } from 'lucide-react';
 import NotificationModal from '../NotificationModal';
+import VIPTaskComboSettings from './VIPTaskComboSettings';
 
 interface VIPPurchaseRequest {
   id: string;
@@ -12,6 +13,9 @@ interface VIPPurchaseRequest {
   created_at: string;
   approved_at: string | null;
   approved_by: string | null;
+  products_completed: number;
+  total_products: number;
+  vip_price: number;
   combo_enabled_at_approval: boolean | null;
   combo_position_at_approval: number | null;
   combo_multiplier_at_approval: number | null;
@@ -61,6 +65,7 @@ export default function VIPPurchaseManagement() {
     multiplier: 3,
     depositPercent: 50
   });
+  const [taskComboModal, setTaskComboModal] = useState<VIPPurchaseRequest | null>(null);
 
   useEffect(() => {
     loadRequests();
@@ -83,6 +88,9 @@ export default function VIPPurchaseManagement() {
           created_at,
           approved_at,
           approved_by,
+          products_completed,
+          total_products,
+          vip_price,
           combo_enabled_at_approval,
           combo_position_at_approval,
           combo_multiplier_at_approval,
@@ -423,6 +431,29 @@ export default function VIPPurchaseManagement() {
                     </div>
                   </div>
 
+                  {request.status === 'approved' && (
+                    <div className="mt-4 p-3 bg-blue-50 border border-blue-300 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-5 h-5 text-blue-600" />
+                          <span className="font-bold text-gray-900">Progress:</span>
+                          <span className="text-blue-700 font-semibold">
+                            {request.products_completed} / {request.total_products} products
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          ${Number(request.vip_price || 0).toFixed(2)} VIP Price
+                        </div>
+                      </div>
+                      <div className="mt-2 bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full transition-all"
+                          style={{ width: `${(request.products_completed / request.total_products) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   {request.status !== 'pending' && request.combo_enabled_at_approval !== null && (
                     <div className={`mt-4 p-3 rounded-lg border flex items-center gap-3 ${
                       request.combo_enabled_at_approval
@@ -432,7 +463,7 @@ export default function VIPPurchaseManagement() {
                       <Zap className={`w-5 h-5 ${request.combo_enabled_at_approval ? 'text-yellow-600' : 'text-gray-500'}`} />
                       <div className="flex-1">
                         <div className="font-bold text-gray-900">
-                          Combo: {request.combo_enabled_at_approval ? 'ENABLED' : 'DISABLED'}
+                          Global Combo: {request.combo_enabled_at_approval ? 'ENABLED' : 'DISABLED'}
                         </div>
                         {request.combo_enabled_at_approval && (
                           <div className="text-sm text-gray-700 mt-1">
@@ -474,18 +505,29 @@ export default function VIPPurchaseManagement() {
                       </button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                        {request.status === 'approved' && (
+                          <span className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-lg font-medium">
+                            <CheckCircle className="w-5 h-5" />
+                            Approved
+                          </span>
+                        )}
+                        {request.status === 'rejected' && (
+                          <span className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-800 rounded-lg font-medium">
+                            <XCircle className="w-5 h-5" />
+                            Rejected
+                          </span>
+                        )}
+                      </div>
                       {request.status === 'approved' && (
-                        <span className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-lg font-medium">
-                          <CheckCircle className="w-5 h-5" />
-                          Approved
-                        </span>
-                      )}
-                      {request.status === 'rejected' && (
-                        <span className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-800 rounded-lg font-medium">
-                          <XCircle className="w-5 h-5" />
-                          Rejected
-                        </span>
+                        <button
+                          onClick={() => setTaskComboModal(request)}
+                          className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium transition-all shadow-md"
+                        >
+                          <Zap className="w-4 h-4" />
+                          Task Combo
+                        </button>
                       )}
                     </div>
                   )}
@@ -626,6 +668,22 @@ export default function VIPPurchaseManagement() {
             </div>
           </div>
         </div>
+      )}
+
+      {taskComboModal && (
+        <VIPTaskComboSettings
+          vipPurchaseId={taskComboModal.id}
+          vipLevel={taskComboModal.vip_level}
+          categoryId={taskComboModal.category_id}
+          currentPosition={taskComboModal.products_completed}
+          totalProducts={taskComboModal.total_products}
+          vipPrice={Number(taskComboModal.vip_price || 0)}
+          onClose={() => setTaskComboModal(null)}
+          onUpdate={() => {
+            loadRequests();
+            setTaskComboModal(null);
+          }}
+        />
       )}
 
       <NotificationModal
