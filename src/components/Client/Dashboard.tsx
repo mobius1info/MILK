@@ -322,7 +322,7 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
                   }
                 }
                 .animate-scroll {
-                  animation: scroll 180s linear infinite;
+                  animation: scroll 540s linear infinite;
                 }
               `}</style>
               <div className="animate-scroll">
