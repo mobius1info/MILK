@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Crown, CheckCircle, XCircle, Clock, User, Bell, RefreshCw, Zap, X, Settings } from 'lucide-react';
+import { Crown, CheckCircle, XCircle, Clock, User, Bell, RefreshCw, X, Settings } from 'lucide-react';
 import NotificationModal from '../NotificationModal';
-import VIPTaskComboSettings from './VIPTaskComboSettings';
 
 interface VIPPurchaseRequest {
   id: string;
@@ -65,7 +64,6 @@ export default function VIPPurchaseManagement() {
     multiplier: 3,
     depositPercent: 50
   });
-  const [taskComboModal, setTaskComboModal] = useState<VIPPurchaseRequest | null>(null);
 
   useEffect(() => {
     loadRequests();
@@ -520,15 +518,6 @@ export default function VIPPurchaseManagement() {
                           </span>
                         )}
                       </div>
-                      {request.status === 'approved' && (
-                        <button
-                          onClick={() => setTaskComboModal(request)}
-                          className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium transition-all shadow-md"
-                        >
-                          <Zap className="w-4 h-4" />
-                          Task Combo
-                        </button>
-                      )}
                     </div>
                   )}
 
@@ -668,22 +657,6 @@ export default function VIPPurchaseManagement() {
             </div>
           </div>
         </div>
-      )}
-
-      {taskComboModal && (
-        <VIPTaskComboSettings
-          vipPurchaseId={taskComboModal.id}
-          vipLevel={taskComboModal.vip_level}
-          categoryId={taskComboModal.category_id}
-          currentPosition={taskComboModal.products_completed}
-          totalProducts={taskComboModal.total_products}
-          vipPrice={Number(taskComboModal.vip_price || 0)}
-          onClose={() => setTaskComboModal(null)}
-          onUpdate={() => {
-            loadRequests();
-            setTaskComboModal(null);
-          }}
-        />
       )}
 
       <NotificationModal
