@@ -20,7 +20,7 @@ export default function TermsPage() {
           <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded">
             <h2 className="text-lg font-bold text-green-900 mb-2">About Withdrawal</h2>
             <p className="text-sm text-green-800 leading-relaxed">
-              The minimum withdrawal amount of MALL is 20USDT, and the minimum deposit amount is 10USDT. When you request a withdrawal, we will process it immediately and arrive within 24 hours. Due to the large number of users on the platform, in order to ensure that each user has a good experience and normal withdrawal, please wait patiently for the withdrawal process to complete. Please understand that, If you do not receive the money on the withdrawal slip within 24 hours, please contact customer service in time!
+              The minimum withdrawal amount of MALL is 20USDT, and the minimum deposit amount is 10USDT. When you request a withdrawal, we will process it immediately and arrive within 24 hours. Due to the large number of users on the platform, in order to ensure that each user has a good experience and normal withdrawal, please wait patiently for the withdrawal process to complete. Please understand that, If you do not receive the money on the withdrawal slip within 24 hours, please contact customer service in time! Withdraw of funds is available after each party of tasks is completed.
             </p>
           </div>
 
