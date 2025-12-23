@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Crown, CheckCircle, XCircle, Clock, User, Bell, RefreshCw, X, Settings } from 'lucide-react';
+import { Crown, CheckCircle, XCircle, Clock, User, Bell, RefreshCw, X, Zap } from 'lucide-react';
 import NotificationModal from '../NotificationModal';
 
 interface VIPPurchaseRequest {
@@ -101,7 +101,23 @@ export default function VIPPurchaseManagement() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setRequests(data || []);
+
+      const formattedData = (data || []).map((item: any) => ({
+        ...item,
+        profiles: Array.isArray(item.profiles) && item.profiles.length > 0
+          ? {
+              email: item.profiles[0].email || '',
+              full_name: item.profiles[0].full_name || ''
+            }
+          : item.profiles && typeof item.profiles === 'object'
+          ? {
+              email: item.profiles.email || '',
+              full_name: item.profiles.full_name || ''
+            }
+          : { email: '', full_name: '' }
+      }));
+
+      setRequests(formattedData);
     } catch (error) {
       console.error('Error loading VIP requests:', error);
     } finally {
