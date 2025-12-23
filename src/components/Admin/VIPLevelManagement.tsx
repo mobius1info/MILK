@@ -67,6 +67,8 @@ export default function VIPLevelManagement() {
         price: parseFloat(level.price) || 0
       }));
       console.log('[Admin] Processed VIP levels:', levels);
+      console.log('[Admin] VIP 1 from DB:', data?.find(l => l.level === 1));
+      console.log('[Admin] VIP 1 processed:', levels.find(l => l.level === 1));
       setVipLevels(levels);
     } catch (error) {
       console.error('Error loading VIP levels:', error);
@@ -76,8 +78,11 @@ export default function VIPLevelManagement() {
   }
 
   function startEdit(level: VIPLevel) {
+    console.log('[Admin] Starting edit for level:', level);
+    console.log('[Admin] Current price from level object:', level.price, typeof level.price);
+
     setEditingId(level.id);
-    setFormData({
+    const newFormData = {
       level: level.level,
       name: level.name,
       commission: Number(level.commission),
@@ -88,7 +93,12 @@ export default function VIPLevelManagement() {
       category_image_url: level.category_image_url,
       products_count: level.products_count || 25,
       is_active: level.is_active
-    });
+    };
+
+    console.log('[Admin] Form data set to:', newFormData);
+    console.log('[Admin] Form price:', newFormData.price, typeof newFormData.price);
+
+    setFormData(newFormData);
     setImageFile(null);
   }
 
@@ -148,17 +158,34 @@ export default function VIPLevelManagement() {
         is_active: formData.is_active
       };
 
-      console.log('[Admin] Saving VIP level:', levelData);
+      console.log('[Admin] Saving VIP level with ID:', editingId);
+      console.log('[Admin] Level data to save:', levelData);
+      console.log('[Admin] Price type:', typeof levelData.price, 'Value:', levelData.price);
 
       if (editingId && editingId !== 'new') {
-        const { error } = await supabase
+        console.log('[Admin] Executing UPDATE for id:', editingId);
+
+        const { data: updateResult, error } = await supabase
           .from('vip_levels')
           .update(levelData)
-          .eq('id', editingId);
+          .eq('id', editingId)
+          .select();
+
+        console.log('[Admin] UPDATE result:', updateResult);
+        console.log('[Admin] UPDATE error:', error);
 
         if (error) throw error;
 
         console.log('[Admin] VIP level updated successfully');
+
+        // Verify the update
+        const { data: verifyData } = await supabase
+          .from('vip_levels')
+          .select('id, level, price')
+          .eq('id', editingId)
+          .single();
+
+        console.log('[Admin] Verification - data after update:', verifyData);
 
         setNotification({
           isOpen: true,
