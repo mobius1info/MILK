@@ -322,19 +322,27 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
                   }
                 }
                 .animate-scroll {
-                  animation: scroll 60s linear infinite;
+                  animation: scroll 180s linear infinite;
                 }
               `}</style>
               <div className="animate-scroll">
                 {(() => {
-                  const names = ['John D.', 'Maria S.', 'Alex K.', 'Sarah L.', 'Mike R.', 'Emma W.', 'David B.', 'Lisa M.', 'Tom H.', 'Anna P.', 'Chris J.', 'Nina F.', 'Paul G.', 'Kate V.', 'Ryan T.', 'Sophie C.', 'Jack N.', 'Mia D.', 'Lucas E.', 'Olivia R.'];
-                  const amounts = [125.50, 340.00, 89.99, 510.75, 220.00, 765.20, 95.00, 430.50, 180.25, 620.00, 145.99, 890.00, 310.75, 555.50, 275.00, 720.99, 165.00, 450.25, 199.99, 580.75];
-                  const times = [2, 5, 8, 12, 15, 18, 22, 25, 28, 31, 35, 38, 42, 45, 48, 52, 55, 58, 3, 7];
+                  const generateMaskedName = (index: number) => {
+                    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                    const firstLetter = letters[index % 26];
+                    const starsCount = 3 + (index % 5);
+                    return firstLetter + '*'.repeat(starsCount);
+                  };
 
-                  return [...Array(40)].map((_, index) => {
-                    const name = names[index % names.length];
-                    const amount = amounts[index % amounts.length];
-                    const timeAgo = times[index % times.length];
+                  const generateAmount = (index: number) => {
+                    const base = 50 + (index * 7.3) % 950;
+                    const cents = (index * 17) % 100;
+                    return parseFloat((base + cents / 100).toFixed(2));
+                  };
+
+                  return [...Array(400)].map((_, index) => {
+                    const name = generateMaskedName(index);
+                    const amount = generateAmount(index);
 
                     return (
                       <div
