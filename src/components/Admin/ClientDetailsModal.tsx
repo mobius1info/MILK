@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { X, DollarSign, TrendingUp, TrendingDown, Award, Clock, CheckCircle, XCircle, AlertCircle, Zap, Key, Eye, EyeOff, Edit2, Package, Settings } from 'lucide-react';
 import ComboSettingsModal from './ComboSettingsModal';
+import VIPTaskComboSettings from './VIPTaskComboSettings';
 
 interface ClientDetailsModalProps {
   clientId: string;
@@ -77,6 +78,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
   const [activeVip, setActiveVip] = useState<VIPPurchase | null>(null);
   const [settingCombo, setSettingCombo] = useState(false);
   const [showComboSettings, setShowComboSettings] = useState(false);
+  const [showVipTaskComboSettings, setShowVipTaskComboSettings] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(`clientModal_${clientId}_tab`, activeTab);
@@ -564,6 +566,29 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
                           </button>
                         </div>
                       </div>
+
+                      <div className="bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-400 rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Zap className="w-6 h-6 text-purple-600" />
+                            <div>
+                              <div className="font-bold text-gray-900">
+                                Individual Task Combo
+                              </div>
+                              <div className="text-sm text-gray-700 mt-1">
+                                Override combo settings only for this VIP task
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => setShowVipTaskComboSettings(true)}
+                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2 font-medium"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                            Task Combo
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -831,6 +856,21 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
           onUpdate={() => {
             loadClientDetails();
             setShowComboSettings(false);
+          }}
+        />
+      )}
+
+      {showVipTaskComboSettings && activeVip && (
+        <VIPTaskComboSettings
+          vipPurchaseId={activeVip.id}
+          vipLevel={activeVip.vip_level}
+          categoryId={activeVip.category_id}
+          onClose={() => setShowVipTaskComboSettings(false)}
+          onUpdate={() => {
+            loadClientDetails();
+            if (activeVip) {
+              loadActiveVipProgress(activeVip);
+            }
           }}
         />
       )}
