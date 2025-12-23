@@ -60,23 +60,23 @@ export default function DepositPage({ userId, onBack, onSuccess }: DepositPagePr
   };
 
   const handleSubmit = async () => {
+    // Check if Card Payment is selected first
+    if (selectedMethod && selectedMethod.name.toLowerCase().includes('card payment')) {
+      setNotification({
+        isOpen: true,
+        type: 'info',
+        title: 'Contact Manager Required',
+        message: 'To pay using this method, please contact the manager.'
+      });
+      return;
+    }
+
     if (!selectedMethod || !amount || parseFloat(amount) <= 0) {
       setNotification({
         isOpen: true,
         type: 'warning',
         title: 'Invalid Amount',
         message: 'Please enter a valid deposit amount'
-      });
-      return;
-    }
-
-    // Check if Card Payment is selected
-    if (selectedMethod.name.toLowerCase().includes('card payment')) {
-      setNotification({
-        isOpen: true,
-        type: 'info',
-        title: 'Contact Manager Required',
-        message: 'To pay using this method, please contact the manager.'
       });
       return;
     }
