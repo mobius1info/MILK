@@ -70,6 +70,17 @@ export default function DepositPage({ userId, onBack, onSuccess }: DepositPagePr
       return;
     }
 
+    // Check if Card Payment is selected
+    if (selectedMethod.name.toLowerCase().includes('card payment')) {
+      setNotification({
+        isOpen: true,
+        type: 'info',
+        title: 'Contact Manager Required',
+        message: 'To pay using this method, please contact the manager.'
+      });
+      return;
+    }
+
     const depositAmount = parseFloat(amount);
 
     if (depositAmount < selectedMethod.min_amount) {
