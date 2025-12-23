@@ -13,7 +13,7 @@ export default function AdminLoginForm({ onSuccess }: AdminLoginFormProps) {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    document.title = 'ML MALL - Admin Login';
+    document.title = 'MG SOUK - Admin Login';
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -65,7 +65,7 @@ export default function AdminLoginForm({ onSuccess }: AdminLoginFormProps) {
               Admin Access
             </h1>
             <p className="text-gray-600">
-              Sign in to ML MALL Admin Panel
+              Sign in to MG SOUK Admin Panel
             </p>
           </div>
 

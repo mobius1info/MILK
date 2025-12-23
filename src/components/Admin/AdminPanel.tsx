@@ -50,16 +50,16 @@ export default function AdminPanel({ sidebarOpen, setSidebarOpen }: AdminPanelPr
 
   useEffect(() => {
     const titles: Record<TabType, string> = {
-      'clients': 'ML MALL - Admin - All Clients',
-      'products': 'ML MALL - Admin - Products',
-      'categories': 'ML MALL - Admin - Categories',
-      'deposits': 'ML MALL - Admin - Deposits',
-      'withdrawals': 'ML MALL - Admin - Withdrawals',
-      'payment-methods': 'ML MALL - Admin - Payment Methods',
-      'manual-credit': 'ML MALL - Admin - Manual Credit',
-      'banners': 'ML MALL - Admin - Banners',
-      'vip-purchases': 'ML MALL - Admin - VIP Purchases',
-      'vip-levels': 'ML MALL - Admin - VIP Levels'
+      'clients': 'MG SOUK - Admin - All Clients',
+      'products': 'MG SOUK - Admin - Products',
+      'categories': 'MG SOUK - Admin - Categories',
+      'deposits': 'MG SOUK - Admin - Deposits',
+      'withdrawals': 'MG SOUK - Admin - Withdrawals',
+      'payment-methods': 'MG SOUK - Admin - Payment Methods',
+      'manual-credit': 'MG SOUK - Admin - Manual Credit',
+      'banners': 'MG SOUK - Admin - Banners',
+      'vip-purchases': 'MG SOUK - Admin - VIP Purchases',
+      'vip-levels': 'MG SOUK - Admin - VIP Levels'
     };
     document.title = titles[activeTab];
   }, [activeTab]);

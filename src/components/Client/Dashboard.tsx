@@ -60,18 +60,18 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
   useEffect(() => {
     localStorage.setItem('activeTab', activeTab);
     const titles: Record<typeof activeTab, string> = {
-      'overview': 'ML MALL - Dashboard',
-      'profile': 'ML MALL - Profile',
-      'orders': 'ML MALL - Orders',
-      'tasks': 'ML MALL - Tasks',
-      'referrals': 'ML MALL - Referrals',
-      'deposit': 'ML MALL - Deposit',
-      'balance-history': 'ML MALL - Balance History',
-      'withdrawals': 'ML MALL - Withdrawals',
-      'terms': 'ML MALL - Terms',
-      'about': 'ML MALL - About Us',
-      'faq': 'ML MALL - FAQ',
-      'settings': 'ML MALL - Settings'
+      'overview': 'MG SOUK - Dashboard',
+      'profile': 'MG SOUK - Profile',
+      'orders': 'MG SOUK - Orders',
+      'tasks': 'MG SOUK - Tasks',
+      'referrals': 'MG SOUK - Referrals',
+      'deposit': 'MG SOUK - Deposit',
+      'balance-history': 'MG SOUK - Balance History',
+      'withdrawals': 'MG SOUK - Withdrawals',
+      'terms': 'MG SOUK - Terms',
+      'about': 'MG SOUK - About Us',
+      'faq': 'MG SOUK - FAQ',
+      'settings': 'MG SOUK - Settings'
     };
     document.title = titles[activeTab];
   }, [activeTab]);

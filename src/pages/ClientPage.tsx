@@ -17,7 +17,7 @@ export default function ClientPage({ profile, onLogout, onBalanceUpdate }: Clien
       <div className="bg-white shadow-sm border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <img src="/logo55555.svg" alt="ML MALL" className="h-16 w-auto" />
+            <img src="/logo55555.svg" alt="MG SOUK" className="h-16 w-auto" />
             <div className="flex items-center space-x-2">
               {profile.is_admin && (
                 <button

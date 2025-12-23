@@ -6,7 +6,7 @@ export default function AboutPage() {
           About Us
         </h1>
         <p className="text-center text-gray-600 text-lg">
-          Learn more about MALL and our mission
+          Learn more about MG SOUK and our mission
         </p>
       </div>
 
@@ -17,13 +17,13 @@ export default function AboutPage() {
           </div>
           <div className="p-6">
             <p className="text-gray-700 leading-relaxed mb-4">
-              MALL is an intelligent cloud global order matching center with a sense of mission, which plays an important role in major ecommerce platforms around the world. Currently, MALL maintains close strategic partnership with Amazon, Alibaba, shopee, AliExpress, souq, jumia, maxfashion and Daraz.
+              MG SOUK is an intelligent cloud global order matching center with a sense of mission, which plays an important role in major ecommerce platforms around the world. Currently, MG SOUK maintains close strategic partnership with Amazon, Alibaba, shopee, AliExpress, souq, jumia, maxfashion and Daraz.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
-              Cooperation, Blocking traffic through online vacuuming, updating layered product information through digital product reconstruction, enabling scenarios and enhancing competitiveness. MALL uses an intelligent cloud algorithm engine to accurately match buyers and users with established merchants and automatically match transactions, allowing many established merchants to stand out in the fierce business competition.
+              Cooperation, Blocking traffic through online vacuuming, updating layered product information through digital product reconstruction, enabling scenarios and enhancing competitiveness. MG SOUK uses an intelligent cloud algorithm engine to accurately match buyers and users with established merchants and automatically match transactions, allowing many established merchants to stand out in the fierce business competition.
             </p>
             <p className="text-gray-700 leading-relaxed">
-              MALL is not a single cloud shopping platform. Its greatest value lies in allowing consumers to earn commissions through free sharing while shopping normally. Merchants will have a promoter at the same time they pick up the order. With its leading 5G intelligent cloud matching technology, MALL has helped countless merchants and consumers.
+              MG SOUK is not a single cloud shopping platform. Its greatest value lies in allowing consumers to earn commissions through free sharing while shopping normally. Merchants will have a promoter at the same time they pick up the order. With its leading 5G intelligent cloud matching technology, MG SOUK has helped countless merchants and consumers.
             </p>
           </div>
         </div>
@@ -34,13 +34,13 @@ export default function AboutPage() {
           </div>
           <div className="p-6">
             <p className="text-gray-700 leading-relaxed mb-4">
-              At MALL, we carry out win-win cooperation for all users around the world, increase the interaction between users and merchants, help users make money, and help merchants make profits. We retain company results. We abide by the rules and are committed to building a well-known cooperative e-commerce company.
+              At MG SOUK, we carry out win-win cooperation for all users around the world, increase the interaction between users and merchants, help users make money, and help merchants make profits. We retain company results. We abide by the rules and are committed to building a well-known cooperative e-commerce company.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
               Through its own technology to guide the development of e-commerce industry, we are committed to becoming the creator of industry standards. This is our constant pursuit and corporate vision.
             </p>
             <p className="text-gray-700 leading-relaxed font-semibold text-gray-800">
-              We also thank all MALL partners and users for their support and valuable time. Let us work hard to achieve win-win cooperation and gain huge benefits!
+              We also thank all MG SOUK partners and users for their support and valuable time. Let us work hard to achieve win-win cooperation and gain huge benefits!
             </p>
           </div>
         </div>

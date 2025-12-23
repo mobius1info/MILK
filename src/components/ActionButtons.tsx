@@ -11,7 +11,7 @@ export default function ActionButtons({ onDeposit, onWithdrawal }: ActionButtons
     { icon: TrendingDown, label: 'Withdrawal', color: 'from-red-500 to-red-600', onClick: onWithdrawal },
     { icon: MessageCircle, label: 'Customer Service', color: 'from-purple-500 to-purple-600', onClick: () => alert('Customer Service: support@mkmall.com') },
     { icon: FileText, label: 'Terms', color: 'from-gray-600 to-gray-700', onClick: () => alert('Terms & Conditions') },
-    { icon: Info, label: 'About US', color: 'from-[#2a5f64] to-[#1a4044]', onClick: () => alert('About ML MALL') },
+    { icon: Info, label: 'About US', color: 'from-[#2a5f64] to-[#1a4044]', onClick: () => alert('About MG SOUK') },
     { icon: HelpCircle, label: 'FAQ', color: 'from-orange-500 to-orange-600', onClick: () => alert('Frequently Asked Questions') },
     { icon: Briefcase, label: 'WFP', color: 'from-[#f5b04c] to-[#e09f3a]', onClick: () => alert('Work From Platform') },
   ];

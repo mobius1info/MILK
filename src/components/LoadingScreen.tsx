@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 export default function LoadingScreen() {
   useEffect(() => {
-    document.title = 'ML MALL - Loading...';
+    document.title = 'MG SOUK - Loading...';
   }, []);
 
   return (

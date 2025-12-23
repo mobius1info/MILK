@@ -14,7 +14,7 @@ export default function LoginForm({ onSuccess, onToggleForm }: LoginFormProps) {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    document.title = 'ML MALL - Login';
+    document.title = 'MG SOUK - Login';
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -53,7 +53,7 @@ export default function LoginForm({ onSuccess, onToggleForm }: LoginFormProps) {
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-lg">
         <div>
           <div className="flex justify-center mb-4">
-            <img src="/logo55555.svg" alt="ML MALL" className="h-24 w-auto" />
+            <img src="/logo55555.svg" alt="MG SOUK" className="h-24 w-auto" />
           </div>
           <h3 className="mt-4 text-center text-2xl font-bold text-gray-900">Sign in to your account</h3>
         </div>

@@ -27,7 +27,7 @@ export default function AdminPage({ profile, onLogout }: AdminPageProps) {
               </button>
               <img
                 src="/logo55555.svg"
-                alt="ML MALL"
+                alt="MG SOUK"
                 onClick={() => navigate('/')}
                 className="h-16 w-auto cursor-pointer"
               />

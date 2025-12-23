@@ -18,7 +18,7 @@ export default function Header({ cartItems, onCartClick, onSearch }: HeaderProps
             <button className="lg:hidden">
               <Menu className="w-6 h-6 text-gray-700" />
             </button>
-            <img src="/logo55555.svg" alt="ML MALL" className="h-18 w-auto" />
+            <img src="/logo55555.svg" alt="MG SOUK" className="h-18 w-auto" />
           </div>
 
           <div className="flex-1 max-w-2xl mx-8 hidden md:block">

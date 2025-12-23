@@ -20,7 +20,7 @@ export default function TermsPage() {
           <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded">
             <h2 className="text-lg font-bold text-green-900 mb-2">About Withdrawal</h2>
             <p className="text-sm text-green-800 leading-relaxed">
-              The minimum withdrawal amount of MALL is 20USDT, and the minimum deposit amount is 10USDT. When you request a withdrawal, we will process it immediately and arrive within 24 hours. Due to the large number of users on the platform, in order to ensure that each user has a good experience and normal withdrawal, please wait patiently for the withdrawal process to complete. Please understand that, If you do not receive the money on the withdrawal slip within 24 hours, please contact customer service in time! Withdraw of funds is available after each party of tasks is completed.
+              The minimum withdrawal amount of MG SOUK is 20USDT, and the minimum deposit amount is 10USDT. When you request a withdrawal, we will process it immediately and arrive within 24 hours. Due to the large number of users on the platform, in order to ensure that each user has a good experience and normal withdrawal, please wait patiently for the withdrawal process to complete. Please understand that, If you do not receive the money on the withdrawal slip within 24 hours, please contact customer service in time! Withdraw of funds is available after each party of tasks is completed.
             </p>
           </div>
 
@@ -34,7 +34,7 @@ export default function TermsPage() {
           <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
             <h2 className="text-lg font-bold text-red-900 mb-2">About Multiple Accounts</h2>
             <p className="text-sm text-red-800 leading-relaxed">
-              Only one account with the correct mobile number is allowed to register with MALL per identical username. If the system monitors you to register multiple accounts and IPs, you will be suspected of illegal money laundering, which will affect normal withdrawals and cause the account to be frozen.
+              Only one account with the correct mobile number is allowed to register with MG SOUK per identical username. If the system monitors you to register multiple accounts and IPs, you will be suspected of illegal money laundering, which will affect normal withdrawals and cause the account to be frozen.
             </p>
           </div>
 
