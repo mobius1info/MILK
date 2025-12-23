@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { X, DollarSign, TrendingUp, TrendingDown, Award, Clock, CheckCircle, XCircle, AlertCircle, Zap, Key, Eye, EyeOff, Edit2, Package } from 'lucide-react';
+import { X, DollarSign, TrendingUp, TrendingDown, Award, Clock, CheckCircle, XCircle, AlertCircle, Zap, Key, Eye, EyeOff, Edit2, Package, Settings } from 'lucide-react';
+import ComboSettingsModal from './ComboSettingsModal';
 
 interface ClientDetailsModalProps {
   clientId: string;
@@ -54,6 +55,9 @@ interface Profile {
   referral_code: string;
   combo_enabled: boolean;
   vip_completions_count: number;
+  combo_product_position: number;
+  combo_multiplier: number;
+  combo_deposit_percent: number;
 }
 
 export default function ClientDetailsModal({ clientId, clientEmail, onClose }: ClientDetailsModalProps) {
@@ -69,6 +73,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
   const [activeVipProgress, setActiveVipProgress] = useState<ProductProgress[]>([]);
   const [activeVip, setActiveVip] = useState<VIPPurchase | null>(null);
   const [settingCombo, setSettingCombo] = useState(false);
+  const [showComboSettings, setShowComboSettings] = useState(false);
 
   useEffect(() => {
     if (clientId) {
@@ -85,7 +90,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
       const [profileRes, vipRes, transRes] = await Promise.all([
         supabase
           .from('profiles')
-          .select('balance, username, referral_code, combo_enabled, vip_completions_count')
+          .select('balance, username, referral_code, combo_enabled, vip_completions_count, combo_product_position, combo_multiplier, combo_deposit_percent')
           .eq('id', clientId)
           .maybeSingle(),
         supabase
@@ -134,10 +139,10 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
       setVipPurchases(vipRes.data || []);
       setTransactions(transRes.data || []);
 
-      const activeVipPurchase = vipRes.data?.find(v => v.status === 'approved');
-      if (activeVipPurchase) {
-        setActiveVip(activeVipPurchase);
-        await loadActiveVipProgress(activeVipPurchase);
+      const activeVips = vipRes.data?.filter(v => v.status === 'approved') || [];
+      if (activeVips.length > 0) {
+        setActiveVip(activeVips[0]);
+        await loadActiveVipProgress(activeVips[0]);
       }
     } catch (error) {
       console.error('Error loading client details:', error);
@@ -448,6 +453,30 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
 
           {activeTab === 'active_vip' ? (
             <div className="space-y-4">
+              {approvedVips.length > 1 && (
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Active VIP to manage:
+                  </label>
+                  <select
+                    value={activeVip?.id || ''}
+                    onChange={(e) => {
+                      const selectedVip = approvedVips.find(v => v.id === e.target.value);
+                      if (selectedVip) {
+                        setActiveVip(selectedVip);
+                        loadActiveVipProgress(selectedVip);
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    {approvedVips.map(vip => (
+                      <option key={vip.id} value={vip.id}>
+                        VIP {vip.vip_level} - {vip.category_id} (Created: {new Date(vip.created_at).toLocaleDateString()})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               {activeVip && (
                 <>
                   <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-300 rounded-lg p-4">
@@ -468,19 +497,46 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
                       </div>
                     </div>
 
-                    {activeVip.combo_enabled_at_approval && (
-                      <div className="bg-gradient-to-r from-yellow-100 to-orange-100 border border-yellow-400 rounded-lg p-3 flex items-center gap-3">
-                        <Zap className="w-6 h-6 text-yellow-600" />
-                        <div className="flex-1">
-                          <div className="font-bold text-gray-900">Current Combo Settings</div>
-                          <div className="text-sm text-gray-700 mt-1">
-                            Position: {activeVip.combo_position_at_approval} |
-                            Multiplier: {activeVip.combo_multiplier_at_approval}x |
-                            Deposit: {activeVip.combo_deposit_percent_at_approval}%
+                    <div className="space-y-3">
+                      {activeVip.combo_enabled_at_approval && (
+                        <div className="bg-gradient-to-r from-yellow-100 to-orange-100 border border-yellow-400 rounded-lg p-3 flex items-center gap-3">
+                          <Zap className="w-6 h-6 text-yellow-600" />
+                          <div className="flex-1">
+                            <div className="font-bold text-gray-900">Combo at VIP Approval</div>
+                            <div className="text-sm text-gray-700 mt-1">
+                              Position: {activeVip.combo_position_at_approval} |
+                              Multiplier: {activeVip.combo_multiplier_at_approval}x |
+                              Deposit: {activeVip.combo_deposit_percent_at_approval}%
+                            </div>
                           </div>
                         </div>
+                      )}
+
+                      <div className="bg-gradient-to-r from-blue-100 to-indigo-100 border border-blue-400 rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Settings className="w-6 h-6 text-blue-600" />
+                            <div>
+                              <div className="font-bold text-gray-900">
+                                User Combo Settings {profile?.combo_enabled ? '(Enabled)' : '(Disabled)'}
+                              </div>
+                              <div className="text-sm text-gray-700 mt-1">
+                                Position: {profile?.combo_product_position || 9} |
+                                Multiplier: {profile?.combo_multiplier || 3}x |
+                                Deposit: {profile?.combo_deposit_percent || 50}%
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => setShowComboSettings(true)}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium"
+                          >
+                            <Settings className="w-4 h-4" />
+                            Edit Settings
+                          </button>
+                        </div>
                       </div>
-                    )}
+                    </div>
                   </div>
 
                   <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -552,11 +608,11 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
                                 )}
                               </div>
 
-                              {!isCompleted && isFuture && (
+                              {!isCompleted && (isCurrentProduct || isFuture) && (
                                 <button
                                   onClick={() => handleSetCombo(progress.product_index)}
                                   disabled={settingCombo}
-                                  className="ml-4 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 font-medium"
+                                  className="ml-4 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 font-medium shadow-md"
                                 >
                                   <Zap className="w-4 h-4" />
                                   Set Combo
@@ -737,6 +793,19 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
           </button>
         </div>
       </div>
+
+      {showComboSettings && profile && (
+        <ComboSettingsModal
+          clientId={clientId}
+          clientEmail={clientEmail}
+          currentStatus={profile.combo_enabled}
+          onClose={() => setShowComboSettings(false)}
+          onUpdate={() => {
+            loadClientDetails();
+            setShowComboSettings(false);
+          }}
+        />
+      )}
     </div>
   );
 }
