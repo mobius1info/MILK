@@ -179,7 +179,7 @@ export default function VIPLevelManagement() {
       }
 
       cancelEdit();
-      loadVIPLevels();
+      await loadVIPLevels();
     } catch (error: any) {
       console.error('Error saving VIP level:', error);
       setNotification({
@@ -209,7 +209,7 @@ export default function VIPLevelManagement() {
         title: 'Success',
         message: 'VIP level deleted',
       });
-      loadVIPLevels();
+      await loadVIPLevels();
     } catch (error: any) {
       console.error('Error deleting VIP level:', error);
       setNotification({
