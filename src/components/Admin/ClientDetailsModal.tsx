@@ -65,7 +65,10 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
   const [vipPurchases, setVipPurchases] = useState<VIPPurchase[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'vips' | 'transactions' | 'active_vip'>('vips');
+  const [activeTab, setActiveTab] = useState<'vips' | 'transactions' | 'active_vip'>(() => {
+    const saved = localStorage.getItem(`clientModal_${clientId}_tab`);
+    return (saved as 'vips' | 'transactions' | 'active_vip') || 'vips';
+  });
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
@@ -74,6 +77,10 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
   const [activeVip, setActiveVip] = useState<VIPPurchase | null>(null);
   const [settingCombo, setSettingCombo] = useState(false);
   const [showComboSettings, setShowComboSettings] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem(`clientModal_${clientId}_tab`, activeTab);
+  }, [activeTab, clientId]);
 
   useEffect(() => {
     if (clientId) {
@@ -139,10 +146,25 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
       setVipPurchases(vipRes.data || []);
       setTransactions(transRes.data || []);
 
-      const activeVips = vipRes.data?.filter(v => v.status === 'approved') || [];
+      const activeVips = vipRes.data?.filter(v =>
+        v.status === 'approved' &&
+        !v.is_completed &&
+        v.products_completed < v.total_products
+      ) || [];
+
       if (activeVips.length > 0) {
-        setActiveVip(activeVips[0]);
-        await loadActiveVipProgress(activeVips[0]);
+        const savedVipId = localStorage.getItem(`clientModal_${clientId}_vipId`);
+        const selectedVip = savedVipId
+          ? activeVips.find(v => v.id === savedVipId) || activeVips[0]
+          : activeVips[0];
+
+        setActiveVip(selectedVip);
+        await loadActiveVipProgress(selectedVip);
+
+        const savedTab = localStorage.getItem(`clientModal_${clientId}_tab`);
+        if (!savedTab) {
+          setActiveTab('active_vip');
+        }
       }
     } catch (error) {
       console.error('Error loading client details:', error);
@@ -289,8 +311,12 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
   }
 
   const pendingVips = vipPurchases.filter(v => v.status === 'pending');
-  const approvedVips = vipPurchases.filter(v => v.status === 'approved');
-  const completedVips = vipPurchases.filter(v => v.status === 'completed');
+  const approvedVips = vipPurchases.filter(v =>
+    v.status === 'approved' &&
+    !v.is_completed &&
+    v.products_completed < v.total_products
+  );
+  const completedVips = vipPurchases.filter(v => v.status === 'completed' || v.is_completed);
   const rejectedVips = vipPurchases.filter(v => v.status === 'rejected');
 
   const deposits = transactions.filter(t => t.type === 'deposit');
@@ -464,6 +490,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
                       const selectedVip = approvedVips.find(v => v.id === e.target.value);
                       if (selectedVip) {
                         setActiveVip(selectedVip);
+                        localStorage.setItem(`clientModal_${clientId}_vipId`, selectedVip.id);
                         loadActiveVipProgress(selectedVip);
                       }
                     }}
