@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Lock, CheckCircle, Package, Play } from 'lucide-react';
+import { Lock, CheckCircle, Package, Play, RefreshCw } from 'lucide-react';
 import TaskProductsModal from './TaskProductsModal';
 
 interface VIPLevel {
@@ -43,6 +43,7 @@ export default function ActiveTasks({ onNavigateToDeposit }: ActiveTasksProps = 
   const [activePurchases, setActivePurchases] = useState<VIPPurchase[]>([]);
   const [completedPurchases, setCompletedPurchases] = useState<VIPPurchase[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<VIPLevel | null>(null);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'active' | 'completed'>('active');
@@ -51,10 +52,32 @@ export default function ActiveTasks({ onNavigateToDeposit }: ActiveTasksProps = 
 
   useEffect(() => {
     loadPurchases();
+
+    // Subscribe to VIP levels changes
+    const channel = supabase
+      .channel('vip_levels_updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'vip_levels'
+        },
+        () => {
+          console.log('VIP levels updated, reloading tasks...');
+          loadPurchases();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   async function loadPurchases() {
     try {
+      setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -138,13 +161,20 @@ export default function ActiveTasks({ onNavigateToDeposit }: ActiveTasksProps = 
         })
       );
 
+      console.log('Loaded active tasks with VIP levels:', activeWithLevels);
       setActivePurchases(activeWithLevels);
       setCompletedPurchases(completedWithLevels);
     } catch (error) {
       console.error('Error loading purchases:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  }
+
+  async function refreshData() {
+    setRefreshing(true);
+    await loadPurchases();
   }
 
   const handleStartEarning = (vipLevel: VIPLevel) => {
@@ -169,6 +199,14 @@ export default function ActiveTasks({ onNavigateToDeposit }: ActiveTasksProps = 
           <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
             My Tasks
           </h2>
+          <button
+            onClick={refreshData}
+            disabled={refreshing}
+            className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+            title="Refresh tasks"
+          >
+            <RefreshCw className={`w-5 h-5 text-gray-600 ${refreshing ? 'animate-spin' : ''}`} />
+          </button>
         </div>
 
         <div className="flex gap-2 mb-6">

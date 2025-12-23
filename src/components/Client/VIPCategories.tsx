@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { ShoppingBag, Lock, Crown } from 'lucide-react';
+import { ShoppingBag, Lock, Crown, RefreshCw } from 'lucide-react';
 import VIPProductModal from './VIPProductModal';
 
 interface CategoryAccess {
@@ -35,6 +35,7 @@ export default function VIPCategories() {
   const [vipPurchases, setVipPurchases] = useState<VIPPurchase[]>([]);
   const [vipLevels, setVipLevels] = useState<VIPLevel[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<{
     vipLevel: number;
     categoryId: string;
@@ -43,10 +44,32 @@ export default function VIPCategories() {
 
   useEffect(() => {
     loadData();
+
+    // Subscribe to VIP levels changes
+    const channel = supabase
+      .channel('vip_categories_updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'vip_levels'
+        },
+        () => {
+          console.log('VIP levels updated, reloading categories...');
+          loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   async function loadData() {
     try {
+      setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
@@ -78,12 +101,19 @@ export default function VIPCategories() {
         ...level,
         commission: Number(level.commission)
       }));
+      console.log('Loaded VIP categories:', levels);
       setVipLevels(levels);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  }
+
+  async function refreshData() {
+    setRefreshing(true);
+    await loadData();
   }
 
   function hasAccess(categoryId: string): boolean {
@@ -154,12 +184,23 @@ export default function VIPCategories() {
     <>
       <div className="space-y-6">
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
-          <div className="flex items-center gap-3">
-            <Crown className="w-8 h-8" />
-            <div>
-              <h2 className="text-2xl font-bold">My VIP Categories</h2>
-              <p className="text-blue-100">Browse products and earn commission</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Crown className="w-8 h-8" />
+              <div>
+                <h2 className="text-2xl font-bold">My VIP Categories</h2>
+                <p className="text-blue-100">Browse products and earn commission</p>
+              </div>
             </div>
+            <button
+              onClick={refreshData}
+              disabled={refreshing}
+              className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors disabled:opacity-50"
+              title="Refresh categories"
+            >
+              <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">Refresh</span>
+            </button>
           </div>
         </div>
 
