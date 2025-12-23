@@ -335,9 +335,10 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
                   };
 
                   const generateAmount = (index: number) => {
-                    const base = 50 + (index * 7.3) % 950;
-                    const cents = (index * 17) % 100;
-                    return parseFloat((base + cents / 100).toFixed(2));
+                    const seed = index * 9301 + 49297;
+                    const random = (seed % 233280) / 233280;
+                    const amount = 100 + random * 4900;
+                    return parseFloat(amount.toFixed(2));
                   };
 
                   return [...Array(400)].map((_, index) => {
