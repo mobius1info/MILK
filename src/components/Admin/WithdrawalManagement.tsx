@@ -64,46 +64,30 @@ export default function WithdrawalManagement() {
       const transaction = transactions.find((t) => t.id === id);
       if (!transaction) throw new Error('Transaction not found');
 
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('balance')
-        .eq('id', transaction.user_id)
-        .single();
+      const { data, error } = await supabase.rpc('approve_withdrawal', {
+        withdrawal_id: id,
+      });
 
-      if (profileError) throw profileError;
-
-      if (profile.balance < transaction.amount) {
-        throw new Error('Insufficient balance');
+      if (error) {
+        console.error('Approval error:', error);
+        throw new Error(error.message || 'Failed to approve withdrawal');
       }
-
-      const { error: balanceError } = await supabase
-        .from('profiles')
-        .update({ balance: profile.balance - transaction.amount })
-        .eq('id', transaction.user_id);
-
-      if (balanceError) throw balanceError;
-
-      const { error } = await supabase
-        .from('transactions')
-        .update({ status: 'approved' })
-        .eq('id', id);
-
-      if (error) throw error;
 
       setNotification({
         isOpen: true,
         type: 'success',
         title: 'Withdrawal Approved',
-        message: `$${transaction.amount.toFixed(2)} sent to ${transaction.profile?.email}`,
+        message: `$${transaction.amount.toFixed(2)} sent to ${transaction.profile?.email}. New balance: $${data.new_balance.toFixed(2)}`,
       });
 
       fetchTransactions();
     } catch (error: any) {
+      console.error('Approval error:', error);
       setNotification({
         isOpen: true,
         type: 'error',
         title: 'Error',
-        message: error.message,
+        message: error.message || 'Failed to approve withdrawal',
       });
     }
   };
