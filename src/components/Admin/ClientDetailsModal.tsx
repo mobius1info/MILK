@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { X, DollarSign, TrendingUp, TrendingDown, Award, Clock, CheckCircle, XCircle, AlertCircle, Zap, Key, Eye, EyeOff } from 'lucide-react';
+import { X, DollarSign, TrendingUp, TrendingDown, Award, Clock, CheckCircle, XCircle, AlertCircle, Zap, Key, Eye, EyeOff, Edit2, Package } from 'lucide-react';
 
 interface ClientDetailsModalProps {
   clientId: string;
@@ -21,6 +21,22 @@ interface VIPPurchase {
   combo_position_at_approval: number | null;
   combo_multiplier_at_approval: number | null;
   combo_deposit_percent_at_approval: number | null;
+}
+
+interface ProductProgress {
+  id: string;
+  product_id: string;
+  product_index: number;
+  times_purchased: number;
+  quantity_purchased: number;
+  times_needed: number;
+  quantity_needed: number;
+  completed: boolean;
+  product: {
+    name: string;
+    price: number;
+    quantity_multiplier: number;
+  };
 }
 
 interface Transaction {
@@ -45,11 +61,14 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
   const [vipPurchases, setVipPurchases] = useState<VIPPurchase[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'vips' | 'transactions'>('vips');
+  const [activeTab, setActiveTab] = useState<'vips' | 'transactions' | 'active_vip'>('vips');
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [activeVipProgress, setActiveVipProgress] = useState<ProductProgress[]>([]);
+  const [activeVip, setActiveVip] = useState<VIPPurchase | null>(null);
+  const [settingCombo, setSettingCombo] = useState(false);
 
   useEffect(() => {
     if (clientId) {
@@ -114,11 +133,78 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
       setProfile(profileRes.data);
       setVipPurchases(vipRes.data || []);
       setTransactions(transRes.data || []);
+
+      const activeVipPurchase = vipRes.data?.find(v => v.status === 'approved');
+      if (activeVipPurchase) {
+        setActiveVip(activeVipPurchase);
+        await loadActiveVipProgress(activeVipPurchase.id);
+      }
     } catch (error) {
       console.error('Error loading client details:', error);
       alert('Error loading client details. Check console for details.');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadActiveVipProgress(vipPurchaseId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('product_progress')
+        .select(`
+          id,
+          product_id,
+          product_index,
+          times_purchased,
+          quantity_purchased,
+          times_needed,
+          quantity_needed,
+          completed,
+          products (
+            name,
+            price,
+            quantity_multiplier
+          )
+        `)
+        .eq('vip_purchase_id', vipPurchaseId)
+        .order('product_index', { ascending: true });
+
+      if (error) throw error;
+
+      const formattedData = (data || []).map(item => ({
+        ...item,
+        product: Array.isArray(item.products) ? item.products[0] : item.products
+      }));
+
+      setActiveVipProgress(formattedData);
+    } catch (error) {
+      console.error('Error loading active VIP progress:', error);
+    }
+  }
+
+  async function handleSetCombo(productIndex: number) {
+    if (!activeVip) return;
+
+    const confirmed = confirm(`Set combo on product ${productIndex}? This will trigger combo bonus on this product.`);
+    if (!confirmed) return;
+
+    try {
+      setSettingCombo(true);
+
+      const { data, error } = await supabase.rpc('admin_set_combo_on_product', {
+        p_vip_purchase_id: activeVip.id,
+        p_product_index: productIndex
+      });
+
+      if (error) throw error;
+
+      alert(data.message || 'Combo set successfully');
+      await loadClientDetails();
+    } catch (error: any) {
+      console.error('Error setting combo:', error);
+      alert(error.message || 'Failed to set combo');
+    } finally {
+      setSettingCombo(false);
     }
   }
 
@@ -301,6 +387,18 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
           </div>
 
           <div className="flex gap-2 mb-4 bg-gray-100 p-1 rounded-lg">
+            {activeVip && (
+              <button
+                onClick={() => setActiveTab('active_vip')}
+                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                  activeTab === 'active_vip'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Active VIP Task
+              </button>
+            )}
             <button
               onClick={() => setActiveTab('vips')}
               className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -323,7 +421,139 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
             </button>
           </div>
 
-          {activeTab === 'vips' ? (
+          {activeTab === 'active_vip' ? (
+            <div className="space-y-4">
+              {activeVip && (
+                <>
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-300 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-900">
+                          VIP {activeVip.vip_level} - {activeVip.category_id}
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Progress: {activeVip.products_completed}/{activeVip.total_products} products
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-3xl font-bold text-blue-600">
+                          {Math.round((activeVip.products_completed / activeVip.total_products) * 100)}%
+                        </div>
+                        <p className="text-xs text-gray-500">Complete</p>
+                      </div>
+                    </div>
+
+                    {activeVip.combo_enabled_at_approval && (
+                      <div className="bg-gradient-to-r from-yellow-100 to-orange-100 border border-yellow-400 rounded-lg p-3 flex items-center gap-3">
+                        <Zap className="w-6 h-6 text-yellow-600" />
+                        <div className="flex-1">
+                          <div className="font-bold text-gray-900">Current Combo Settings</div>
+                          <div className="text-sm text-gray-700 mt-1">
+                            Position: {activeVip.combo_position_at_approval} |
+                            Multiplier: {activeVip.combo_multiplier_at_approval}x |
+                            Deposit: {activeVip.combo_deposit_percent_at_approval}%
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                      <h4 className="font-bold text-gray-900 flex items-center gap-2">
+                        <Package className="w-5 h-5 text-blue-600" />
+                        Product Progress
+                      </h4>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Click "Set Combo" to manually trigger combo on any future product
+                      </p>
+                    </div>
+
+                    <div className="max-h-96 overflow-y-auto">
+                      {activeVipProgress.map((progress) => {
+                        const isCurrentProduct = progress.product_index === activeVip.products_completed + 1;
+                        const isCompleted = progress.completed;
+                        const isFuture = progress.product_index > activeVip.products_completed + 1;
+                        const isComboProduct = progress.product_index === activeVip.combo_position_at_approval;
+
+                        return (
+                          <div
+                            key={progress.id}
+                            className={`p-4 border-b border-gray-200 ${
+                              isCompleted
+                                ? 'bg-green-50'
+                                : isCurrentProduct
+                                ? 'bg-blue-50 border-l-4 border-l-blue-500'
+                                : 'bg-white'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-gray-900">
+                                    #{progress.product_index} - {progress.product.name}
+                                  </span>
+                                  {isCompleted && (
+                                    <CheckCircle className="w-5 h-5 text-green-600" />
+                                  )}
+                                  {isCurrentProduct && (
+                                    <span className="px-2 py-1 bg-blue-600 text-white text-xs rounded-full font-bold">
+                                      CURRENT
+                                    </span>
+                                  )}
+                                  {isComboProduct && activeVip.combo_enabled_at_approval && (
+                                    <span className="px-2 py-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs rounded-full font-bold flex items-center gap-1">
+                                      <Zap className="w-3 h-3" />
+                                      COMBO
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-sm text-gray-600 mt-1">
+                                  Price: ${progress.product.price} |
+                                  Purchased: {progress.times_purchased}/{progress.times_needed} times |
+                                  Quantity: {progress.quantity_purchased}/{progress.quantity_needed}
+                                </div>
+                                {!isCompleted && (
+                                  <div className="mt-2">
+                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                      <div
+                                        className="bg-blue-600 h-2 rounded-full transition-all"
+                                        style={{
+                                          width: `${(progress.times_purchased / progress.times_needed) * 100}%`
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              {!isCompleted && isFuture && (
+                                <button
+                                  onClick={() => handleSetCombo(progress.product_index)}
+                                  disabled={settingCombo}
+                                  className="ml-4 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 font-medium"
+                                >
+                                  <Zap className="w-4 h-4" />
+                                  Set Combo
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {activeVipProgress.length === 0 && (
+                        <div className="p-8 text-center text-gray-500">
+                          <Package className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                          <p>No product progress data available</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : activeTab === 'vips' ? (
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {['pending', 'approved', 'completed', 'rejected'].map((status) => {
                 const statusVips = vipPurchases.filter(v => v.status === status);
