@@ -35,7 +35,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
   const [vipLevels, setVipLevels] = useState<VIPLevel[]>([]);
   const [purchases, setPurchases] = useState<VIPPurchaseRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [requesting, setRequesting] = useState(false);
+  const [requesting, setRequesting] = useState<Record<string, boolean>>({});
   const [selectedVIPLevel, setSelectedVIPLevel] = useState<number | 'all'>('all');
   const [notification, setNotification] = useState<{
     isOpen: boolean;
@@ -104,10 +104,10 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
   }
 
   async function requestVIPAccess(vipLevelId: string, vipLevel: number, categoryId: string, price: number, productsCount: number) {
-    if (requesting) return;
+    if (requesting[vipLevelId]) return;
 
     try {
-      setRequesting(true);
+      setRequesting(prev => ({ ...prev, [vipLevelId]: true }));
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
@@ -184,7 +184,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
         message: error.message
       });
     } finally {
-      setRequesting(false);
+      setRequesting(prev => ({ ...prev, [vipLevelId]: false }));
     }
   }
 
@@ -378,10 +378,10 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
                   ) : (
                     <button
                       onClick={() => requestVIPAccess(vipLevel.id, vipLevel.level, vipLevel.category, vipLevel.price, vipLevel.products_count)}
-                      disabled={isPurchased || requesting}
+                      disabled={isPurchased || requesting[vipLevel.id]}
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
-                      {requesting ? (
+                      {requesting[vipLevel.id] ? (
                         <>
                           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                           Processing...
