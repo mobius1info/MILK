@@ -339,7 +339,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
       <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full my-8">
         <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-purple-600">
           <div className="text-white">
-            <h2 className="text-2xl font-bold">Client Details</h2>
+            <h2 className="text-2xl font-bold">Client Details <span className="text-sm opacity-70">(v2.3 - Fixed Active VIPs)</span></h2>
             <p className="text-blue-100 mt-1">{clientEmail}</p>
           </div>
           <button
