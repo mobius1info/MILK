@@ -259,6 +259,7 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
             </button>
 
             <button
+              onClick={() => window.open('https://t.me/mgsouk', '_blank')}
               className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105"
             >
               <Headphones className="w-8 h-8 mb-2 text-blue-500" />
