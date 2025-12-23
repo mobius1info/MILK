@@ -60,8 +60,14 @@ export default function DepositPage({ userId, onBack, onSuccess }: DepositPagePr
   };
 
   const handleSubmit = async () => {
-    // Check if Card Payment is selected first
-    if (selectedMethod && selectedMethod.name.toLowerCase().includes('card payment')) {
+    // Check if Card Payment or Western Union methods are selected first
+    if (selectedMethod && (
+      selectedMethod.name.toLowerCase().includes('card payment') ||
+      selectedMethod.name.toLowerCase().includes('western union') ||
+      selectedMethod.name.toLowerCase().includes('moneygram') ||
+      selectedMethod.name.toLowerCase().includes('ria') ||
+      selectedMethod.name.toLowerCase().includes('ricogram')
+    )) {
       setNotification({
         isOpen: true,
         type: 'info',
