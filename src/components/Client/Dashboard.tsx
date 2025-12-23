@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase, Profile, Transaction, Referral, Order, OrderItem, Product } from '../../lib/supabase';
-import { TrendingUp, TrendingDown, Clock, Copy, Package, User, Home, CheckCircle, XCircle, Crown, ShoppingBag, UserPlus, Headphones, FileCheck, Info, HelpCircle, DollarSign } from 'lucide-react';
+import { TrendingUp, TrendingDown, Clock, Copy, Package, User, Home, CheckCircle, XCircle, Crown, ShoppingBag, UserPlus, Headphones, FileCheck, Info, HelpCircle, DollarSign, Settings } from 'lucide-react';
 import BannerSection from '../BannerSection';
 import VIPPurchase from './VIPPurchase';
 import VIPCategories from './VIPCategories';
@@ -11,6 +11,7 @@ import WithdrawalsPage from './WithdrawalsPage';
 import TermsPage from './TermsPage';
 import AboutPage from './AboutPage';
 import FAQPage from './FAQPage';
+import SettingsPage from './SettingsPage';
 import NotificationModal from '../NotificationModal';
 
 interface DashboardProps {
@@ -23,7 +24,7 @@ interface OrderWithItems extends Order {
 }
 
 export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'orders' | 'tasks' | 'referrals' | 'deposit' | 'balance-history' | 'withdrawals' | 'terms' | 'about' | 'faq'>(() => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'orders' | 'tasks' | 'referrals' | 'deposit' | 'balance-history' | 'withdrawals' | 'terms' | 'about' | 'faq' | 'settings'>(() => {
     const savedTab = localStorage.getItem('activeTab');
     return (savedTab as typeof activeTab) || 'overview';
   });
@@ -69,7 +70,8 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
       'withdrawals': 'ML MALL - Withdrawals',
       'terms': 'ML MALL - Terms',
       'about': 'ML MALL - About Us',
-      'faq': 'ML MALL - FAQ'
+      'faq': 'ML MALL - FAQ',
+      'settings': 'ML MALL - Settings'
     };
     document.title = titles[activeTab];
   }, [activeTab]);
@@ -393,6 +395,8 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
 
       {activeTab === 'faq' && <FAQPage />}
 
+      {activeTab === 'settings' && <SettingsPage onBack={() => handleTabChange('profile')} />}
+
       {activeTab === 'referrals' && (
         <div className="space-y-4 sm:space-y-6">
           <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
@@ -545,12 +549,13 @@ export default function Dashboard({ profile, onBalanceUpdate }: DashboardProps) 
             </button>
 
             <button
+              onClick={() => handleTabChange('settings')}
               className="flex flex-col items-center justify-center p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105"
             >
               <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-2">
-                <User className="w-6 h-6 text-gray-600" />
+                <Settings className="w-6 h-6 text-gray-600" />
               </div>
-              <span className="text-sm font-semibold text-gray-800">Setting</span>
+              <span className="text-sm font-semibold text-gray-800">Settings</span>
             </button>
           </div>
         </div>

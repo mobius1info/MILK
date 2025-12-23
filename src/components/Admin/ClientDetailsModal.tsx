@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { X, DollarSign, TrendingUp, TrendingDown, Award, Clock, CheckCircle, XCircle, AlertCircle, Zap } from 'lucide-react';
+import { X, DollarSign, TrendingUp, TrendingDown, Award, Clock, CheckCircle, XCircle, AlertCircle, Zap, Key, Eye, EyeOff } from 'lucide-react';
 
 interface ClientDetailsModalProps {
   clientId: string;
@@ -46,6 +46,10 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'vips' | 'transactions'>('vips');
+  const [newPassword, setNewPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   useEffect(() => {
     if (clientId) {
@@ -115,6 +119,37 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
       alert('Error loading client details. Check console for details.');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handlePasswordChange() {
+    if (!newPassword || newPassword.length < 6) {
+      setPasswordMessage({ type: 'error', text: 'Password must be at least 6 characters' });
+      return;
+    }
+
+    setChangingPassword(true);
+    setPasswordMessage(null);
+
+    try {
+      const { error } = await supabase.auth.admin.updateUserById(clientId, {
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      setPasswordMessage({ type: 'success', text: 'Password changed successfully' });
+      setNewPassword('');
+      setShowPassword(false);
+
+      setTimeout(() => {
+        setPasswordMessage(null);
+      }, 3000);
+    } catch (error: any) {
+      console.error('Error changing password:', error);
+      setPasswordMessage({ type: 'error', text: error.message || 'Failed to change password' });
+    } finally {
+      setChangingPassword(false);
     }
   }
 
@@ -193,6 +228,55 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
                   <p className="text-2xl font-bold">{profile?.vip_completions_count || 0}</p>
                 </div>
                 <Award className="w-10 h-10 text-purple-200" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                <Key className="w-5 h-5 text-orange-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-gray-800 mb-1">Admin Password Management</h3>
+                <p className="text-xs text-gray-600 mb-3">Set a new password for this client. Passwords are encrypted and cannot be viewed.</p>
+
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Enter new password (min 6 characters)"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                      disabled={changingPassword}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <button
+                    onClick={handlePasswordChange}
+                    disabled={changingPassword || !newPassword}
+                    className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                  >
+                    {changingPassword ? 'Changing...' : 'Change Password'}
+                  </button>
+                </div>
+
+                {passwordMessage && (
+                  <div className={`mt-2 p-2 rounded text-xs ${
+                    passwordMessage.type === 'success'
+                      ? 'bg-green-100 text-green-700 border border-green-200'
+                      : 'bg-red-100 text-red-700 border border-red-200'
+                  }`}>
+                    {passwordMessage.text}
+                  </div>
+                )}
               </div>
             </div>
           </div>
