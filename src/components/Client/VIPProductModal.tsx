@@ -256,8 +256,14 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg p-8">
+      <div
+        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+        onClick={onClose}
+      >
+        <div
+          className="bg-white rounded-lg p-8"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
         </div>
       </div>
@@ -266,8 +272,17 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
 
   if (!product) {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg p-8 max-w-md">
+      <div
+        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+        onClick={() => {
+          onClose();
+          onAllComplete();
+        }}
+      >
+        <div
+          className="bg-white rounded-lg p-8 max-w-md"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="text-center">
             <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
               <CheckCircle className="w-12 h-12 text-white" />
@@ -305,8 +320,14 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
-      <div className="bg-white rounded-lg max-w-2xl w-full my-4 sm:my-8">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-lg max-w-2xl w-full my-4 sm:my-8"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="p-4 sm:p-6 border-b flex items-start sm:items-center justify-between gap-2">
           <div className="flex-1 min-w-0">
             <h2 className="text-lg sm:text-2xl font-bold truncate">

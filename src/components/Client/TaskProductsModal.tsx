@@ -338,8 +338,14 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg p-8">
+      <div
+        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+        onClick={onClose}
+      >
+        <div
+          className="bg-white rounded-lg p-8"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#f5b04c] mx-auto"></div>
         </div>
       </div>
@@ -348,8 +354,14 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
 
   if (!product) {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg p-8 max-w-md">
+      <div
+        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+        onClick={onClose}
+      >
+        <div
+          className="bg-white rounded-lg p-8 max-w-md"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="text-center">
             <CheckCircle className="w-16 h-16 mx-auto text-green-500 mb-4" />
             <h3 className="text-2xl font-bold text-gray-800 mb-3">
@@ -377,8 +389,15 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 overflow-hidden pb-16 sm:pb-0">
-      <div className="bg-white rounded-t-2xl sm:rounded-xl w-full sm:max-w-2xl lg:max-w-3xl sm:max-h-[90vh] flex flex-col overflow-hidden" style={{ maxHeight: 'calc(100dvh - 64px)' }}>
+    <div
+      className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 overflow-hidden pb-16 sm:pb-0"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-t-2xl sm:rounded-xl w-full sm:max-w-2xl lg:max-w-3xl sm:max-h-[90vh] flex flex-col overflow-hidden"
+        style={{ maxHeight: 'calc(100dvh - 64px)' }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex-shrink-0 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] p-3.5 sm:p-5 text-white">
           <div className="flex items-start justify-between gap-2 sm:gap-3">
             <div className="flex-1 min-w-0">
