@@ -117,9 +117,10 @@ export default function WithdrawalsPage({ userId, userBalance, onBalanceUpdate }
     }
   };
 
-  const getStatusIcon = (status: Transaction['status']) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
+      case 'approved':
         return <CheckCircle className="w-5 h-5 text-green-500" />;
       case 'pending':
         return <Clock className="w-5 h-5 text-yellow-500" />;
@@ -131,9 +132,10 @@ export default function WithdrawalsPage({ userId, userBalance, onBalanceUpdate }
     }
   };
 
-  const getStatusLabel = (status: Transaction['status']) => {
+  const getStatusLabel = (status: string) => {
     switch (status) {
       case 'completed':
+      case 'approved':
         return 'Completed';
       case 'pending':
         return 'Pending';
@@ -146,9 +148,10 @@ export default function WithdrawalsPage({ userId, userBalance, onBalanceUpdate }
     }
   };
 
-  const getStatusColor = (status: Transaction['status']) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
+      case 'approved':
         return 'bg-green-100 text-green-800 border-green-200';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
@@ -161,7 +164,7 @@ export default function WithdrawalsPage({ userId, userBalance, onBalanceUpdate }
   };
 
   const getTotalStats = () => {
-    const completed = withdrawals.filter(w => w.status === 'completed');
+    const completed = withdrawals.filter(w => w.status === 'completed' || w.status === 'approved');
     const pending = withdrawals.filter(w => w.status === 'pending');
     const rejected = withdrawals.filter(w => w.status === 'rejected' || w.status === 'failed');
 

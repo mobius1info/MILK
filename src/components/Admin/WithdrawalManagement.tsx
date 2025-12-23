@@ -62,6 +62,26 @@ export default function WithdrawalManagement() {
   const handleApprove = async (id: string) => {
     try {
       const transaction = transactions.find((t) => t.id === id);
+      if (!transaction) throw new Error('Transaction not found');
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('balance')
+        .eq('id', transaction.user_id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      if (profile.balance < transaction.amount) {
+        throw new Error('Insufficient balance');
+      }
+
+      const { error: balanceError } = await supabase
+        .from('profiles')
+        .update({ balance: profile.balance - transaction.amount })
+        .eq('id', transaction.user_id);
+
+      if (balanceError) throw balanceError;
 
       const { error } = await supabase
         .from('transactions')
@@ -74,7 +94,7 @@ export default function WithdrawalManagement() {
         isOpen: true,
         type: 'success',
         title: 'Withdrawal Approved',
-        message: `$${transaction?.amount.toFixed(2)} sent to ${transaction?.profile?.email}`,
+        message: `$${transaction.amount.toFixed(2)} sent to ${transaction.profile?.email}`,
       });
 
       fetchTransactions();
