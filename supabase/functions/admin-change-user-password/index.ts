@@ -25,27 +25,36 @@ Deno.serve(async (req: Request) => {
       throw new Error('No authorization header');
     }
 
-    // Create client with anon key to verify the caller
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: { Authorization: authHeader },
+    // Create admin client with service role key to verify admin status
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
       },
     });
 
-    // Verify the caller is authenticated and is an admin
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    // Verify the caller's token
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+
     if (userError || !user) {
+      console.error('User verification error:', userError);
       throw new Error('Unauthorized');
     }
 
-    // Check if user is admin
-    const { data: profile, error: profileError } = await supabaseClient
+    // Check if user is admin using service role (bypass RLS)
+    const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single();
 
-    if (profileError || profile?.role !== 'admin') {
+    if (profileError) {
+      console.error('Profile fetch error:', profileError);
+      throw new Error('Could not verify admin status');
+    }
+
+    if (profile?.role !== 'admin') {
       throw new Error('Admin access required');
     }
 
@@ -60,14 +69,6 @@ Deno.serve(async (req: Request) => {
       throw new Error('Password must be at least 6 characters');
     }
 
-    // Create admin client with service role key
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
-
     // Update user password
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
       userId,
@@ -75,7 +76,8 @@ Deno.serve(async (req: Request) => {
     );
 
     if (updateError) {
-      throw updateError;
+      console.error('Password update error:', updateError);
+      throw new Error(updateError.message || 'Failed to update password');
     }
 
     return new Response(
