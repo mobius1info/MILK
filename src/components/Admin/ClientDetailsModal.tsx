@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { X, DollarSign, TrendingUp, TrendingDown, Award, Clock, CheckCircle, XCircle, AlertCircle, Zap, Key, Eye, EyeOff, Package, Settings } from 'lucide-react';
+import { X, DollarSign, TrendingUp, TrendingDown, Award, Clock, CheckCircle, XCircle, Zap, Key, Eye, EyeOff, Package, Settings } from 'lucide-react';
 import ComboSettingsModal from './ComboSettingsModal';
 
 interface ClientDetailsModalProps {
@@ -287,14 +287,10 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
     }
   }
 
-  const pendingVips = vipPurchases.filter(v => v.status === 'pending');
   const approvedVips = vipPurchases.filter(v =>
     v.status === 'approved' &&
-    !v.is_completed &&
     v.products_completed < v.total_products
   );
-  const completedVips = vipPurchases.filter(v => v.status === 'completed' || v.is_completed);
-  const rejectedVips = vipPurchases.filter(v => v.status === 'rejected');
 
   const deposits = transactions.filter(t => t.type === 'deposit');
   const withdrawals = transactions.filter(t => t.type === 'withdrawal');
