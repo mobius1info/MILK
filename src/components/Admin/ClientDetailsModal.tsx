@@ -111,6 +111,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
             approved_at,
             products_completed,
             total_products,
+            is_completed,
             combo_enabled_at_approval,
             combo_position_at_approval,
             combo_multiplier_at_approval,
