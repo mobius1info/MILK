@@ -53,6 +53,17 @@ export default function ComboSettingsModal({ clientId, clientEmail, currentStatu
     try {
       setSaving(true);
 
+      if (comboEnabled && (comboMultiplier < 1 || comboMultiplier > 500)) {
+        setNotification({
+          isOpen: true,
+          type: 'error',
+          title: 'Error',
+          message: 'Multiplier must be between 1 and 500'
+        });
+        setSaving(false);
+        return;
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -161,19 +172,17 @@ export default function ComboSettingsModal({ clientId, clientEmail, currentStatu
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Commission Multiplier
+                    Commission Multiplier (1x - 500x)
                   </label>
-                  <select
+                  <input
+                    type="number"
+                    min="1"
+                    max="500"
                     value={comboMultiplier}
                     onChange={(e) => setComboMultiplier(Number(e.target.value))}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  >
-                    {[2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                      <option key={num} value={num}>
-                        x{num} Commission
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="Enter multiplier (1-500)"
+                  />
                   <p className="text-xs text-gray-500 mt-1">
                     COMBO products will earn {comboMultiplier}x the normal commission
                   </p>

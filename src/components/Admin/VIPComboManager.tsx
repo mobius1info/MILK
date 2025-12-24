@@ -69,6 +69,16 @@ export default function VIPComboManager({
 
   async function addCombo() {
     try {
+      if (newCombo.multiplier < 1 || newCombo.multiplier > 500) {
+        setNotification({
+          isOpen: true,
+          type: 'error',
+          title: 'Error',
+          message: 'Multiplier must be between 1 and 500'
+        });
+        return;
+      }
+
       const existingPositions = combos.map(c => c.combo_position);
       if (existingPositions.includes(newCombo.position)) {
         setNotification({
@@ -119,6 +129,16 @@ export default function VIPComboManager({
 
   async function updateCombo(comboId: string, updates: Partial<ComboSetting>) {
     try {
+      if (updates.combo_multiplier && (updates.combo_multiplier < 1 || updates.combo_multiplier > 500)) {
+        setNotification({
+          isOpen: true,
+          type: 'error',
+          title: 'Error',
+          message: 'Multiplier must be between 1 and 500'
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('vip_combo_settings')
         .update(updates)
@@ -255,17 +275,17 @@ export default function VIPComboManager({
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Multiplier
+                      Multiplier (1x - 500x)
                     </label>
-                    <select
+                    <input
+                      type="number"
+                      min="1"
+                      max="500"
                       value={newCombo.multiplier}
                       onChange={(e) => setNewCombo({ ...newCombo, multiplier: Number(e.target.value) })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                    >
-                      {[2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                        <option key={num} value={num}>x{num}</option>
-                      ))}
-                    </select>
+                      placeholder="Enter multiplier"
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -325,17 +345,17 @@ export default function VIPComboManager({
                         <div className="grid grid-cols-2 gap-3 mb-3">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Multiplier
+                              Multiplier (1x - 500x)
                             </label>
-                            <select
+                            <input
+                              type="number"
+                              min="1"
+                              max="500"
                               value={editingCombo.combo_multiplier}
                               onChange={(e) => setEditingCombo({ ...editingCombo, combo_multiplier: Number(e.target.value) })}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                            >
-                              {[2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                                <option key={num} value={num}>x{num}</option>
-                              ))}
-                            </select>
+                              placeholder="Enter multiplier"
+                            />
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
