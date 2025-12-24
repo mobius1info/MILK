@@ -12,7 +12,7 @@ interface VIPPurchaseRequest {
   created_at: string;
   approved_at: string | null;
   approved_by: string | null;
-  products_completed: number;
+  completed_products_count: number;
   total_products: number;
   vip_price: number;
   combo_enabled_at_approval: boolean | null;
@@ -86,8 +86,7 @@ export default function VIPPurchaseManagement() {
           created_at,
           approved_at,
           approved_by,
-          products_completed,
-          total_products,
+          completed_products_count,
           vip_price,
           combo_enabled_at_approval,
           combo_position_at_approval,
@@ -102,19 +101,31 @@ export default function VIPPurchaseManagement() {
 
       if (error) throw error;
 
-      const formattedData = (data || []).map((item: any) => ({
-        ...item,
-        profiles: Array.isArray(item.profiles) && item.profiles.length > 0
-          ? {
-              email: item.profiles[0].email || '',
-              full_name: item.profiles[0].full_name || ''
-            }
-          : item.profiles && typeof item.profiles === 'object'
-          ? {
-              email: item.profiles.email || '',
-              full_name: item.profiles.full_name || ''
-            }
-          : { email: '', full_name: '' }
+      const formattedData = await Promise.all((data || []).map(async (item: any) => {
+        // Get total_products from vip_levels
+        const { data: vipLevelData } = await supabase
+          .from('vip_levels')
+          .select('products_count')
+          .eq('level', item.vip_level)
+          .eq('category', item.category_id)
+          .maybeSingle();
+
+        return {
+          ...item,
+          total_products: vipLevelData?.products_count || 25,
+          completed_products_count: item.completed_products_count || 0,
+          profiles: Array.isArray(item.profiles) && item.profiles.length > 0
+            ? {
+                email: item.profiles[0].email || '',
+                full_name: item.profiles[0].full_name || ''
+              }
+            : item.profiles && typeof item.profiles === 'object'
+            ? {
+                email: item.profiles.email || '',
+                full_name: item.profiles.full_name || ''
+              }
+            : { email: '', full_name: '' }
+        };
       }));
 
       setRequests(formattedData);
@@ -452,7 +463,7 @@ export default function VIPPurchaseManagement() {
                           <Clock className="w-5 h-5 text-blue-600" />
                           <span className="font-bold text-gray-900">Progress:</span>
                           <span className="text-blue-700 font-semibold">
-                            {request.products_completed} / {request.total_products} products
+                            {request.completed_products_count} / {request.total_products} products
                           </span>
                         </div>
                         <div className="text-sm text-gray-600">
@@ -462,7 +473,7 @@ export default function VIPPurchaseManagement() {
                       <div className="mt-2 bg-gray-200 rounded-full h-2">
                         <div
                           className="bg-blue-600 h-2 rounded-full transition-all"
-                          style={{ width: `${(request.products_completed / request.total_products) * 100}%` }}
+                          style={{ width: `${(request.completed_products_count / request.total_products) * 100}%` }}
                         />
                       </div>
                     </div>
