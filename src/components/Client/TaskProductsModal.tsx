@@ -531,7 +531,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
               </div>
               <div className={`rounded-lg p-2.5 sm:p-3 ${isNextCombo ? 'bg-yellow-50 border-2 border-yellow-300' : 'bg-green-50'}`}>
                 <div className="text-xs text-gray-600 mb-1">
-                  {isNextCombo ? 'Profit' : 'Earn'}
+                  Profit
                 </div>
                 <div className={`text-lg sm:text-2xl font-bold ${isNextCombo ? 'text-yellow-600' : 'text-green-600'}`}>
                   ${potentialCommission.toFixed(2)}
@@ -553,33 +553,6 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
               </div>
             </div>
           </div>
-
-          {vipComboSettings.length > 0 && (
-            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg p-2.5 sm:p-3.5 border border-yellow-300 shadow-sm">
-              <div className="flex items-start gap-2">
-                <Star className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <div className="font-semibold text-orange-900 mb-1.5 text-sm">COMBO Products</div>
-                  <div className="flex flex-wrap gap-2">
-                    {vipComboSettings.map((combo) => (
-                      <div
-                        key={combo.id}
-                        className={`px-2 py-1 rounded text-xs font-bold ${
-                          combo.is_completed
-                            ? 'bg-gray-300 text-gray-600'
-                            : combo.combo_position === nextProductNumber
-                            ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white animate-pulse'
-                            : 'bg-orange-200 text-orange-800'
-                        }`}
-                      >
-                        #{combo.combo_position} ({combo.combo_multiplier}x)
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
           {isNextCombo && (
             <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-lg p-2 sm:p-3.5 border border-orange-300 shadow-sm">
