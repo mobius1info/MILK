@@ -476,7 +476,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
               </div>
               <div className={`rounded-lg p-2.5 sm:p-3 ${isNextCombo ? 'bg-yellow-50 border-2 border-yellow-300' : 'bg-green-50'}`}>
                 <div className="text-xs text-gray-600 mb-1">
-                  {isNextCombo ? `Earn x${comboSettings.multiplier}` : 'Earn'}
+                  {isNextCombo ? 'Profit' : 'Earn'}
                 </div>
                 <div className={`text-lg sm:text-2xl font-bold ${isNextCombo ? 'text-yellow-600' : 'text-green-600'}`}>
                   ${potentialCommission.toFixed(2)}
@@ -566,10 +566,10 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
                 <>
                   <ShoppingBag className="w-5 h-5 flex-shrink-0" />
                   <span className="hidden sm:inline">
-                    {isNextCombo ? `COMBO: Buy for $${displayPrice.toFixed(2)} and get $${potentialCommission.toFixed(2)} (x${comboSettings.multiplier})` : `Buy and get $${potentialCommission.toFixed(2)}`}
+                    {isNextCombo ? `COMBO: Buy for $${displayPrice.toFixed(2)} and get $${potentialCommission.toFixed(2)}` : `Buy and get $${potentialCommission.toFixed(2)}`}
                   </span>
                   <span className="sm:hidden truncate">
-                    {isNextCombo ? `COMBO $${displayPrice.toFixed(2)} → +$${potentialCommission.toFixed(2)} (x${comboSettings.multiplier})` : `Buy & Get +$${potentialCommission.toFixed(2)}`}
+                    {isNextCombo ? `COMBO $${displayPrice.toFixed(2)} → +$${potentialCommission.toFixed(2)}` : `Buy & Get +$${potentialCommission.toFixed(2)}`}
                   </span>
                 </>
               )}
