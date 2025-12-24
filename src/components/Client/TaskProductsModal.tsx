@@ -40,6 +40,14 @@ interface ComboSettings {
   depositPercent: number;
 }
 
+interface VIPComboSetting {
+  id: string;
+  combo_position: number;
+  combo_multiplier: number;
+  combo_deposit_percent: number;
+  is_completed: boolean;
+}
+
 interface ProductProgress {
   current_product_index: number;
   products_purchased: number;
@@ -74,6 +82,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
     multiplier: 3,
     depositPercent: 50
   });
+  const [vipComboSettings, setVipComboSettings] = useState<VIPComboSetting[]>([]);
   const [notification, setNotification] = useState({
     isOpen: false,
     type: 'success' as 'success' | 'error' | 'warning' | 'info',
@@ -133,7 +142,21 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
       const purchaseVipPrice = vipPurchase.vip_price || category.price || 100;
       setVipPrice(purchaseVipPrice);
 
-      // Load combo settings from VIP purchase snapshot
+      // Load combo settings from vip_combo_settings table
+      const { data: comboSettingsData, error: comboError } = await supabase
+        .from('vip_combo_settings')
+        .select('*')
+        .eq('vip_purchase_id', vipPurchase.id)
+        .order('combo_position', { ascending: true });
+
+      if (comboError) {
+        console.error('Error loading combo settings:', comboError);
+      } else {
+        setVipComboSettings(comboSettingsData || []);
+        console.log('Loaded combo settings:', comboSettingsData);
+      }
+
+      // Load combo settings from VIP purchase snapshot (legacy fallback)
       setComboSettings({
         enabled: vipPurchase.combo_enabled_at_approval ?? false,
         position: Number(vipPurchase.combo_position_at_approval ?? 9),
@@ -238,10 +261,34 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
       setMessage('');
       setInsufficientBalance(null);
 
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Get the active VIP purchase ID
+      const { data: vipPurchaseData } = await supabase
+        .from('vip_purchases')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('category_id', category.category)
+        .eq('vip_level', category.level)
+        .eq('status', 'approved')
+        .eq('is_completed', false)
+        .maybeSingle();
+
+      if (!vipPurchaseData) {
+        setNotification({
+          isOpen: true,
+          type: 'error',
+          title: 'Error',
+          message: 'No active VIP purchase found'
+        });
+        return;
+      }
+
       const { data, error } = await supabase.rpc('process_product_purchase', {
-        p_category_id: category.category,
-        p_vip_level: category.level,
-        p_product_id: product.id
+        p_user_id: user.id,
+        p_product_id: product.id,
+        p_vip_purchase_id: vipPurchaseData.id
       });
 
       if (error) throw error;
@@ -315,11 +362,19 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
   }
 
   const nextProductNumber = progress.products_purchased + 1;
-  // FIXED: COMBO only happens ONCE at exact position (not every N products)
-  const isNextCombo = (nextProductNumber === comboSettings.position) && comboSettings.enabled;
 
-  // FIXED: COMBO price = VIP price * (Deposit % / 100)
-  const comboPrice = vipPrice * (comboSettings.depositPercent / 100);
+  // Check if next product is a combo from vip_combo_settings table
+  const nextComboSetting = vipComboSettings.find(
+    combo => combo.combo_position === nextProductNumber && !combo.is_completed
+  );
+  const isNextCombo = !!nextComboSetting;
+
+  // Get combo settings from vip_combo_settings or fallback to legacy settings
+  const activeComboMultiplier = nextComboSetting?.combo_multiplier ?? comboSettings.multiplier;
+  const activeComboDepositPercent = nextComboSetting?.combo_deposit_percent ?? comboSettings.depositPercent;
+
+  // COMBO price = VIP price * (Deposit % / 100)
+  const comboPrice = vipPrice * (activeComboDepositPercent / 100);
 
   const displayPrice = dynamicPrice !== null
     ? dynamicPrice
@@ -333,7 +388,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
   const potentialCommission = dynamicCommission !== null
     ? dynamicCommission
     : isNextCombo
-      ? commissionPerTask * comboSettings.multiplier
+      ? commissionPerTask * activeComboMultiplier
       : commissionPerTask;
 
   if (loading) {
@@ -499,12 +554,39 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
             </div>
           </div>
 
+          {vipComboSettings.length > 0 && (
+            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg p-2.5 sm:p-3.5 border border-yellow-300 shadow-sm">
+              <div className="flex items-start gap-2">
+                <Star className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <div className="font-semibold text-orange-900 mb-1.5 text-sm">COMBO Products</div>
+                  <div className="flex flex-wrap gap-2">
+                    {vipComboSettings.map((combo) => (
+                      <div
+                        key={combo.id}
+                        className={`px-2 py-1 rounded text-xs font-bold ${
+                          combo.is_completed
+                            ? 'bg-gray-300 text-gray-600'
+                            : combo.combo_position === nextProductNumber
+                            ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white animate-pulse'
+                            : 'bg-orange-200 text-orange-800'
+                        }`}
+                      >
+                        #{combo.combo_position} ({combo.combo_multiplier}x)
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {isNextCombo && (
             <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-lg p-2 sm:p-3.5 border border-orange-300 shadow-sm">
               <div className="flex items-start gap-1.5 sm:gap-2">
                 <Star className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-orange-600 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <div className="font-semibold text-orange-900 mb-0.5 text-xs sm:text-sm">COMBO - {comboSettings.multiplier}x Commission!</div>
+                  <div className="font-semibold text-orange-900 mb-0.5 text-xs sm:text-sm">COMBO - {activeComboMultiplier}x Commission!</div>
                   <p className="text-xs text-orange-800 leading-snug sm:leading-relaxed">
                     Balance ${displayPrice.toFixed(2)} required. Earn ${potentialCommission.toFixed(2)}!
                   </p>
@@ -590,7 +672,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
               // Close the modal completely when all products are done
               onClose();
             } else {
-              // For regular purchases, reload progress
+              // For regular purchases, reload progress and combo settings
               setDynamicPrice(null);
               setDynamicCommission(null);
               setMessage('');

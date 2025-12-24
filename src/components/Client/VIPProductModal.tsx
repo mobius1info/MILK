@@ -205,10 +205,31 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      // Get the active VIP purchase ID
+      const { data: vipPurchaseData } = await supabase
+        .from('vip_purchases')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('category_id', categoryId)
+        .eq('vip_level', vipLevel)
+        .eq('status', 'approved')
+        .eq('is_completed', false)
+        .maybeSingle();
+
+      if (!vipPurchaseData) {
+        setNotification({
+          isOpen: true,
+          type: 'error',
+          title: 'Error',
+          message: 'No active VIP purchase found'
+        });
+        return;
+      }
+
       const { data, error } = await supabase.rpc('process_product_purchase', {
-        p_category_id: categoryId,
-        p_vip_level: vipLevel,
-        p_product_id: product.id
+        p_user_id: user.id,
+        p_product_id: product.id,
+        p_vip_purchase_id: vipPurchaseData.id
       });
 
       if (error) throw error;
