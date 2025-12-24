@@ -69,10 +69,16 @@ export default function NotificationModal({
     <>
       <div
         className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998] animate-fadeIn"
-        onClick={handleConfirm}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleConfirm();
+        }}
       ></div>
       <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4 pointer-events-none">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full animate-scaleIn pointer-events-auto border-2 border-gray-100">
+        <div
+          className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full animate-scaleIn pointer-events-auto border-2 border-gray-100"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="flex flex-col items-center text-center">
             <div className={`w-24 h-24 ${getBackgroundColor()} rounded-full flex items-center justify-center mb-6 shadow-lg`}>
               {getIcon()}
@@ -84,7 +90,10 @@ export default function NotificationModal({
               {message}
             </p>
             <button
-              onClick={handleConfirm}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleConfirm();
+              }}
               className={`w-full bg-gradient-to-r ${getButtonColor()} text-white py-4 rounded-xl font-semibold hover:opacity-90 transition-all shadow-lg hover:shadow-xl transform hover:scale-105`}
             >
               OK
