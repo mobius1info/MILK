@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { X, DollarSign, TrendingUp, TrendingDown, Award, Clock, CheckCircle, XCircle, Zap, Key, Eye, EyeOff, Package, Settings } from 'lucide-react';
+import { X, DollarSign, TrendingUp, TrendingDown, Award, Clock, CheckCircle, XCircle, Zap, Key, Eye, EyeOff, Package, Settings, List } from 'lucide-react';
 import ComboSettingsModal from './ComboSettingsModal';
+import VIPComboManager from './VIPComboManager';
 
 interface ClientDetailsModalProps {
   clientId: string;
@@ -16,7 +17,7 @@ interface VIPPurchase {
   status: string;
   created_at: string;
   approved_at: string | null;
-  products_completed: number;
+  completed_products_count: number;
   total_products: number;
   vip_price: number;
   combo_enabled_at_approval: boolean | null;
@@ -77,6 +78,8 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
   const [activeVipProgress, setActiveVipProgress] = useState<ProductProgress[]>([]);
   const [activeVip, setActiveVip] = useState<VIPPurchase | null>(null);
   const [showComboSettings, setShowComboSettings] = useState(false);
+  const [showComboManager, setShowComboManager] = useState(false);
+  const [vipCombos, setVipCombos] = useState<any[]>([]);
 
   useEffect(() => {
     localStorage.setItem(`clientModal_${clientId}_tab`, activeTab);
@@ -109,8 +112,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
             status,
             created_at,
             approved_at,
-            products_completed,
-            total_products,
+            completed_products_count,
             vip_price,
             is_completed,
             combo_enabled_at_approval,
@@ -145,13 +147,29 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
       console.log('Loaded transactions:', transRes.data);
 
       setProfile(profileRes.data);
-      setVipPurchases(vipRes.data || []);
+
+      const vipPurchasesWithTotals = await Promise.all((vipRes.data || []).map(async (vip: any) => {
+        const { data: vipLevelData } = await supabase
+          .from('vip_levels')
+          .select('products_count')
+          .eq('level', vip.vip_level)
+          .eq('category', vip.category_id)
+          .maybeSingle();
+
+        return {
+          ...vip,
+          total_products: vipLevelData?.products_count || 25,
+          completed_products_count: vip.completed_products_count || 0
+        };
+      }));
+
+      setVipPurchases(vipPurchasesWithTotals);
       setTransactions(transRes.data || []);
 
-      const activeVips = vipRes.data?.filter(v =>
+      const activeVips = vipPurchasesWithTotals?.filter(v =>
         v.status === 'approved' &&
         !v.is_completed &&
-        v.products_completed < v.total_products
+        v.completed_products_count < v.total_products
       ) || [];
 
       if (activeVips.length > 0) {
@@ -180,35 +198,43 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
     try {
       console.log('Loading progress for VIP:', vipPurchase);
 
-      const { data: products, error: productsError } = await supabase
-        .from('products')
-        .select('id, name, price, quantity_multiplier')
-        .eq('category', vipPurchase.category_id)
-        .eq('vip_level', vipPurchase.vip_level)
-        .eq('is_active', true)
-        .order('created_at', { ascending: true });
+      const [productsRes, purchasesRes, combosRes] = await Promise.all([
+        supabase
+          .from('products')
+          .select('id, name, price, quantity_multiplier')
+          .eq('category', vipPurchase.category_id)
+          .eq('vip_level', vipPurchase.vip_level)
+          .eq('is_active', true)
+          .order('created_at', { ascending: true }),
+        supabase
+          .from('product_purchases')
+          .select('product_id, quantity, status')
+          .eq('vip_purchase_id', vipPurchase.id),
+        supabase
+          .from('vip_combo_settings')
+          .select('*')
+          .eq('vip_purchase_id', vipPurchase.id)
+          .order('combo_position', { ascending: true })
+      ]);
 
-      if (productsError) {
-        console.error('Products error:', productsError);
-        throw productsError;
+      if (productsRes.error) {
+        console.error('Products error:', productsRes.error);
+        throw productsRes.error;
       }
 
-      console.log('Loaded products:', products);
-
-      const { data: purchases, error: purchasesError } = await supabase
-        .from('product_purchases')
-        .select('product_id, quantity, status')
-        .eq('vip_purchase_id', vipPurchase.id);
-
-      if (purchasesError) {
-        console.error('Purchases error:', purchasesError);
-        throw purchasesError;
+      if (purchasesRes.error) {
+        console.error('Purchases error:', purchasesRes.error);
+        throw purchasesRes.error;
       }
 
-      console.log('Loaded purchases:', purchases);
+      console.log('Loaded products:', productsRes.data);
+      console.log('Loaded purchases:', purchasesRes.data);
+      console.log('Loaded combos:', combosRes.data);
 
-      const progressData: ProductProgress[] = (products || []).map((product, index) => {
-        const productPurchases = purchases?.filter(p => p.product_id === product.id) || [];
+      setVipCombos(combosRes.data || []);
+
+      const progressData: ProductProgress[] = (productsRes.data || []).map((product, index) => {
+        const productPurchases = purchasesRes.data?.filter(p => p.product_id === product.id) || [];
         const completedPurchases = productPurchases.filter(p => p.status === 'completed');
         const totalQuantity = completedPurchases.reduce((sum, p) => sum + (p.quantity || 0), 0);
 
@@ -289,7 +315,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
 
   const approvedVips = vipPurchases.filter(v =>
     v.status === 'approved' &&
-    v.products_completed < v.total_products
+    v.completed_products_count < v.total_products
   );
 
   const deposits = transactions.filter(t => t.type === 'deposit');
@@ -492,12 +518,12 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
                           VIP {activeVip.vip_level} - {activeVip.category_id}
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
-                          Progress: {activeVip.products_completed}/{activeVip.total_products} products
+                          Progress: {activeVip.completed_products_count}/{activeVip.total_products} products
                         </p>
                       </div>
                       <div className="text-right">
                         <div className="text-3xl font-bold text-blue-600">
-                          {Math.round((activeVip.products_completed / activeVip.total_products) * 100)}%
+                          {Math.round((activeVip.completed_products_count / activeVip.total_products) * 100)}%
                         </div>
                         <p className="text-xs text-gray-500">Complete</p>
                       </div>
@@ -542,6 +568,33 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
                           </button>
                         </div>
                       </div>
+
+                      <div className="bg-gradient-to-r from-orange-100 to-red-100 border border-orange-400 rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <List className="w-6 h-6 text-orange-600" />
+                            <div>
+                              <div className="font-bold text-gray-900">
+                                VIP Combo List ({vipCombos.length})
+                              </div>
+                              <div className="text-sm text-gray-700 mt-1">
+                                {vipCombos.length === 0 ? (
+                                  'No combos configured'
+                                ) : (
+                                  `Positions: ${vipCombos.map(c => `#${c.combo_position}`).join(', ')}`
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => setShowComboManager(true)}
+                            className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg hover:from-yellow-500 hover:to-orange-600 transition-colors flex items-center gap-2 font-medium"
+                          >
+                            <Zap className="w-4 h-4" />
+                            Manage Combos
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -558,9 +611,9 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
 
                     <div className="max-h-96 overflow-y-auto">
                       {activeVipProgress.map((progress) => {
-                        const isCurrentProduct = progress.product_index === activeVip.products_completed + 1;
+                        const isCurrentProduct = progress.product_index === activeVip.completed_products_count + 1;
                         const isCompleted = progress.completed;
-                        const isComboProduct = progress.product_index === activeVip.combo_position_at_approval;
+                        const comboAtPosition = vipCombos.find(c => c.combo_position === progress.product_index);
 
                         return (
                           <div
@@ -587,10 +640,11 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
                                       CURRENT
                                     </span>
                                   )}
-                                  {isComboProduct && activeVip.combo_enabled_at_approval && (
+                                  {comboAtPosition && (
                                     <span className="px-2 py-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs rounded-full font-bold flex items-center gap-1">
                                       <Zap className="w-3 h-3" />
-                                      COMBO
+                                      COMBO x{comboAtPosition.combo_multiplier}
+                                      {comboAtPosition.is_completed && ' ✓'}
                                     </span>
                                   )}
                                 </div>
@@ -674,7 +728,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
                             {(status === 'approved' || status === 'completed') && (
                               <div className="text-right">
                                 <p className="text-2xl font-bold text-blue-600">
-                                  {vip.products_completed || 0}/{vip.total_products}
+                                  {vip.completed_products_count || 0}/{vip.total_products}
                                 </p>
                                 <p className="text-xs text-gray-500">Products completed</p>
                               </div>
@@ -797,6 +851,22 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
           onUpdate={() => {
             loadClientDetails();
             setShowComboSettings(false);
+          }}
+        />
+      )}
+
+      {showComboManager && activeVip && (
+        <VIPComboManager
+          vipPurchaseId={activeVip.id}
+          vipLevel={activeVip.vip_level}
+          category={activeVip.category_id}
+          totalProducts={activeVip.total_products}
+          onClose={() => setShowComboManager(false)}
+          onUpdate={() => {
+            if (activeVip) {
+              loadActiveVipProgress(activeVip);
+            }
+            setShowComboManager(false);
           }}
         />
       )}
