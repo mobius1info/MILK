@@ -201,6 +201,8 @@ export default function VIPPurchaseManagement() {
   async function approveRequest() {
     if (!approvalModal) return;
 
+    let existingVIPs: any[] = [];
+
     try {
       console.log('Approving VIP purchase with combo settings:', {
         requestId: approvalModal.requestId,
@@ -210,26 +212,31 @@ export default function VIPPurchaseManagement() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Check if user has another active VIP for the same category and level
-      const { data: existingVIP } = await supabase
+      // Check for and complete any existing active VIP for the same category and level
+      const { data: existingVIPsData } = await supabase
         .from('vip_purchases')
         .select('id')
         .eq('user_id', approvalModal.userId)
         .eq('vip_level', approvalModal.vipLevel)
         .eq('category_id', approvalModal.categoryId)
-        .eq('status', 'approved')
         .eq('is_completed', false)
-        .neq('id', approvalModal.requestId)
-        .maybeSingle();
+        .neq('status', 'rejected')
+        .neq('id', approvalModal.requestId);
 
-      if (existingVIP) {
-        setNotification({
-          isOpen: true,
-          type: 'error',
-          title: 'Cannot Approve',
-          message: `Client ${approvalModal.clientEmail} already has an active VIP for this category and level. They must complete it first.`,
-        });
-        return;
+      existingVIPs = existingVIPsData || [];
+
+      if (existingVIPs.length > 0) {
+        console.log('Found existing active VIPs, marking them as completed:', existingVIPs);
+
+        const { error: completeError } = await supabase
+          .from('vip_purchases')
+          .update({ is_completed: true })
+          .in('id', existingVIPs.map(v => v.id));
+
+        if (completeError) {
+          console.error('Error completing existing VIPs:', completeError);
+          throw completeError;
+        }
       }
 
       // Get the VIP price from the request
@@ -299,11 +306,15 @@ export default function VIPPurchaseManagement() {
 
       console.log('Category access granted successfully');
 
+      const message = existingVIPs && existingVIPs.length > 0
+        ? `VIP access approved with combo ${comboSettings.enabled ? 'ENABLED' : 'DISABLED'}. Previous ${existingVIPs.length} active VIP(s) automatically completed.`
+        : `VIP access approved with combo ${comboSettings.enabled ? 'ENABLED' : 'DISABLED'}`;
+
       setNotification({
         isOpen: true,
         type: 'success',
         title: 'Success',
-        message: `VIP access approved with combo ${comboSettings.enabled ? 'ENABLED' : 'DISABLED'}`,
+        message,
       });
       setApprovalModal(null);
       loadRequests();
