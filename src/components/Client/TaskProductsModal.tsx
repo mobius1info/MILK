@@ -287,7 +287,6 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
 
       const { data, error } = await supabase.rpc('process_product_purchase', {
         p_user_id: user.id,
-        p_product_id: product.id,
         p_vip_purchase_id: vipPurchaseData.id
       });
 
