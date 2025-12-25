@@ -394,7 +394,16 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
     return (
       <div
         className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-        onClick={onClose}
+        onMouseDown={(e) => {
+          if (e.target === e.currentTarget) {
+            onClose();
+          }
+        }}
+        onTouchStart={(e) => {
+          if (e.target === e.currentTarget) {
+            onClose();
+          }
+        }}
       >
         <div
           className="bg-white rounded-lg p-8"
@@ -410,7 +419,16 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
     return (
       <div
         className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-        onClick={onClose}
+        onMouseDown={(e) => {
+          if (e.target === e.currentTarget) {
+            onClose();
+          }
+        }}
+        onTouchStart={(e) => {
+          if (e.target === e.currentTarget) {
+            onClose();
+          }
+        }}
       >
         <div
           className="bg-white rounded-lg p-8 max-w-md"
@@ -445,12 +463,23 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
   return (
     <div
       className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 overflow-hidden pb-16 sm:pb-0"
-      onClick={onClose}
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      onTouchStart={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
     >
       <div
         className="bg-white rounded-t-2xl sm:rounded-xl w-full sm:max-w-2xl lg:max-w-3xl sm:max-h-[90vh] flex flex-col overflow-hidden"
         style={{ maxHeight: 'calc(100dvh - 64px)' }}
         onClick={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
       >
         <div className="flex-shrink-0 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] p-3.5 sm:p-5 text-white">
           <div className="flex items-start justify-between gap-2 sm:gap-3">
