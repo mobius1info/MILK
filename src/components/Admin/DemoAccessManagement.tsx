@@ -61,6 +61,7 @@ export default function DemoAccessManagement() {
         .from('vip_levels')
         .select('*')
         .eq('is_active', true)
+        .eq('is_bonus', true)
         .order('level');
 
       if (error) throw error;
