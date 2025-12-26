@@ -585,17 +585,17 @@ export default function VIPPurchaseManagement() {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Deposit %
+                          Deposit % (5-5000%)
                         </label>
                         <input
                           type="number"
-                          min="10"
-                          max="100"
+                          min="5"
+                          max="5000"
                           value={comboSettings.depositPercent}
                           onChange={(e) => setComboSettings({ ...comboSettings, depositPercent: parseInt(e.target.value) || 50 })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
                         />
-                        <p className="text-xs text-gray-500 mt-1">Balance deposit %</p>
+                        <p className="text-xs text-gray-500 mt-1">Balance deposit 5-5000%</p>
                       </div>
                     </div>
 

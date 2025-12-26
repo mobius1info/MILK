@@ -289,12 +289,12 @@ export default function VIPComboManager({
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Deposit %
+                      Deposit % (5-5000%)
                     </label>
                     <input
                       type="number"
-                      min="0"
-                      max="100"
+                      min="5"
+                      max="5000"
                       step="5"
                       value={newCombo.depositPercent}
                       onChange={(e) => setNewCombo({ ...newCombo, depositPercent: Number(e.target.value) })}
@@ -359,12 +359,12 @@ export default function VIPComboManager({
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Deposit %
+                              Deposit % (5-5000%)
                             </label>
                             <input
                               type="number"
-                              min="0"
-                              max="100"
+                              min="5"
+                              max="5000"
                               step="5"
                               value={editingCombo.combo_deposit_percent}
                               onChange={(e) => setEditingCombo({ ...editingCombo, combo_deposit_percent: Number(e.target.value) })}

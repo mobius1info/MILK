@@ -190,32 +190,27 @@ export default function ComboSettingsModal({ clientId, clientEmail, currentStatu
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Required Deposit (% of VIP price)
+                    Required Deposit (5% - 5000% of VIP price)
                   </label>
                   <div className="flex items-center gap-3">
                     <input
-                      type="range"
-                      min="0"
-                      max="100"
+                      type="number"
+                      min="5"
+                      max="5000"
                       step="5"
                       value={comboDepositPercent}
                       onChange={(e) => setComboDepositPercent(Number(e.target.value))}
-                      className="flex-1"
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="Enter 5-5000"
                     />
-                    <span className="text-lg font-bold text-gray-900 w-16 text-right">
+                    <span className="text-lg font-bold text-gray-900 w-20 text-right">
                       {comboDepositPercent}%
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    {comboDepositPercent > 0 ? (
-                      <>
-                        Client must deposit {comboDepositPercent}% of VIP price to continue after COMBO.
-                        <br />
-                        Example: VIP costs $800, client must deposit ${(800 * comboDepositPercent / 100).toFixed(2)} to proceed
-                      </>
-                    ) : (
-                      'No deposit required to continue after COMBO'
-                    )}
+                    Client must deposit {comboDepositPercent}% of VIP price to continue after COMBO.
+                    <br />
+                    Example: VIP costs $800, client must deposit ${(800 * comboDepositPercent / 100).toFixed(2)} to proceed
                   </p>
                 </div>
               </>
