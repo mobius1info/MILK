@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Package, TrendingUp, TrendingDown, CreditCard, DollarSign, Image, Crown, Settings, Tag, Users } from 'lucide-react';
+import { Package, TrendingUp, TrendingDown, CreditCard, DollarSign, Image, Crown, Settings, Tag, Users, Gift } from 'lucide-react';
 import ProductManagement from './ProductManagement';
 import DepositManagement from './DepositManagement';
 import WithdrawalManagement from './WithdrawalManagement';
@@ -10,8 +10,9 @@ import VIPPurchaseManagement from './VIPPurchaseManagement';
 import VIPLevelManagement from './VIPLevelManagement';
 import CategoryManagement from './CategoryManagement';
 import ClientsManagement from './ClientsManagement';
+import DemoAccessManagement from './DemoAccessManagement';
 
-type TabType = 'products' | 'categories' | 'deposits' | 'withdrawals' | 'payment-methods' | 'manual-credit' | 'banners' | 'vip-purchases' | 'vip-levels' | 'clients';
+type TabType = 'products' | 'categories' | 'deposits' | 'withdrawals' | 'payment-methods' | 'manual-credit' | 'banners' | 'vip-purchases' | 'vip-levels' | 'clients' | 'demo-access';
 
 interface NavItem {
   id: TabType;
@@ -31,6 +32,7 @@ const navItems: NavItem[] = [
   { id: 'payment-methods', label: 'Payment Methods', icon: CreditCard, group: 'Settings' },
   { id: 'vip-levels', label: 'VIP Levels', icon: Settings, group: 'VIP System' },
   { id: 'vip-purchases', label: 'VIP Purchases', icon: Crown, group: 'VIP System' },
+  { id: 'demo-access', label: 'Demo Access', icon: Gift, group: 'VIP System' },
 ];
 
 interface AdminPanelProps {
@@ -59,7 +61,8 @@ export default function AdminPanel({ sidebarOpen, setSidebarOpen }: AdminPanelPr
       'manual-credit': 'MG SOUK - Admin - Manual Credit',
       'banners': 'MG SOUK - Admin - Banners',
       'vip-purchases': 'MG SOUK - Admin - VIP Purchases',
-      'vip-levels': 'MG SOUK - Admin - VIP Levels'
+      'vip-levels': 'MG SOUK - Admin - VIP Levels',
+      'demo-access': 'MG SOUK - Admin - Demo Access'
     };
     document.title = titles[activeTab];
   }, [activeTab]);
@@ -84,7 +87,8 @@ export default function AdminPanel({ sidebarOpen, setSidebarOpen }: AdminPanelPr
     'manual-credit': <ManualBalanceCredit />,
     banners: <BannerManagement />,
     'vip-purchases': <VIPPurchaseManagement />,
-    'vip-levels': <VIPLevelManagement />
+    'vip-levels': <VIPLevelManagement />,
+    'demo-access': <DemoAccessManagement />
   }), []);
 
   return (
