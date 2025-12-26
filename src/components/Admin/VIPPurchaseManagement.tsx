@@ -201,8 +201,6 @@ export default function VIPPurchaseManagement() {
   async function approveRequest() {
     if (!approvalModal) return;
 
-    let existingVIPs: any[] = [];
-
     try {
       console.log('Approving VIP purchase with combo settings:', {
         requestId: approvalModal.requestId,
@@ -212,102 +210,30 @@ export default function VIPPurchaseManagement() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Check for and complete any existing active VIP for the same category and level
-      const { data: existingVIPsData } = await supabase
-        .from('vip_purchases')
-        .select('id')
-        .eq('user_id', approvalModal.userId)
-        .eq('vip_level', approvalModal.vipLevel)
-        .eq('category_id', approvalModal.categoryId)
-        .eq('is_completed', false)
-        .neq('status', 'rejected')
-        .neq('id', approvalModal.requestId);
+      // Use atomic database function to approve VIP
+      // This function handles: completing old VIPs, approving new one, granting access
+      const { data, error } = await supabase.rpc('approve_vip_purchase', {
+        p_vip_purchase_id: approvalModal.requestId,
+        p_admin_id: user.id,
+        p_combo_enabled: comboSettings.enabled,
+        p_combo_position: comboSettings.position,
+        p_combo_multiplier: comboSettings.multiplier,
+        p_combo_deposit_percent: comboSettings.depositPercent
+      });
 
-      existingVIPs = existingVIPsData || [];
-
-      if (existingVIPs.length > 0) {
-        console.log('Found existing active VIPs, marking them as completed:', existingVIPs);
-
-        const { error: completeError } = await supabase
-          .from('vip_purchases')
-          .update({ is_completed: true })
-          .in('id', existingVIPs.map(v => v.id));
-
-        if (completeError) {
-          console.error('Error completing existing VIPs:', completeError);
-          throw completeError;
-        }
+      if (error) {
+        console.error('RPC error:', error);
+        throw error;
       }
 
-      // Get the VIP price from the request
-      const { data: vipPurchaseData } = await supabase
-        .from('vip_purchases')
-        .select('vip_price')
-        .eq('id', approvalModal.requestId)
-        .single();
-
-      const vipPrice = Number(vipPurchaseData?.vip_price || 0);
-
-      // Check user's balance
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('balance')
-        .eq('id', approvalModal.userId)
-        .single();
-
-      const currentBalance = Number(profile?.balance || 0);
-
-      if (currentBalance < vipPrice) {
-        setNotification({
-          isOpen: true,
-          type: 'error',
-          title: 'Insufficient Balance',
-          message: `Client ${approvalModal.clientEmail} does not have enough balance. Required: $${vipPrice.toFixed(2)}, Available: $${currentBalance.toFixed(2)}`,
-        });
-        return;
+      if (!data?.success) {
+        throw new Error(data?.error || 'Unknown error');
       }
 
-      const updateData = {
-        status: 'approved',
-        approved_at: new Date().toISOString(),
-        approved_by: user.id,
-        combo_enabled_at_approval: comboSettings.enabled,
-        combo_position_at_approval: comboSettings.position,
-        combo_multiplier_at_approval: comboSettings.multiplier,
-        combo_deposit_percent_at_approval: comboSettings.depositPercent
-      };
+      console.log('VIP approved successfully:', data);
 
-      console.log('Updating vip_purchases with:', updateData);
-
-      const { error: updateError } = await supabase
-        .from('vip_purchases')
-        .update(updateData)
-        .eq('id', approvalModal.requestId);
-
-      if (updateError) {
-        console.error('Update error:', updateError);
-        throw updateError;
-      }
-
-      console.log('VIP purchase updated successfully');
-
-      const { error: accessError } = await supabase
-        .from('category_access')
-        .insert({
-          user_id: approvalModal.userId,
-          category: approvalModal.categoryId,
-          is_enabled: true
-        });
-
-      if (accessError && accessError.code !== '23505') {
-        console.error('Access error:', accessError);
-        throw accessError;
-      }
-
-      console.log('Category access granted successfully');
-
-      const message = existingVIPs && existingVIPs.length > 0
-        ? `VIP access approved with combo ${comboSettings.enabled ? 'ENABLED' : 'DISABLED'}. Previous ${existingVIPs.length} active VIP(s) automatically completed.`
+      const message = data.completed_old_vips > 0
+        ? `VIP access approved with combo ${comboSettings.enabled ? 'ENABLED' : 'DISABLED'}. ${data.completed_old_vips} old VIP(s) automatically completed.`
         : `VIP access approved with combo ${comboSettings.enabled ? 'ENABLED' : 'DISABLED'}`;
 
       setNotification({
