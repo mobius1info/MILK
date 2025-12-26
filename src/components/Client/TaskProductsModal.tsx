@@ -472,7 +472,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 overflow-hidden pb-16 sm:pb-0"
+      className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 overflow-hidden pb-20 sm:pb-0"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) {
           onClose();
@@ -485,8 +485,8 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
       }}
     >
       <div
-        className="bg-white rounded-t-2xl sm:rounded-xl w-full sm:max-w-2xl lg:max-w-3xl sm:max-h-[90vh] flex flex-col overflow-hidden"
-        style={{ maxHeight: 'calc(100dvh - 64px)' }}
+        className="bg-white rounded-t-2xl sm:rounded-xl w-full sm:max-w-2xl lg:max-w-3xl sm:max-h-[90vh] flex flex-col overflow-hidden mb-safe"
+        style={{ maxHeight: 'calc(100dvh - 80px)' }}
         onClick={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}
         onTouchMove={(e) => e.stopPropagation()}
