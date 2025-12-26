@@ -8,9 +8,10 @@ interface Transaction {
   user_id: string;
   type: string;
   amount: number;
-  status: 'pending' | 'completed' | 'failed' | 'rejected';
+  status: 'pending' | 'completed' | 'failed' | 'rejected' | 'approved';
   created_at: string;
   description?: string;
+  rejection_reason?: string;
 }
 
 interface WithdrawalsPageProps {
@@ -136,15 +137,15 @@ export default function WithdrawalsPage({ userId, userBalance, onBalanceUpdate }
     switch (status) {
       case 'completed':
       case 'approved':
-        return 'Completed';
+        return 'ОДОБРЕНО';
       case 'pending':
-        return 'Pending';
+        return 'В ОЖИДАНИИ';
       case 'failed':
-        return 'Failed';
+        return 'НЕУДАЧНО';
       case 'rejected':
-        return 'Rejected';
+        return 'ОТКЛОНЕНО';
       default:
-        return status;
+        return status.toUpperCase();
     }
   };
 
@@ -259,13 +260,19 @@ export default function WithdrawalsPage({ userId, userBalance, onBalanceUpdate }
                         </h3>
                       </div>
                       <p className="text-sm text-gray-600 mb-1">
-                        Status: <span className="font-semibold">{getStatusLabel(withdrawal.status)}</span>
+                        Статус: <span className="font-semibold">{getStatusLabel(withdrawal.status)}</span>
                       </p>
                       {withdrawal.description && (
                         <p className="text-sm text-gray-600 mb-1">{withdrawal.description}</p>
                       )}
-                      <p className="text-xs text-gray-500">
-                        {new Date(withdrawal.created_at).toLocaleString('en-US', {
+                      {withdrawal.rejection_reason && (
+                        <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
+                          <p className="text-xs font-semibold text-red-800 mb-1">Причина отклонения:</p>
+                          <p className="text-sm text-red-700">{withdrawal.rejection_reason}</p>
+                        </div>
+                      )}
+                      <p className="text-xs text-gray-500 mt-2">
+                        {new Date(withdrawal.created_at).toLocaleString('ru-RU', {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric',

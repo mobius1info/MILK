@@ -104,15 +104,20 @@ export default function WithdrawalManagement() {
     }
 
     try {
-      const { error } = await supabase
-        .from('transactions')
-        .update({
-          status: 'rejected',
-          rejection_reason: rejectionReason,
-        })
-        .eq('id', id);
+      const { data, error } = await supabase.rpc('reject_withdrawal', {
+        withdrawal_id: id,
+        reason: rejectionReason,
+      });
 
       if (error) throw error;
+
+      setNotification({
+        isOpen: true,
+        type: 'success',
+        title: 'Withdrawal Rejected',
+        message: 'Withdrawal request has been rejected successfully',
+      });
+
       setSelectedTransaction(null);
       setRejectionReason('');
       fetchTransactions();
@@ -136,6 +141,19 @@ export default function WithdrawalManagement() {
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'В ОЖИДАНИИ';
+      case 'approved':
+        return 'ОДОБРЕНО';
+      case 'rejected':
+        return 'ОТКЛОНЕНО';
+      default:
+        return status.toUpperCase();
     }
   };
 
@@ -203,18 +221,18 @@ export default function WithdrawalManagement() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs sm:text-sm text-gray-500">Status</p>
+                      <p className="text-xs sm:text-sm text-gray-500">Статус</p>
                       <span
                         className={`inline-block px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${getStatusColor(
                           transaction.status
                         )}`}
                       >
-                        {transaction.status}
+                        {getStatusLabel(transaction.status)}
                       </span>
                     </div>
                     {transaction.rejection_reason && (
                       <div className="col-span-1 sm:col-span-2">
-                        <p className="text-xs sm:text-sm text-gray-500">Rejection Reason</p>
+                        <p className="text-xs sm:text-sm text-gray-500">Причина отклонения</p>
                         <p className="text-sm text-red-600">{transaction.rejection_reason}</p>
                       </div>
                     )}
