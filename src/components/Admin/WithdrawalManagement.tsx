@@ -147,13 +147,13 @@ export default function WithdrawalManagement() {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'В ОЖИДАНИИ';
+        return 'Pending';
       case 'approved':
-        return 'ОДОБРЕНО';
+        return 'Approved';
       case 'rejected':
-        return 'ОТКЛОНЕНО';
+        return 'Rejected';
       default:
-        return status.toUpperCase();
+        return status.charAt(0).toUpperCase() + status.slice(1);
     }
   };
 
@@ -221,7 +221,7 @@ export default function WithdrawalManagement() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs sm:text-sm text-gray-500">Статус</p>
+                      <p className="text-xs sm:text-sm text-gray-500">Status</p>
                       <span
                         className={`inline-block px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${getStatusColor(
                           transaction.status
@@ -232,7 +232,7 @@ export default function WithdrawalManagement() {
                     </div>
                     {transaction.rejection_reason && (
                       <div className="col-span-1 sm:col-span-2">
-                        <p className="text-xs sm:text-sm text-gray-500">Причина отклонения</p>
+                        <p className="text-xs sm:text-sm text-gray-500">Rejection Reason</p>
                         <p className="text-sm text-red-600">{transaction.rejection_reason}</p>
                       </div>
                     )}

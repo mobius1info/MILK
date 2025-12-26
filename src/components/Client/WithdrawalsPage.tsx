@@ -137,15 +137,15 @@ export default function WithdrawalsPage({ userId, userBalance, onBalanceUpdate }
     switch (status) {
       case 'completed':
       case 'approved':
-        return 'ОДОБРЕНО';
+        return 'Approved';
       case 'pending':
-        return 'В ОЖИДАНИИ';
+        return 'Pending';
       case 'failed':
-        return 'НЕУДАЧНО';
+        return 'Failed';
       case 'rejected':
-        return 'ОТКЛОНЕНО';
+        return 'Rejected';
       default:
-        return status.toUpperCase();
+        return status.charAt(0).toUpperCase() + status.slice(1);
     }
   };
 
@@ -260,19 +260,19 @@ export default function WithdrawalsPage({ userId, userBalance, onBalanceUpdate }
                         </h3>
                       </div>
                       <p className="text-sm text-gray-600 mb-1">
-                        Статус: <span className="font-semibold">{getStatusLabel(withdrawal.status)}</span>
+                        Status: <span className="font-semibold">{getStatusLabel(withdrawal.status)}</span>
                       </p>
                       {withdrawal.description && (
                         <p className="text-sm text-gray-600 mb-1">{withdrawal.description}</p>
                       )}
                       {withdrawal.rejection_reason && (
                         <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
-                          <p className="text-xs font-semibold text-red-800 mb-1">Причина отклонения:</p>
+                          <p className="text-xs font-semibold text-red-800 mb-1">Rejection Reason:</p>
                           <p className="text-sm text-red-700">{withdrawal.rejection_reason}</p>
                         </div>
                       )}
                       <p className="text-xs text-gray-500 mt-2">
-                        {new Date(withdrawal.created_at).toLocaleString('ru-RU', {
+                        {new Date(withdrawal.created_at).toLocaleString('en-US', {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric',
