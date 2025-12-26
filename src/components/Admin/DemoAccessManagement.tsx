@@ -3,16 +3,6 @@ import { supabase } from '../../lib/supabase';
 import { Gift, AlertCircle, CheckCircle, Users, Crown } from 'lucide-react';
 import NotificationModal from '../NotificationModal';
 
-interface VIPLevel {
-  id: string;
-  level: number;
-  name: string;
-  category: string;
-  products_count: number;
-  price: number;
-  commission_percentage: number;
-}
-
 interface DemoAccessRecord {
   user_email: string;
   vip_level_name: string;
@@ -20,12 +10,10 @@ interface DemoAccessRecord {
 }
 
 export default function DemoAccessManagement() {
-  const [vipLevels, setVipLevels] = useState<VIPLevel[]>([]);
   const [demoRecords, setDemoRecords] = useState<DemoAccessRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [granting, setGranting] = useState(false);
   const [userEmail, setUserEmail] = useState('');
-  const [selectedVIPLevelId, setSelectedVIPLevelId] = useState('');
   const [notification, setNotification] = useState<{
     isOpen: boolean;
     type: 'success' | 'error' | 'warning' | 'info';
@@ -39,32 +27,11 @@ export default function DemoAccessManagement() {
   });
 
   useEffect(() => {
-    loadData();
+    loadDemoRecords();
   }, []);
 
-  async function loadData() {
-    setLoading(true);
-    await Promise.all([loadVIPLevels(), loadDemoRecords()]);
-    setLoading(false);
-  }
-
-  async function loadVIPLevels() {
-    try {
-      const { data, error } = await supabase
-        .from('vip_levels')
-        .select('*')
-        .eq('is_active', true)
-        .eq('is_bonus', true)
-        .order('level');
-
-      if (error) throw error;
-      setVipLevels(data || []);
-    } catch (error) {
-      console.error('Error loading VIP levels:', error);
-    }
-  }
-
   async function loadDemoRecords() {
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('vip_purchases')
@@ -97,16 +64,18 @@ export default function DemoAccessManagement() {
       setDemoRecords(records);
     } catch (error) {
       console.error('Error loading demo records:', error);
+    } finally {
+      setLoading(false);
     }
   }
 
   async function handleGrantAccess() {
-    if (!userEmail || !selectedVIPLevelId) {
+    if (!userEmail) {
       setNotification({
         isOpen: true,
         type: 'warning',
         title: 'Missing Information',
-        message: 'Please enter user email and select a VIP BONUS level'
+        message: 'Please enter user email'
       });
       return;
     }
@@ -124,9 +93,30 @@ export default function DemoAccessManagement() {
     try {
       setGranting(true);
 
+      const { data: vipBonusLevel, error: levelError } = await supabase
+        .from('vip_levels')
+        .select('id')
+        .eq('is_active', true)
+        .eq('is_bonus', true)
+        .order('level')
+        .limit(1)
+        .maybeSingle();
+
+      if (levelError) throw levelError;
+
+      if (!vipBonusLevel) {
+        setNotification({
+          isOpen: true,
+          type: 'error',
+          title: 'No VIP BONUS Available',
+          message: 'No active VIP BONUS level found. Please create one first.'
+        });
+        return;
+      }
+
       const { data, error } = await supabase.rpc('grant_demo_access', {
         user_email: userEmail.trim().toLowerCase(),
-        vip_level_id: selectedVIPLevelId
+        vip_level_id: vipBonusLevel.id
       });
 
       if (error) throw error;
@@ -139,7 +129,6 @@ export default function DemoAccessManagement() {
           message: data.message || 'User can now access VIP BONUS tasks'
         });
         setUserEmail('');
-        setSelectedVIPLevelId('');
         loadDemoRecords();
       } else {
         setNotification({
@@ -193,42 +182,25 @@ export default function DemoAccessManagement() {
           <h3 className="text-xl font-bold text-gray-900">Grant Demo Access</h3>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-4 mb-6">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              User Email
-            </label>
-            <input
-              type="email"
-              value={userEmail}
-              onChange={(e) => setUserEmail(e.target.value)}
-              placeholder="user@example.com"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Select VIP BONUS
-            </label>
-            <select
-              value={selectedVIPLevelId}
-              onChange={(e) => setSelectedVIPLevelId(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Choose VIP BONUS...</option>
-              {vipLevels.map((level) => (
-                <option key={level.id} value={level.id}>
-                  {level.name} - {level.category} ({level.products_count} tasks, {level.commission_percentage}% commission)
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="mb-6">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            User Email
+          </label>
+          <input
+            type="email"
+            value={userEmail}
+            onChange={(e) => setUserEmail(e.target.value)}
+            placeholder="user@example.com"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <p className="mt-2 text-sm text-gray-500">
+            User will receive access to the first available VIP BONUS level
+          </p>
         </div>
 
         <button
           onClick={handleGrantAccess}
-          disabled={granting || !userEmail || !selectedVIPLevelId}
+          disabled={granting || !userEmail}
           className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
           {granting ? (

@@ -60,7 +60,6 @@ export default function VIPLevelManagement() {
       const { data, error } = await supabase
         .from('vip_levels')
         .select('*')
-        .eq('is_bonus', false)
         .order('level');
 
       if (error) throw error;
@@ -496,6 +495,11 @@ export default function VIPLevelManagement() {
                     {!level.is_active && (
                       <span className="px-2 py-1 bg-gray-200 text-gray-600 rounded text-xs">
                         Inactive
+                      </span>
+                    )}
+                    {level.is_bonus && (
+                      <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-semibold">
+                        VIP BONUS
                       </span>
                     )}
                   </div>
