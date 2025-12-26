@@ -60,6 +60,7 @@ export default function VIPLevelManagement() {
       const { data, error } = await supabase
         .from('vip_levels')
         .select('*')
+        .eq('is_bonus', false)
         .order('level');
 
       if (error) throw error;
@@ -440,7 +441,7 @@ export default function VIPLevelManagement() {
               </div>
 
               <div>
-                <div className="flex items-center mb-2">
+                <div className="flex items-center">
                   <input
                     type="checkbox"
                     checked={formData.is_active}
@@ -451,20 +452,6 @@ export default function VIPLevelManagement() {
                     Active
                   </label>
                 </div>
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_bonus}
-                    onChange={(e) => setFormData({ ...formData, is_bonus: e.target.checked })}
-                    className="w-4 h-4 text-yellow-600"
-                  />
-                  <label className="ml-2 text-sm font-medium text-gray-700">
-                    VIP BONUS
-                  </label>
-                </div>
-                <p className="mt-1 text-xs text-gray-500">
-                  VIP BONUS is not shown to clients for purchase
-                </p>
               </div>
             </div>
 
@@ -509,11 +496,6 @@ export default function VIPLevelManagement() {
                     {!level.is_active && (
                       <span className="px-2 py-1 bg-gray-200 text-gray-600 rounded text-xs">
                         Inactive
-                      </span>
-                    )}
-                    {level.is_bonus && (
-                      <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-semibold">
-                        VIP BONUS
                       </span>
                     )}
                   </div>
