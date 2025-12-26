@@ -88,6 +88,7 @@ export default function VIPCategories() {
           .from('vip_levels')
           .select('*')
           .eq('is_active', true)
+          .eq('is_bonus', false)
           .order('level')
       ]);
 
@@ -204,7 +205,7 @@ export default function VIPCategories() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {uniqueCategories.map((categoryId) => {
             const vipLevel = getVIPLevelForCategory(categoryId);
             const approved = vipPurchases.find(p => p.category_id === categoryId && p.status === 'approved' && !p.is_completed);

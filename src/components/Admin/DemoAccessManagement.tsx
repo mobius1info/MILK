@@ -1,17 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Gift, AlertCircle, CheckCircle, Users, Crown } from 'lucide-react';
+import { Gift, AlertCircle, CheckCircle } from 'lucide-react';
 import NotificationModal from '../NotificationModal';
 
-interface DemoAccessRecord {
-  user_email: string;
-  vip_level_name: string;
-  granted_at: string;
-}
-
 export default function DemoAccessManagement() {
-  const [demoRecords, setDemoRecords] = useState<DemoAccessRecord[]>([]);
-  const [loading, setLoading] = useState(true);
   const [granting, setGranting] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [notification, setNotification] = useState<{
@@ -25,49 +17,6 @@ export default function DemoAccessManagement() {
     title: '',
     message: ''
   });
-
-  useEffect(() => {
-    loadDemoRecords();
-  }, []);
-
-  async function loadDemoRecords() {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('vip_purchases')
-        .select(`
-          user_id,
-          created_at,
-          vip_level_id,
-          vip_levels!inner(name)
-        `)
-        .eq('amount_paid', 0)
-        .eq('status', 'approved')
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-
-      const userIds = [...new Set((data || []).map(p => p.user_id))];
-      const { data: authUsers } = await supabase.auth.admin.listUsers();
-
-      const emailMap = new Map(
-        (authUsers.users || []).map(u => [u.id, u.email || ''])
-      );
-
-      const records: DemoAccessRecord[] = (data || []).map(record => ({
-        user_email: emailMap.get(record.user_id) || 'Unknown',
-        vip_level_name: (record.vip_levels as any)?.name || 'Unknown',
-        granted_at: record.created_at
-      }));
-
-      setDemoRecords(records);
-    } catch (error) {
-      console.error('Error loading demo records:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   async function handleGrantAccess() {
     if (!userEmail) {
@@ -129,7 +78,6 @@ export default function DemoAccessManagement() {
           message: data.message || 'User can now access VIP BONUS tasks'
         });
         setUserEmail('');
-        loadDemoRecords();
       } else {
         setNotification({
           isOpen: true,
@@ -149,14 +97,6 @@ export default function DemoAccessManagement() {
     } finally {
       setGranting(false);
     }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
   }
 
   return (
@@ -215,47 +155,6 @@ export default function DemoAccessManagement() {
             </>
           )}
         </button>
-      </div>
-
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <Users className="w-6 h-6 text-gray-700" />
-          <h3 className="text-xl font-bold text-gray-900">Demo Access History</h3>
-        </div>
-
-        {demoRecords.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <Crown className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-            <p>No demo access granted yet</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">User Email</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">VIP Level</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Granted At</th>
-                </tr>
-              </thead>
-              <tbody>
-                {demoRecords.map((record, index) => (
-                  <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4 text-gray-900">{record.user_email}</td>
-                    <td className="py-3 px-4">
-                      <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-semibold">
-                        {record.vip_level_name}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-gray-600 text-sm">
-                      {new Date(record.granted_at).toLocaleString('en-US')}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </div>
 
       <NotificationModal
