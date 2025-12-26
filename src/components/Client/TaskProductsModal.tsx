@@ -294,16 +294,26 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
 
       const result = data as any;
 
+      console.log('Product purchase result:', result);
+
       if (result.error) {
-        if (result.requires_deposit) {
+        // Check if this is an insufficient balance error for combo
+        if ((result.error === 'Insufficient balance' || result.error.includes('Insufficient balance'))
+            && result.required_amount !== undefined) {
+          console.log('Showing insufficient balance UI:', {
+            required: result.required_amount,
+            current: result.current_balance,
+            needed: result.required_amount - result.current_balance
+          });
           setInsufficientBalance({
-            productPrice: result.product_price,
-            commission: result.commission,
-            neededAmount: result.needed_amount,
+            productPrice: result.required_amount,
+            commission: 0,
+            neededAmount: result.required_amount - result.current_balance,
             currentBalance: result.current_balance
           });
-          setMessage(result.error);
+          setMessage(result.message || 'Insufficient balance for combo product');
         } else {
+          console.log('Showing error notification:', result.error);
           setNotification({
             isOpen: true,
             type: 'error',
