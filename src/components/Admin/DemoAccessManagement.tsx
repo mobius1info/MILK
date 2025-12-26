@@ -13,12 +13,6 @@ interface VIPLevel {
   commission_percentage: number;
 }
 
-interface User {
-  id: string;
-  email: string;
-  username: string;
-}
-
 interface DemoAccessRecord {
   user_email: string;
   vip_level_name: string;
@@ -27,11 +21,10 @@ interface DemoAccessRecord {
 
 export default function DemoAccessManagement() {
   const [vipLevels, setVipLevels] = useState<VIPLevel[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
   const [demoRecords, setDemoRecords] = useState<DemoAccessRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [granting, setGranting] = useState(false);
-  const [selectedUserEmail, setSelectedUserEmail] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   const [selectedVIPLevelId, setSelectedVIPLevelId] = useState('');
   const [notification, setNotification] = useState<{
     isOpen: boolean;
@@ -51,7 +44,7 @@ export default function DemoAccessManagement() {
 
   async function loadData() {
     setLoading(true);
-    await Promise.all([loadVIPLevels(), loadUsers(), loadDemoRecords()]);
+    await Promise.all([loadVIPLevels(), loadDemoRecords()]);
     setLoading(false);
   }
 
@@ -68,39 +61,6 @@ export default function DemoAccessManagement() {
       setVipLevels(data || []);
     } catch (error) {
       console.error('Error loading VIP levels:', error);
-    }
-  }
-
-  async function loadUsers() {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, username')
-        .neq('role', 'admin')
-        .order('username');
-
-      if (error) throw error;
-
-      const userIds = (data || []).map(p => p.id);
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-
-      if (authError) throw authError;
-
-      const userMap = new Map(
-        (data || []).map(p => [p.id, p.username])
-      );
-
-      const usersWithEmails = (authUsers.users || [])
-        .filter(u => userIds.includes(u.id))
-        .map(u => ({
-          id: u.id,
-          email: u.email || '',
-          username: userMap.get(u.id) || 'Unknown'
-        }));
-
-      setUsers(usersWithEmails);
-    } catch (error) {
-      console.error('Error loading users:', error);
     }
   }
 
@@ -141,12 +101,22 @@ export default function DemoAccessManagement() {
   }
 
   async function handleGrantAccess() {
-    if (!selectedUserEmail || !selectedVIPLevelId) {
+    if (!userEmail || !selectedVIPLevelId) {
       setNotification({
         isOpen: true,
         type: 'warning',
         title: 'Missing Information',
-        message: 'Please select both a user and a VIP level'
+        message: 'Please enter user email and select a VIP BONUS level'
+      });
+      return;
+    }
+
+    if (!userEmail.includes('@')) {
+      setNotification({
+        isOpen: true,
+        type: 'warning',
+        title: 'Invalid Email',
+        message: 'Please enter a valid email address'
       });
       return;
     }
@@ -155,7 +125,7 @@ export default function DemoAccessManagement() {
       setGranting(true);
 
       const { data, error } = await supabase.rpc('grant_demo_access', {
-        user_email: selectedUserEmail,
+        user_email: userEmail.trim().toLowerCase(),
         vip_level_id: selectedVIPLevelId
       });
 
@@ -168,7 +138,7 @@ export default function DemoAccessManagement() {
           title: 'Demo Access Granted',
           message: data.message || 'User can now access VIP BONUS tasks'
         });
-        setSelectedUserEmail('');
+        setUserEmail('');
         setSelectedVIPLevelId('');
         loadDemoRecords();
       } else {
@@ -226,32 +196,27 @@ export default function DemoAccessManagement() {
         <div className="grid md:grid-cols-2 gap-4 mb-6">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Select User
+              User Email
             </label>
-            <select
-              value={selectedUserEmail}
-              onChange={(e) => setSelectedUserEmail(e.target.value)}
+            <input
+              type="email"
+              value={userEmail}
+              onChange={(e) => setUserEmail(e.target.value)}
+              placeholder="user@example.com"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Choose a user...</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.email}>
-                  {user.email} ({user.username})
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Select VIP Level
+              Select VIP BONUS
             </label>
             <select
               value={selectedVIPLevelId}
               onChange={(e) => setSelectedVIPLevelId(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="">Choose VIP level...</option>
+              <option value="">Choose VIP BONUS...</option>
               {vipLevels.map((level) => (
                 <option key={level.id} value={level.id}>
                   {level.name} - {level.category} ({level.products_count} tasks, {level.commission_percentage}% commission)
@@ -263,7 +228,7 @@ export default function DemoAccessManagement() {
 
         <button
           onClick={handleGrantAccess}
-          disabled={granting || !selectedUserEmail || !selectedVIPLevelId}
+          disabled={granting || !userEmail || !selectedVIPLevelId}
           className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
           {granting ? (
