@@ -24,4 +24,5 @@ SET vip_price = (
   WHERE level = vp.vip_level AND category = vp.category_id
   LIMIT 1
 )
+
 WHERE vip_price = 0;
