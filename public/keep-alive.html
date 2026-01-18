@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Keep-Alive Monitor</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            margin-top: 0;
+            font-size: 2em;
+        }
+        .status {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .success {
+            background: rgba(46, 213, 115, 0.3);
+            border-left: 4px solid #2ed573;
+        }
+        .error {
+            background: rgba(255, 71, 87, 0.3);
+            border-left: 4px solid #ff4757;
+        }
+        .info {
+            background: rgba(52, 152, 219, 0.3);
+            border-left: 4px solid #3498db;
+        }
+        button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        .log {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #3498db;
+            padding-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Database Keep-Alive Monitor</h1>
+
+        <div class="status info">
+            <strong>Auto-ping Status:</strong> <span id="autoStatus">Active</span><br>
+            <strong>Next ping in:</strong> <span id="countdown">Calculating...</span><br>
+            <strong>Last ping:</strong> <span id="lastPing">Never</span>
+        </div>
+
+        <button onclick="pingNow()">Ping Database Now</button>
+
+        <div class="log" id="logContainer">
+            <strong>Activity Log:</strong>
+            <div id="logs"></div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://dxvicpfmxicjssciubvi.supabase.co';
+        const PING_INTERVAL = 5 * 24 * 60 * 60 * 1000; // 5 days in milliseconds
+        const STORAGE_KEY = 'lastPingTime';
+
+        let countdownInterval;
+
+        function addLog(message, type = 'info') {
+            const logsDiv = document.getElementById('logs');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const time = new Date().toLocaleTimeString();
+            entry.innerHTML = `[${time}] ${message}`;
+            logsDiv.insertBefore(entry, logsDiv.firstChild);
+
+            // Keep only last 20 entries
+            while (logsDiv.children.length > 20) {
+                logsDiv.removeChild(logsDiv.lastChild);
+            }
+        }
+
+        async function pingDatabase() {
+            try {
+                addLog('Sending keep-alive ping...');
+
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/keep-alive`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const now = Date.now();
+                    localStorage.setItem(STORAGE_KEY, now.toString());
+                    document.getElementById('lastPing').textContent = new Date(now).toLocaleString();
+                    addLog('✅ Database ping successful!');
+                    updateStatus();
+                    return true;
+                } else {
+                    addLog('❌ Ping failed: ' + (data.error || 'Unknown error'));
+                    return false;
+                }
+            } catch (error) {
+                addLog('❌ Network error: ' + error.message);
+                return false;
+            }
+        }
+
+        function pingNow() {
+            pingDatabase();
+        }
+
+        function updateCountdown() {
+            const lastPing = parseInt(localStorage.getItem(STORAGE_KEY) || '0');
+            const now = Date.now();
+            const timeSinceLastPing = now - lastPing;
+            const timeUntilNextPing = PING_INTERVAL - timeSinceLastPing;
+
+            if (timeUntilNextPing <= 0 || lastPing === 0) {
+                document.getElementById('countdown').textContent = 'Now!';
+                pingDatabase();
+            } else {
+                const days = Math.floor(timeUntilNextPing / (24 * 60 * 60 * 1000));
+                const hours = Math.floor((timeUntilNextPing % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+                const minutes = Math.floor((timeUntilNextPing % (60 * 60 * 1000)) / (60 * 1000));
+
+                document.getElementById('countdown').textContent = `${days}d ${hours}h ${minutes}m`;
+            }
+        }
+
+        function updateStatus() {
+            const lastPing = parseInt(localStorage.getItem(STORAGE_KEY) || '0');
+            if (lastPing > 0) {
+                document.getElementById('lastPing').textContent = new Date(lastPing).toLocaleString();
+            }
+        }
+
+        // Initialize
+        addLog('Keep-alive monitor initialized');
+        updateStatus();
+        updateCountdown();
+
+        // Update countdown every minute
+        countdownInterval = setInterval(updateCountdown, 60 * 1000);
+
+        // Check every hour if we need to ping
+        setInterval(() => {
+            const lastPing = parseInt(localStorage.getItem(STORAGE_KEY) || '0');
+            const now = Date.now();
+            const timeSinceLastPing = now - lastPing;
+
+            if (timeSinceLastPing >= PING_INTERVAL || lastPing === 0) {
+                pingDatabase();
+            }
+        }, 60 * 60 * 1000); // Check every hour
+
+        // Ping on page load if needed
+        const lastPing = parseInt(localStorage.getItem(STORAGE_KEY) || '0');
+        if (lastPing === 0 || (Date.now() - lastPing) >= PING_INTERVAL) {
+            setTimeout(() => pingDatabase(), 1000);
+        }
+    </script>
+</body>
+</html>
