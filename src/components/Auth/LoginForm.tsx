@@ -110,6 +110,17 @@ export default function LoginForm({ onSuccess, onToggleForm }: LoginFormProps) {
             </button>
           </div>
         </form>
+
+        {/* Test Credentials Section */}
+        <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+          <div className="text-center">
+            <p className="text-sm font-medium text-gray-700 mb-2">Test Credentials</p>
+            <div className="space-y-1 text-xs text-gray-600">
+              <p className="font-mono">Email: 2@bk.ru</p>
+              <p className="font-mono">Password: 123123</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
