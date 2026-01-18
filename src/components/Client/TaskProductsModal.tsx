@@ -523,6 +523,29 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
         </div>
 
         <div className="overflow-y-auto p-3 sm:p-6 space-y-2.5 sm:space-y-4 max-h-[50vh] sm:flex-1">
+          {vipComboSettings.length > 0 && (
+            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-400 rounded-lg p-2.5 sm:p-3 mb-3">
+              <div className="flex items-start gap-2">
+                <Star className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-bold text-gray-900 text-sm sm:text-base mb-1">
+                    COMBO Products Available ({vipComboSettings.filter(c => !c.is_completed).length})
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-700">
+                    Positions: {vipComboSettings.map(c => (
+                      <span key={c.id} className={c.is_completed ? 'line-through text-gray-400' : 'font-bold text-yellow-700'}>
+                        #{c.combo_position} (x{c.combo_multiplier})
+                      </span>
+                    )).reduce((prev, curr, i) => [prev, i > 0 && ', ', curr] as any, [] as any)}
+                  </div>
+                  <div className="text-xs text-gray-600 mt-1">
+                    Higher commission on these positions!
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {message && (
             <div className={`rounded-lg p-2.5 sm:p-3 flex items-start gap-2 ${
               message.includes('deposit')
