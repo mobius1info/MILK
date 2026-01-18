@@ -57,19 +57,11 @@ function App() {
     checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('=== AUTH STATE CHANGE ===');
-      console.log('Event:', event);
-      console.log('User email:', session?.user?.email);
-      console.log('User ID:', session?.user?.id);
-
       if (event === 'SIGNED_IN' && session?.user) {
-        console.log('SIGNED_IN event detected, setting user...');
         setUser(session.user);
         setIsLoading(true);
-        console.log('Fetching profile...');
         fetchProfile(session.user.id);
       } else if (event === 'SIGNED_OUT') {
-        console.log('SIGNED_OUT event detected, clearing user and profile...');
         setUser(null);
         setProfile(null);
         setIsLoading(false);
@@ -103,11 +95,9 @@ function App() {
 
   const fetchProfile = async (userId: string, retryCount = 0): Promise<void> => {
     if (isFetchingProfile && currentFetchUserId === userId) {
-      console.log('Already fetching profile for this user, skipping...');
       return;
     }
 
-    console.log(`Fetching profile for user ${userId}, attempt ${retryCount + 1}/8`);
     setIsFetchingProfile(true);
     setCurrentFetchUserId(userId);
     try {
@@ -118,13 +108,11 @@ function App() {
         .maybeSingle();
 
       if (error) {
-        console.error('Error fetching profile:', error);
         if (retryCount < 8) {
           setIsFetchingProfile(false);
           await new Promise(resolve => setTimeout(resolve, 2000));
           return fetchProfile(userId, retryCount + 1);
         }
-        console.error('Profile fetch failed after 8 retries, signing out...');
         await supabase.auth.signOut();
         setUser(null);
         setProfile(null);
@@ -135,7 +123,6 @@ function App() {
       }
 
       if (data) {
-        console.log('Profile loaded successfully:', data.email);
         setProfile({
           ...data,
           balance: Number(data.balance)
@@ -145,13 +132,11 @@ function App() {
         setCurrentFetchUserId(null);
       } else {
         if (retryCount < 8) {
-          console.log(`Profile not found, retry ${retryCount + 1}/8 in 2s...`);
           setIsFetchingProfile(false);
           setCurrentFetchUserId(null);
           await new Promise(resolve => setTimeout(resolve, 2000));
           return fetchProfile(userId, retryCount + 1);
         }
-        console.error('Profile not found after 8 retries, signing out...');
         await supabase.auth.signOut();
         setUser(null);
         setProfile(null);
@@ -160,14 +145,12 @@ function App() {
         setCurrentFetchUserId(null);
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
       if (retryCount < 8) {
         setIsFetchingProfile(false);
         setCurrentFetchUserId(null);
         await new Promise(resolve => setTimeout(resolve, 2000));
         return fetchProfile(userId, retryCount + 1);
       }
-      console.error('Profile fetch exception after 8 retries, signing out...');
       await supabase.auth.signOut();
       setUser(null);
       setProfile(null);
@@ -183,14 +166,7 @@ function App() {
     setProfile(null);
   };
 
-  console.log('=== APP RENDER ===');
-  console.log('isLoading:', isLoading);
-  console.log('user:', user?.email || 'null');
-  console.log('profile:', profile?.email || 'null');
-  console.log('isFetchingProfile:', isFetchingProfile);
-
   if (isLoading) {
-    console.log('>>> Rendering LoadingScreen');
     return <LoadingScreen />;
   }
 
@@ -198,35 +174,31 @@ function App() {
     <>
       <BrowserRouter>
         {!user || !profile ? (
-          <>
-            {console.log('>>> Rendering AUTH FORMS (missing:', !user ? 'user' : 'profile', ')')}
-            <Routes>
-              <Route
-                path="/admin"
-                element={<AdminLoginForm onSuccess={checkUser} />}
-              />
-              <Route
-                path="*"
-                element={
-                  showLogin ? (
-                    <LoginForm
-                      onSuccess={checkUser}
-                      onToggleForm={() => setShowLogin(false)}
-                    />
-                  ) : (
-                    <RegisterForm
-                      onSuccess={checkUser}
-                      onToggleForm={() => setShowLogin(true)}
-                      onShowNotification={setNotification}
-                    />
-                  )
-                }
-              />
-            </Routes>
-          </>
+          <Routes>
+            <Route
+              path="/admin"
+              element={<AdminLoginForm onSuccess={checkUser} />}
+            />
+            <Route
+              path="*"
+              element={
+                showLogin ? (
+                  <LoginForm
+                    onSuccess={checkUser}
+                    onToggleForm={() => setShowLogin(false)}
+                  />
+                ) : (
+                  <RegisterForm
+                    onSuccess={checkUser}
+                    onToggleForm={() => setShowLogin(true)}
+                    onShowNotification={setNotification}
+                  />
+                )
+              }
+            />
+          </Routes>
         ) : (
           <>
-            {console.log('Rendering main app with profile:', profile.email)}
             <MainApp profile={profile} handleLogout={handleLogout} fetchProfile={fetchProfile} />
             <Routes>
               <Route path="/" element={null} />

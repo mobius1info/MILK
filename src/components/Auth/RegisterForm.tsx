@@ -28,20 +28,12 @@ export default function RegisterForm({ onSuccess, onToggleForm, onShowNotificati
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('=== REGISTER FORM SUBMITTED ===');
-    console.log('Email:', email);
-    console.log('Password length:', password.length);
-    console.log('Full name:', fullName);
-
     setLoading(true);
     setError('');
 
     try {
-      console.log('Step 1: Calling supabase.auth.signUp...');
-
       let referrerId = null;
       if (referralCode) {
-        console.log('Step 1a: Looking up referral code:', referralCode);
         const { data: referrerData } = await supabase
           .from('profiles')
           .select('id')
@@ -50,9 +42,6 @@ export default function RegisterForm({ onSuccess, onToggleForm, onShowNotificati
 
         if (referrerData) {
           referrerId = referrerData.id;
-          console.log('Step 1b: Referrer found:', referrerId);
-        } else {
-          console.log('Step 1b: Referrer not found, continuing without referrer');
         }
       }
 
@@ -67,34 +56,15 @@ export default function RegisterForm({ onSuccess, onToggleForm, onShowNotificati
         }
       });
 
-      console.log('Step 2: SignUp response received');
-      console.log('- Data:', data);
-      console.log('- Error:', error);
-      console.log('- User created:', !!data?.user);
-
       if (error) {
-        console.log('Step 3: SignUp error, throwing...');
         throw error;
       }
 
       if (!data.user) {
-        console.log('Step 3: No user in response, throwing error...');
         throw new Error('Failed to create user. This email may already be registered.');
       }
 
-      console.log('Step 4: User created successfully, ID:', data.user.id);
-      console.log('Step 5: Registration complete');
-      console.log('>>> Keeping loading screen ON - profile will be loaded via onAuthStateChange');
-
-      // Don't reset loading - let LoadingScreen show while profile is loading
-      // setLoading(false) NOT called
-
-      // Don't show modal - onAuthStateChange will automatically load profile
-      // and redirect to dashboard when everything is ready
     } catch (err: any) {
-      console.error('=== REGISTRATION ERROR ===');
-      console.error('Error:', err);
-      console.error('Error message:', err.message);
       setLoading(false);
       onShowNotification({
         isOpen: true,
@@ -102,7 +72,6 @@ export default function RegisterForm({ onSuccess, onToggleForm, onShowNotificati
         title: 'Registration Error',
         message: err.message || 'Failed to register. Please try again.'
       });
-      console.log('Error notification set at App level');
     }
   };
 

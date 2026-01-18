@@ -23,7 +23,6 @@ export default function LoginForm({ onSuccess, onToggleForm }: LoginFormProps) {
     setError('');
 
     try {
-      console.log('Attempting to sign in...');
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -37,11 +36,9 @@ export default function LoginForm({ onSuccess, onToggleForm }: LoginFormProps) {
       }
 
       if (data.session) {
-        console.log('Session created, calling onSuccess');
         await onSuccess();
       }
     } catch (err: any) {
-      console.error('Login error:', err);
       setError(err.message || 'Login error');
     } finally {
       setLoading(false);

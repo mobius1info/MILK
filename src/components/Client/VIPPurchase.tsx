@@ -65,7 +65,6 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
           table: 'vip_levels'
         },
         () => {
-          console.log('VIP levels updated, reloading...');
           loadVIPLevels();
         }
       )
@@ -85,7 +84,6 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
 
   async function loadVIPLevels() {
     try {
-      console.log('[VIPPurchase] Loading VIP levels...');
       const { data, error } = await supabase
         .from('vip_levels')
         .select('id, level, name, price, commission, commission_percentage, description, category, category_image_url, products_count, is_active, is_bonus')
@@ -94,8 +92,6 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
         .order('level');
 
       if (error) throw error;
-
-      console.log('[VIPPurchase] Raw data from DB:', data);
 
       const levels = (data || []).map((level) => ({
         id: level.id,
@@ -112,11 +108,9 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
         is_bonus: level.is_bonus || false
       }));
 
-      console.log('[VIPPurchase] Processed VIP levels:', levels);
-      console.log('[VIPPurchase] VIP 1 price:', levels.find(l => l.level === 1)?.price);
       setVipLevels(levels);
     } catch (error: any) {
-      console.error('[VIPPurchase] Error loading VIP levels:', error);
+      // Error loading VIP levels
     }
   }
 
