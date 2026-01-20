@@ -7,8 +7,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-const OLD_SUPABASE_URL = "https://uzbyrciresvwcumrzdnn.supabase.co";
-const OLD_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6YnlyY2lyZXN2d2N1bXJ6ZG5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzNTY5MjcsImV4cCI6MjA4MDkzMjkyN30.r1tMK1UCIeFq3f3uuYSufLedHjQPY-AhM8BcnSVhHbw";
+const OLD_SUPABASE_URL = "https://cbboaievahhobnzgqypn.supabase.co";
+const OLD_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiYm9haWV2YWhob2JuemdxeXBuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNjY2NzAsImV4cCI6MjA4MTg0MjY3MH0.siMaiYCdqu4Isynn63AvNSAPvGsTxbGkp2bxx1XAa8o";
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
