@@ -46,7 +46,6 @@ export default function DemoAccessManagement() {
         .from('vip_levels')
         .select('id')
         .eq('is_active', true)
-        .eq('is_bonus', true)
         .order('level')
         .limit(1)
         .maybeSingle();

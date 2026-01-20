@@ -15,7 +15,6 @@ interface VIPLevel {
   category_image_url: string;
   products_count: number;
   is_active: boolean;
-  is_bonus: boolean;
 }
 
 interface VIPPurchaseRequest {
@@ -86,9 +85,8 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
     try {
       const { data, error } = await supabase
         .from('vip_levels')
-        .select('id, level, name, price, commission, commission_percentage, description, category, category_image_url, products_count, is_active, is_bonus')
+        .select('id, level, name, price, commission, commission_percentage, description, category, category_image_url, products_count, is_active')
         .eq('is_active', true)
-        .eq('is_bonus', false)
         .order('level');
 
       if (error) throw error;
@@ -104,8 +102,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
         category: level.category || '',
         category_image_url: level.category_image_url || '',
         products_count: level.products_count || 25,
-        is_active: level.is_active,
-        is_bonus: level.is_bonus || false
+        is_active: level.is_active
       }));
 
       setVipLevels(levels);

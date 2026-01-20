@@ -15,7 +15,6 @@ interface VIPLevel {
   category_image_url: string;
   products_count: number;
   is_active: boolean;
-  is_bonus: boolean;
 }
 
 export default function VIPLevelManagement() {
@@ -43,8 +42,7 @@ export default function VIPLevelManagement() {
     category: '',
     category_image_url: '',
     products_count: 25,
-    is_active: true,
-    is_bonus: false
+    is_active: true
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -96,8 +94,7 @@ export default function VIPLevelManagement() {
       category: level.category,
       category_image_url: level.category_image_url,
       products_count: level.products_count || 25,
-      is_active: level.is_active,
-      is_bonus: level.is_bonus || false
+      is_active: level.is_active
     };
 
     console.log('[Admin] Form data set to:', newFormData);
@@ -119,8 +116,7 @@ export default function VIPLevelManagement() {
       category: '',
       category_image_url: '',
       products_count: 25,
-      is_active: true,
-      is_bonus: false
+      is_active: true
     });
     setImageFile(null);
   }
@@ -161,8 +157,7 @@ export default function VIPLevelManagement() {
         category: formData.category.trim(),
         category_image_url: imageUrl,
         products_count: formData.products_count,
-        is_active: formData.is_active,
-        is_bonus: formData.is_bonus
+        is_active: formData.is_active
       };
 
       console.log('[Admin] Saving VIP level with ID:', editingId);
@@ -301,8 +296,7 @@ export default function VIPLevelManagement() {
                 category: '',
                 category_image_url: '',
                 products_count: 25,
-                is_active: true,
-                is_bonus: false
+                is_active: true
               });
               setImageFile(null);
             }}
@@ -495,11 +489,6 @@ export default function VIPLevelManagement() {
                     {!level.is_active && (
                       <span className="px-2 py-1 bg-gray-200 text-gray-600 rounded text-xs">
                         Inactive
-                      </span>
-                    )}
-                    {level.is_bonus && (
-                      <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-semibold">
-                        VIP BONUS
                       </span>
                     )}
                   </div>

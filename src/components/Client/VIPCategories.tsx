@@ -88,7 +88,6 @@ export default function VIPCategories() {
           .from('vip_levels')
           .select('*')
           .eq('is_active', true)
-          .eq('is_bonus', false)
           .order('level')
       ]);
 
