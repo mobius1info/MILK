@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fix COMBO Constraints</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    button {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover {
+      background: #059669;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .log {
+      background: #1f2937;
+      color: #10b981;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      max-height: 400px;
+      overflow-y: auto;
+      display: none;
+    }
+    .log.show {
+      display: block;
+    }
+    .log-line {
+      margin: 5px 0;
+    }
+    .error {
+      color: #ef4444;
+    }
+    .success {
+      color: #10b981;
+    }
+    .info {
+      color: #60a5fa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 Fix COMBO Constraints</h1>
+    <p>This will fix the database constraint error: <code>combo_multiplier_check</code></p>
+    <p><strong>What it does:</strong></p>
+    <ul>
+      <li>Removes old constraint (range 2-10)</li>
+      <li>Creates new constraint (range 1-500)</li>
+      <li>Updates data types to support decimals</li>
+      <li>Fixes deposit percent range (5-5000)</li>
+    </ul>
+
+    <button id="fixBtn" onclick="applyFix()">Apply Fix Now</button>
+
+    <div id="log" class="log"></div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://cbboaievahhobnzgqypn.supabase.co';
+    const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiYm9haWV2YWhob2JuemdxeXBuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNjY2NzAsImV4cCI6MjA4MTg0MjY3MH0.siMaiYCdqu4Isynn63AvNSAPvGsTxbGkp2bxx1XAa8o';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, ANON_KEY);
+
+    const sqlCommands = [
+      "ALTER TABLE profiles DROP CONSTRAINT IF EXISTS combo_multiplier_check CASCADE",
+      "ALTER TABLE profiles DROP CONSTRAINT IF EXISTS combo_deposit_percent_check CASCADE",
+      "ALTER TABLE profiles DROP CONSTRAINT IF EXISTS combo_product_position_check CASCADE",
+      "ALTER TABLE profiles DROP CONSTRAINT IF EXISTS profiles_combo_multiplier_check CASCADE",
+      "ALTER TABLE profiles DROP CONSTRAINT IF EXISTS profiles_combo_deposit_percent_check CASCADE",
+      "ALTER TABLE profiles DROP CONSTRAINT IF EXISTS profiles_combo_product_position_check CASCADE",
+      "ALTER TABLE profiles ADD COLUMN IF NOT EXISTS combo_product_position INTEGER DEFAULT 9",
+      "ALTER TABLE profiles ADD COLUMN IF NOT EXISTS combo_multiplier NUMERIC(10,2) DEFAULT 3",
+      "ALTER TABLE profiles ADD COLUMN IF NOT EXISTS combo_deposit_percent NUMERIC(10,2) DEFAULT 50",
+      "ALTER TABLE profiles ADD COLUMN IF NOT EXISTS combo_enabled BOOLEAN DEFAULT false",
+      "ALTER TABLE profiles ADD CONSTRAINT profiles_combo_product_position_check CHECK (combo_product_position >= 1 AND combo_product_position <= 25)",
+      "ALTER TABLE profiles ADD CONSTRAINT profiles_combo_multiplier_check CHECK (combo_multiplier >= 1 AND combo_multiplier <= 500)",
+      "ALTER TABLE profiles ADD CONSTRAINT profiles_combo_deposit_percent_check CHECK (combo_deposit_percent >= 5 AND combo_deposit_percent <= 5000)",
+      "UPDATE profiles SET combo_multiplier = 3 WHERE combo_multiplier IS NOT NULL AND (combo_multiplier < 1 OR combo_multiplier > 500)",
+      "UPDATE profiles SET combo_deposit_percent = 50 WHERE combo_deposit_percent IS NOT NULL AND (combo_deposit_percent < 5 OR combo_deposit_percent > 5000)",
+      "UPDATE profiles SET combo_product_position = 9 WHERE combo_product_position IS NOT NULL AND (combo_product_position < 1 OR combo_product_position > 25)"
+    ];
+
+    function log(message, type = 'info') {
+      const logDiv = document.getElementById('log');
+      logDiv.classList.add('show');
+      const line = document.createElement('div');
+      line.className = `log-line ${type}`;
+      line.textContent = message;
+      logDiv.appendChild(line);
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    async function applyFix() {
+      const btn = document.getElementById('fixBtn');
+      btn.disabled = true;
+      btn.textContent = 'Applying fix...';
+
+      document.getElementById('log').innerHTML = '';
+      log('Starting migration fix...', 'info');
+      log('', 'info');
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (let i = 0; i < sqlCommands.length; i++) {
+        const sql = sqlCommands[i];
+        const shortSql = sql.length > 80 ? sql.substring(0, 77) + '...' : sql;
+        log(`[${i + 1}/${sqlCommands.length}] ${shortSql}`, 'info');
+
+        try {
+          const { data, error } = await supabase.rpc('exec_sql', { sql });
+
+          if (error) {
+            log(`  ❌ Error: ${error.message}`, 'error');
+            errorCount++;
+          } else {
+            log('  ✓ Success', 'success');
+            successCount++;
+          }
+        } catch (err) {
+          log(`  ❌ Exception: ${err.message}`, 'error');
+          errorCount++;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      log('', 'info');
+      log(`✅ Migration complete!`, 'success');
+      log(`   Success: ${successCount}`, 'success');
+      log(`   Errors: ${errorCount}`, errorCount > 0 ? 'error' : 'success');
+
+      btn.disabled = false;
+      btn.textContent = errorCount > 0 ? 'Try Again' : 'Fix Applied!';
+      if (errorCount === 0) {
+        btn.style.background = '#10b981';
+      }
+    }
+  </script>
+</body>
+</html>
