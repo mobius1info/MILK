@@ -13,7 +13,6 @@ interface Profile {
   referred_by: string | null;
   role: string;
   combo_enabled: boolean;
-  vip_completions_count: number;
   vip_completions_by_level?: { [key: string]: number };
 }
 
@@ -66,7 +65,7 @@ export default function ClientsManagement() {
       setLoading(true);
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, email, username, balance, created_at, referral_code, referred_by, role, combo_enabled, vip_completions_count')
+        .select('id, email, username, balance, created_at, referral_code, referred_by, role, combo_enabled')
         .eq('role', 'client')
         .order('created_at', { ascending: false });
 
@@ -78,7 +77,6 @@ export default function ClientsManagement() {
         return {
           ...profile,
           combo_enabled: profile.combo_enabled ?? false,
-          vip_completions_count: profile.vip_completions_count ?? 0,
           vip_completions_by_level: completionsByLevel
         };
       }));
@@ -264,7 +262,9 @@ export default function ClientsManagement() {
                       <div className="flex items-center gap-2">
                         <Award className="w-5 h-5 text-blue-500" />
                         <span className="text-lg font-bold text-gray-900">
-                          {profile.vip_completions_count ?? 0}
+                          {Object.keys(profile.vip_completions_by_level || {}).length > 0
+                            ? Object.values(profile.vip_completions_by_level || {}).reduce((a, b) => a + b, 0)
+                            : 0}
                         </span>
                         <button
                           onClick={() => setExpandedClient(expandedClient === profile.id ? null : profile.id)}
