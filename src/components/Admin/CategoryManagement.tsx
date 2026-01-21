@@ -6,11 +6,10 @@ import NotificationModal from '../NotificationModal';
 interface Category {
   id: string;
   name: string;
-  display_name: string;
   description: string;
   image_url: string;
+  is_active: boolean;
   created_at: string;
-  updated_at: string;
 }
 
 export default function CategoryManagement() {
@@ -31,7 +30,6 @@ export default function CategoryManagement() {
   });
   const [formData, setFormData] = useState({
     name: '',
-    display_name: '',
     description: '',
     image_url: '',
   });
@@ -45,7 +43,7 @@ export default function CategoryManagement() {
       const { data, error } = await supabase
         .from('categories')
         .select('*')
-        .order('display_name');
+        .order('name');
 
       if (error) throw error;
       setCategories(data || []);
@@ -61,8 +59,7 @@ export default function CategoryManagement() {
 
     try {
       const categoryData = {
-        name: formData.name.toLowerCase().replace(/\s+/g, '-'),
-        display_name: formData.display_name,
+        name: formData.name,
         description: formData.description,
         image_url: formData.image_url,
       };
@@ -100,7 +97,6 @@ export default function CategoryManagement() {
       setEditingCategory(null);
       setFormData({
         name: '',
-        display_name: '',
         description: '',
         image_url: '',
       });
@@ -119,18 +115,17 @@ export default function CategoryManagement() {
     setEditingCategory(category);
     setFormData({
       name: category.name,
-      display_name: category.display_name,
       description: category.description,
-      image_url: category.image_url,
+      image_url: category.image_url || '',
     });
     setShowForm(true);
   };
 
-  const handleDelete = async (id: string, name: string) => {
+  const handleDelete = async (id: string) => {
     const { data: productsCount } = await supabase
       .from('products')
       .select('id', { count: 'exact', head: true })
-      .eq('category', name);
+      .eq('category_id', id);
 
     if (productsCount) {
       setNotification({
@@ -183,7 +178,6 @@ export default function CategoryManagement() {
             setEditingCategory(null);
             setFormData({
               name: '',
-              display_name: '',
               description: '',
               image_url: '',
             });
@@ -201,38 +195,18 @@ export default function CategoryManagement() {
             {editingCategory ? 'Edit Category' : 'New Category'}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Display Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.display_name}
-                  onChange={(e) => {
-                    setFormData({
-                      ...formData,
-                      display_name: e.target.value,
-                      name: e.target.value.toLowerCase().replace(/\s+/g, '-')
-                    });
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
-                  placeholder="Electronics"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  System Name (automatic)
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  disabled
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
-                  placeholder="electronics"
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Category Name *
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
+                placeholder="Electronics"
+              />
             </div>
 
             <div>
@@ -292,8 +266,7 @@ export default function CategoryManagement() {
                   <Tag className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg text-gray-800">{category.display_name}</h3>
-                  <p className="text-xs text-gray-500">{category.name}</p>
+                  <h3 className="font-semibold text-lg text-gray-800">{category.name}</h3>
                 </div>
               </div>
             </div>
@@ -311,7 +284,7 @@ export default function CategoryManagement() {
                 <span>Edit</span>
               </button>
               <button
-                onClick={() => handleDelete(category.id, category.name)}
+                onClick={() => handleDelete(category.id)}
                 className="flex-1 flex items-center justify-center space-x-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors"
               >
                 <Trash2 className="w-4 h-4" />

@@ -12,9 +12,9 @@ interface CategoryStats {
 interface Category {
   id: string;
   name: string;
-  display_name: string;
   description: string;
   image_url: string;
+  is_active: boolean;
 }
 
 export default function ProductManagement() {
@@ -65,9 +65,9 @@ export default function ProductManagement() {
     try {
       const { data, error } = await supabase
         .from('categories')
-        .select('id, name, display_name, description, image_url')
+        .select('id, name, description, image_url, is_active')
         .eq('is_active', true)
-        .order('display_name');
+        .order('name');
 
       if (error) throw error;
       setCategories(data || []);
@@ -80,20 +80,29 @@ export default function ProductManagement() {
     try {
       const { data, error } = await supabase
         .from('products')
-        .select('*')
+        .select(`
+          *,
+          category:categories(id, name)
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setProducts(data || []);
 
-      const uniqueCategories = Array.from(new Set(data?.map(p => p.category) || []));
+      const productsData = (data || []).map(p => ({
+        ...p,
+        category: p.category?.name || 'Unknown'
+      }));
+
+      setProducts(productsData as any);
+
+      const uniqueCategories = Array.from(new Set(productsData.map(p => p.category)));
 
       const stats: CategoryStats[] = uniqueCategories.map(cat => {
-        const catProducts = data?.filter(p => p.category === cat) || [];
+        const catProducts = productsData.filter(p => p.category === cat);
         return {
           category: cat,
           count: catProducts.length,
-          avgPrice: catProducts.reduce((sum, p) => sum + p.price, 0) / catProducts.length || 0
+          avgPrice: catProducts.reduce((sum, p) => sum + parseFloat(p.price.toString()), 0) / catProducts.length || 0
         };
       });
       setCategoryStats(stats);
@@ -154,10 +163,7 @@ export default function ProductManagement() {
         name: formData.name,
         description: formData.description,
         price: parseFloat(formData.price),
-        category: formData.category,
-        rating: parseFloat(formData.rating),
-        reviews: parseInt(formData.reviews),
-        vip_level: parseInt(formData.vip_level),
+        category_id: formData.category,
         commission_percentage: parseFloat(formData.commission_percentage),
         quantity_multiplier: parseInt(formData.quantity_multiplier),
         image_url: imageUrl,
@@ -211,10 +217,10 @@ export default function ProductManagement() {
       name: product.name,
       description: product.description,
       price: product.price.toString(),
-      category: product.category,
-      rating: product.rating.toString(),
-      reviews: product.reviews.toString(),
-      vip_level: (product.vip_level || 0).toString(),
+      category: (product as any).category_id || '',
+      rating: '0',
+      reviews: '0',
+      vip_level: '0',
       commission_percentage: (product.commission_percentage || 0).toString(),
       quantity_multiplier: ((product as any).quantity_multiplier || 1).toString(),
     });
@@ -331,7 +337,7 @@ export default function ProductManagement() {
                 <option value="all">All Categories ({products.length})</option>
                 {categories.map(cat => (
                   <option key={cat.id} value={cat.name}>
-                    {cat.display_name} ({products.filter(p => p.category === cat.name).length})
+                    {cat.name} ({products.filter(p => p.category === cat.name).length})
                   </option>
                 ))}
               </select>
@@ -419,8 +425,8 @@ export default function ProductManagement() {
                 >
                   <option value="">Select category</option>
                   {categories.map((cat) => (
-                    <option key={cat.id} value={cat.name}>
-                      {cat.display_name}
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
                     </option>
                   ))}
                 </select>
@@ -445,66 +451,18 @@ export default function ProductManagement() {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  VIP Level
-                </label>
-                <select
-                  value={formData.vip_level}
-                  onChange={(e) => setFormData({ ...formData, vip_level: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
-                >
-                  <option value="0">All Users - No Balance Required</option>
-                  <option value="1">VIP 1 - $100 Balance Required</option>
-                  <option value="2">VIP 2 - $500 Balance Required</option>
-                  <option value="3">VIP 3 - $2000 Balance Required</option>
-                  <option value="4">VIP 4 - $5000 Balance Required</option>
-                  <option value="5">VIP 5 - $20000 Balance Required</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Rating
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="5"
-                  value={formData.rating}
-                  onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Reviews
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.reviews}
-                  onChange={(e) => setFormData({ ...formData, reviews: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Price
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                required
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
+              />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -622,21 +580,10 @@ export default function ProductManagement() {
               <div className="p-4">
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="font-semibold text-lg flex-1">{product.name}</h3>
-                  {product.vip_level > 0 && (
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ml-2 ${
-                      product.vip_level === 1 ? 'bg-blue-100 text-blue-800' :
-                      product.vip_level === 2 ? 'bg-green-100 text-green-800' :
-                      product.vip_level === 3 ? 'bg-yellow-100 text-yellow-800' :
-                      product.vip_level === 4 ? 'bg-orange-100 text-orange-800' :
-                      'bg-purple-100 text-purple-800'
-                    }`}>
-                      VIP {product.vip_level}
-                    </span>
-                  )}
                 </div>
                 <p className="text-gray-600 text-sm mb-2 line-clamp-2">{product.description}</p>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[#f5b04c] font-bold text-lg">${product.price}</span>
+                  <span className="text-[#f5b04c] font-bold text-lg">${parseFloat(product.price.toString()).toFixed(2)}</span>
                   <span className="text-xs text-gray-500 capitalize px-2 py-1 bg-gray-100 rounded">{product.category}</span>
                 </div>
                 <div className="mb-3 flex gap-2 flex-wrap">
