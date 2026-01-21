@@ -109,6 +109,13 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
         userId: user.id
       });
 
+      alert(`DEBUG: Querying vip_purchases with:
+user_id=${user.id}
+category_id="${category.category}"
+vip_level=${category.level}
+status=approved
+is_completed=false`);
+
       const [vipPurchaseResult, vipLevelResult] = await Promise.all([
         supabase
           .from('vip_purchases')
@@ -222,36 +229,48 @@ Completed: ${vipPurchase.completed_products_count || 0}`);
 
       alert(`DEBUG Step 6: Products loaded = ${productsData?.length || 0}`);
 
-      console.log('Products loaded:', {
-        count: productsData?.length || 0,
-        firstProduct: productsData?.[0]?.name
-      });
+      let normalizedProducts;
+      try {
+        console.log('Products loaded:', {
+          count: productsData?.length || 0,
+          firstProduct: productsData?.[0]?.name
+        });
 
-      const normalizedProducts = (productsData || []).map(p => ({
-        ...p,
-        price: Number(p.price),
-        commission_percentage: Number(p.commission_percentage),
-        quantity_multiplier: Number(p.quantity_multiplier || 1)
-      }));
+        normalizedProducts = (productsData || []).map(p => ({
+          ...p,
+          price: Number(p.price),
+          commission_percentage: Number(p.commission_percentage),
+          quantity_multiplier: Number(p.quantity_multiplier || 1)
+        }));
 
-      alert(`DEBUG Step 7: Normalized ${normalizedProducts.length} products`);
+        alert(`DEBUG Step 7: Normalized ${normalizedProducts.length} products`);
 
-      if (normalizedProducts.length === 0) {
-        throw new Error(`No products found for category ${category.category}`);
+        if (normalizedProducts.length === 0) {
+          throw new Error(`No products found for category ${category.category}`);
+        }
+
+        setAllProducts(normalizedProducts);
+        alert(`DEBUG Step 8: setAllProducts done`);
+      } catch (normError: any) {
+        alert(`ERROR at normalization: ${normError?.message || String(normError)}`);
+        throw normError;
       }
 
-      setAllProducts(normalizedProducts);
+      let purchasedProducts;
+      try {
+        const { data, error: purchasedError } = await supabase
+          .from('product_purchases')
+          .select('product_id, quantity_count, commission_earned')
+          .eq('vip_purchase_id', vipPurchase.id);
 
-      alert(`DEBUG Step 8: setAllProducts done, querying product_purchases...`);
+        alert(`DEBUG Step 9: Query done, error = ${purchasedError?.message || 'none'}`);
 
-      const { data: purchasedProducts, error: purchasedError } = await supabase
-        .from('product_purchases')
-        .select('product_id, quantity_count, commission_earned')
-        .eq('vip_purchase_id', vipPurchase.id);
-
-      alert(`DEBUG Step 9: Query done, error = ${purchasedError?.message || 'none'}`);
-
-      if (purchasedError) throw purchasedError;
+        if (purchasedError) throw purchasedError;
+        purchasedProducts = data;
+      } catch (queryError: any) {
+        alert(`ERROR at query: ${queryError?.message || String(queryError)}`);
+        throw queryError;
+      }
 
       alert(`DEBUG: Found ${purchasedProducts?.length || 0} purchased products records in DB`);
 
