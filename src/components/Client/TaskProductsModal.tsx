@@ -160,12 +160,21 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
       const purchaseVipPrice = vipPurchase.vip_price || category.price || 100;
       setVipPrice(purchaseVipPrice);
 
+      alert(`DEBUG Step 3:
+VIP Purchase ID: ${vipPurchase.id}
+Total Products: ${totalProductsCount}
+VIP Price: ${purchaseVipPrice}
+Status: ${vipPurchase.status}
+Completed: ${vipPurchase.completed_products_count || 0}`);
+
       // Load combo settings from vip_combo_settings table
       const { data: comboSettingsData, error: comboError } = await supabase
         .from('vip_combo_settings')
         .select('*')
         .eq('vip_purchase_id', vipPurchase.id)
         .order('combo_position', { ascending: true });
+
+      alert(`DEBUG Step 4: Combo loaded = ${comboSettingsData?.length || 0}`);
 
       if (comboError) {
         console.error('Error loading combo settings:', comboError);
@@ -193,6 +202,8 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
         throw new Error(`Category ${category.category} not found`);
       }
 
+      alert(`DEBUG Step 5: Category found, ID = ${categoryData.id}`);
+
       console.log('Loading products for category:', {
         categoryName: category.category,
         categoryId: categoryData.id,
@@ -208,6 +219,8 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
         .limit(totalProductsCount);
 
       if (productsError) throw productsError;
+
+      alert(`DEBUG Step 6: Products loaded = ${productsData?.length || 0}`);
 
       console.log('Products loaded:', {
         count: productsData?.length || 0,
