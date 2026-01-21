@@ -234,16 +234,22 @@ Completed: ${vipPurchase.completed_products_count || 0}`);
         quantity_multiplier: Number(p.quantity_multiplier || 1)
       }));
 
+      alert(`DEBUG Step 7: Normalized ${normalizedProducts.length} products`);
+
       if (normalizedProducts.length === 0) {
         throw new Error(`No products found for category ${category.category}`);
       }
 
       setAllProducts(normalizedProducts);
 
+      alert(`DEBUG Step 8: setAllProducts done, querying product_purchases...`);
+
       const { data: purchasedProducts, error: purchasedError } = await supabase
         .from('product_purchases')
         .select('product_id, quantity_count, commission_earned')
         .eq('vip_purchase_id', vipPurchase.id);
+
+      alert(`DEBUG Step 9: Query done, error = ${purchasedError?.message || 'none'}`);
 
       if (purchasedError) throw purchasedError;
 
