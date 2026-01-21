@@ -139,25 +139,12 @@ export default function VIPPurchaseManagement() {
   async function openApprovalModal(request: VIPPurchaseRequest) {
     try {
       console.log('Opening approval modal for request:', request.id);
-      console.log('Loading combo settings for VIP level:', request.vip_level, 'category:', request.category_id);
+      console.log('Loading combo settings for user:', request.user_id);
 
-      // Load combo settings from VIP level (not from user profile)
-      const { data: vipLevelData, error: vipLevelError } = await supabase
-        .from('vip_levels')
-        .select('combo_product_position, commission_multiplier')
-        .eq('level', request.vip_level)
-        .eq('category', request.category_id)
-        .single();
-
-      if (vipLevelError) {
-        console.error('VIP level error:', vipLevelError);
-        throw vipLevelError;
-      }
-
-      // Load user's profile combo settings (enabled/disabled and deposit percent)
+      // Load user's profile combo settings
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('combo_enabled, combo_deposit_percent')
+        .select('combo_enabled, combo_deposit_percent, combo_product_position, combo_multiplier')
         .eq('id', request.user_id)
         .single();
 
@@ -166,13 +153,12 @@ export default function VIPPurchaseManagement() {
         throw profileError;
       }
 
-      console.log('VIP level combo settings:', vipLevelData);
       console.log('Profile combo settings:', profileData);
 
       const settings = {
         enabled: profileData?.combo_enabled ?? false,
-        position: vipLevelData?.combo_product_position ?? 9,
-        multiplier: vipLevelData?.commission_multiplier ?? 3,
+        position: profileData?.combo_product_position ?? 9,
+        multiplier: profileData?.combo_multiplier ?? 3,
         depositPercent: profileData?.combo_deposit_percent ?? 50
       };
 
