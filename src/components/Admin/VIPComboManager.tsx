@@ -129,12 +129,12 @@ export default function VIPComboManager({
 
   async function updateCombo(comboId: string, updates: Partial<ComboSetting>) {
     try {
-      if (updates.combo_multiplier && (updates.combo_multiplier < 1 || updates.combo_multiplier > 500)) {
+      if (updates.combo_multiplier && updates.combo_multiplier < 1) {
         setNotification({
           isOpen: true,
           type: 'error',
           title: 'Error',
-          message: 'Multiplier must be between 1 and 500'
+          message: 'Multiplier must be at least 1'
         });
         return;
       }

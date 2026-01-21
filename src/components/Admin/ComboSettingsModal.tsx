@@ -53,12 +53,12 @@ export default function ComboSettingsModal({ clientId, clientEmail, currentStatu
     try {
       setSaving(true);
 
-      if (comboEnabled && (comboMultiplier < 1 || comboMultiplier > 500)) {
+      if (comboEnabled && comboMultiplier < 1) {
         setNotification({
           isOpen: true,
           type: 'error',
           title: 'Error',
-          message: 'Multiplier must be between 1 and 500'
+          message: 'Multiplier must be at least 1'
         });
         setSaving(false);
         return;
@@ -172,16 +172,15 @@ export default function ComboSettingsModal({ clientId, clientEmail, currentStatu
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Commission Multiplier (1x - 500x)
+                    Commission Multiplier (min 1x)
                   </label>
                   <input
                     type="number"
                     min="1"
-                    max="500"
                     value={comboMultiplier}
                     onChange={(e) => setComboMultiplier(Number(e.target.value))}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="Enter multiplier (1-500)"
+                    placeholder="Enter multiplier (min 1)"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     COMBO products will earn {comboMultiplier}x the normal commission
