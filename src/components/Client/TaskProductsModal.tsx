@@ -164,10 +164,22 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
         depositPercent: Number(vipPurchase.combo_deposit_percent_at_approval ?? 50)
       });
 
+      // Get category UUID from category name
+      const { data: categoryData } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('name', category.category)
+        .maybeSingle();
+
+      if (!categoryData) {
+        throw new Error(`Category ${category.category} not found`);
+      }
+
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select('*')
-        .eq('category', category.category)
+        .eq('category_id', categoryData.id)
+        .eq('is_active', true)
         .order('name')
         .limit(totalProductsCount);
 

@@ -130,10 +130,22 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
         return;
       }
 
+      // Get category UUID from category name
+      const { data: categoryData } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('name', categoryId)
+        .maybeSingle();
+
+      if (!categoryData) {
+        throw new Error(`Category ${categoryId} not found`);
+      }
+
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select('*')
-        .eq('category', categoryId)
+        .eq('category_id', categoryData.id)
+        .eq('is_active', true)
         .order('name')
         .limit(totalProductsCount);
 
