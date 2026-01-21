@@ -19,12 +19,9 @@ ADD COLUMN IF NOT EXISTS combo_product_position integer DEFAULT 9,
 ADD COLUMN IF NOT EXISTS combo_multiplier integer DEFAULT 3,
 ADD COLUMN IF NOT EXISTS combo_deposit_percent integer DEFAULT 50;
 
--- Add check constraints
-ALTER TABLE profiles 
+-- Add check constraints (combo_multiplier has NO constraint - can be any value)
+ALTER TABLE profiles
 ADD CONSTRAINT combo_product_position_check CHECK (combo_product_position >= 1 AND combo_product_position <= 25);
 
-ALTER TABLE profiles 
-ADD CONSTRAINT combo_multiplier_check CHECK (combo_multiplier >= 2 AND combo_multiplier <= 10);
-
-ALTER TABLE profiles 
+ALTER TABLE profiles
 ADD CONSTRAINT combo_deposit_percent_check CHECK (combo_deposit_percent >= 0 AND combo_deposit_percent <= 100);

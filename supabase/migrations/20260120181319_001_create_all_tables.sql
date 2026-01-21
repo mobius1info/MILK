@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   combo_enabled boolean DEFAULT false,
   combo_deposit_percent numeric DEFAULT 50 CHECK (combo_deposit_percent >= 5 AND combo_deposit_percent <= 5000),
   combo_product_position integer DEFAULT 9 CHECK (combo_product_position >= 0 AND combo_product_position <= 100),
-  combo_multiplier integer DEFAULT 3 CHECK (combo_multiplier >= 1 AND combo_multiplier <= 500)
+  combo_multiplier integer DEFAULT 3
 );
 
 -- Create categories table
@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS vip_combo_settings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   vip_purchase_id uuid NOT NULL REFERENCES vip_purchases(id),
   combo_position integer NOT NULL CHECK (combo_position >= 1 AND combo_position <= 100),
-  combo_multiplier integer DEFAULT 3 CHECK (combo_multiplier >= 1 AND combo_multiplier <= 500),
+  combo_multiplier integer DEFAULT 3,
   combo_deposit_percent numeric DEFAULT 50 CHECK (combo_deposit_percent >= 5 AND combo_deposit_percent <= 5000),
   is_completed boolean DEFAULT false,
   created_at timestamptz DEFAULT now(),

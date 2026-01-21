@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS vip_combo_settings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   vip_purchase_id uuid REFERENCES vip_purchases(id) ON DELETE CASCADE NOT NULL,
   combo_position integer NOT NULL CHECK (combo_position >= 1 AND combo_position <= 100),
-  combo_multiplier integer NOT NULL DEFAULT 3 CHECK (combo_multiplier >= 1 AND combo_multiplier <= 500),
+  combo_multiplier integer NOT NULL DEFAULT 3,
   combo_deposit_percent numeric NOT NULL DEFAULT 50 CHECK (combo_deposit_percent >= 5 AND combo_deposit_percent <= 5000),
   is_completed boolean DEFAULT false NOT NULL,
   created_at timestamptz DEFAULT now() NOT NULL,
