@@ -89,16 +89,22 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
     title: '',
     message: ''
   });
+  const [loadedKey, setLoadedKey] = useState<string>('');
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
-    loadProductsAndProgress();
-  }, [category.category, category.level]);
+    const key = `${category.category}-${category.level}`;
+    if (loadedKey !== key) {
+      loadProductsAndProgress(true);
+    }
+  }, [category.category, category.level, loadedKey]);
 
-  async function loadProductsAndProgress() {
+  async function loadProductsAndProgress(showLoading: boolean = false) {
     try {
-      setLoading(true);
-
-      alert(`DEBUG: Loading products for ${category.category} Level ${category.level}`);
+      const key = `${category.category}-${category.level}`;
+      if (showLoading || isInitialLoad) {
+        setLoading(true);
+      }
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
@@ -108,13 +114,6 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
         categoryLevel: category.level,
         userId: user.id
       });
-
-      alert(`DEBUG: Querying vip_purchases with:
-user_id=${user.id}
-category_id="${category.category}"
-vip_level=${category.level}
-status=approved
-is_completed=false`);
 
       const [vipPurchaseResult, vipLevelResult] = await Promise.all([
         supabase
@@ -145,10 +144,7 @@ is_completed=false`);
         error: vipPurchaseResult.error
       });
 
-      alert(`DEBUG: VIP Purchase found = ${!!vipPurchase}, Error = ${vipPurchaseResult.error?.message || 'none'}`);
-
       if (!vipPurchase) {
-        alert('DEBUG: Showing completion screen because vipPurchase is null');
         console.log('No VIP purchase found - showing completion screen');
         // VIP purchase not found or already completed - show completion screen
         const totalProductsCount = vipLevelData?.products_count || 25;
@@ -167,21 +163,12 @@ is_completed=false`);
       const purchaseVipPrice = vipPurchase.vip_price || category.price || 100;
       setVipPrice(purchaseVipPrice);
 
-      alert(`DEBUG Step 3:
-VIP Purchase ID: ${vipPurchase.id}
-Total Products: ${totalProductsCount}
-VIP Price: ${purchaseVipPrice}
-Status: ${vipPurchase.status}
-Completed: ${vipPurchase.completed_products_count || 0}`);
-
       // Load combo settings from vip_combo_settings table
       const { data: comboSettingsData, error: comboError } = await supabase
         .from('vip_combo_settings')
         .select('*')
         .eq('vip_purchase_id', vipPurchase.id)
         .order('combo_position', { ascending: true });
-
-      alert(`DEBUG Step 4: Combo loaded = ${comboSettingsData?.length || 0}`);
 
       if (comboError) {
         console.error('Error loading combo settings:', comboError);
@@ -209,8 +196,6 @@ Completed: ${vipPurchase.completed_products_count || 0}`);
         throw new Error(`Category ${category.category} not found`);
       }
 
-      alert(`DEBUG Step 5: Category found, ID = ${categoryData.id}`);
-
       console.log('Loading products for category:', {
         categoryName: category.category,
         categoryId: categoryData.id,
@@ -227,52 +212,30 @@ Completed: ${vipPurchase.completed_products_count || 0}`);
 
       if (productsError) throw productsError;
 
-      alert(`DEBUG Step 6: Products loaded = ${productsData?.length || 0}`);
+      console.log('Products loaded:', {
+        count: productsData?.length || 0,
+        firstProduct: productsData?.[0]?.name
+      });
 
-      let normalizedProducts;
-      try {
-        console.log('Products loaded:', {
-          count: productsData?.length || 0,
-          firstProduct: productsData?.[0]?.name
-        });
+      const normalizedProducts = (productsData || []).map(p => ({
+        ...p,
+        price: Number(p.price),
+        commission_percentage: Number(p.commission_percentage),
+        quantity_multiplier: Number(p.quantity_multiplier || 1)
+      }));
 
-        normalizedProducts = (productsData || []).map(p => ({
-          ...p,
-          price: Number(p.price),
-          commission_percentage: Number(p.commission_percentage),
-          quantity_multiplier: Number(p.quantity_multiplier || 1)
-        }));
-
-        alert(`DEBUG Step 7: Normalized ${normalizedProducts.length} products`);
-
-        if (normalizedProducts.length === 0) {
-          throw new Error(`No products found for category ${category.category}`);
-        }
-
-        setAllProducts(normalizedProducts);
-        alert(`DEBUG Step 8: setAllProducts done`);
-      } catch (normError: any) {
-        alert(`ERROR at normalization: ${normError?.message || String(normError)}`);
-        throw normError;
+      if (normalizedProducts.length === 0) {
+        throw new Error(`No products found for category ${category.category}`);
       }
 
-      let purchasedProducts;
-      try {
-        const { data, error: purchasedError } = await supabase
-          .from('product_purchases')
-          .select('product_id, quantity_count, commission_earned')
-          .eq('vip_purchase_id', vipPurchase.id);
+      setAllProducts(normalizedProducts);
 
-        alert(`DEBUG Step 9: Query done, error = ${purchasedError?.message || 'none'}`);
+      const { data: purchasedProducts, error: purchasedError } = await supabase
+        .from('product_purchases')
+        .select('product_id, quantity_count, commission_earned')
+        .eq('vip_purchase_id', vipPurchase.id);
 
-        if (purchasedError) throw purchasedError;
-        purchasedProducts = data;
-      } catch (queryError: any) {
-        alert(`ERROR at query: ${queryError?.message || String(queryError)}`);
-        throw queryError;
-      }
-
-      alert(`DEBUG: Found ${purchasedProducts?.length || 0} purchased products records in DB`);
+      if (purchasedError) throw purchasedError;
 
       const purchasedMap = new Map(
         (purchasedProducts || []).map(p => [p.product_id, {
@@ -311,14 +274,6 @@ Completed: ${vipPurchase.completed_products_count || 0}`);
         vipPurchaseId: vipPurchase.id
       });
 
-      alert(`DEBUG Progress:
-totalPurchased: ${totalPurchased}
-totalProductsCount: ${totalProductsCount}
-totalCommission: ${totalCommission}
-currentIndex: ${currentIndex}
-products.length: ${normalizedProducts.length}
-purchasedProducts: ${purchasedProducts?.length || 0}`);
-
       setProgress({
         current_product_index: currentIndex,
         products_purchased: totalPurchased,
@@ -327,13 +282,15 @@ purchasedProducts: ${purchasedProducts?.length || 0}`);
       });
 
       if (totalPurchased >= totalProductsCount && totalPurchased > 0) {
-        alert('DEBUG: Showing completion because totalPurchased >= totalProductsCount');
         setProduct(null);
       } else if (normalizedProducts && normalizedProducts[currentIndex]) {
         setProduct(normalizedProducts[currentIndex]);
       } else {
         console.error('No product found at index:', currentIndex);
       }
+
+      setLoadedKey(key);
+      setIsInitialLoad(false);
     } catch (error) {
       console.error('Error loading products:', error);
       setNotification({
@@ -343,7 +300,9 @@ purchasedProducts: ${purchasedProducts?.length || 0}`);
         message: 'Failed to load products'
       });
     } finally {
-      setLoading(false);
+      if (showLoading || isInitialLoad) {
+        setLoading(false);
+      }
     }
   }
 
@@ -805,7 +764,8 @@ purchasedProducts: ${purchasedProducts?.length || 0}`);
               setDynamicCommission(null);
               setMessage('');
               setInsufficientBalance(null);
-              await loadProductsAndProgress();
+              setLoadedKey(''); // Force reload
+              await loadProductsAndProgress(false);
             }
           }
         }}
