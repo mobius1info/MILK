@@ -101,6 +101,12 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      console.log('TaskProductsModal - Loading data for:', {
+        categoryName: category.category,
+        categoryLevel: category.level,
+        userId: user.id
+      });
+
       const [vipPurchaseResult, vipLevelResult] = await Promise.all([
         supabase
           .from('vip_purchases')
@@ -124,7 +130,14 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
       const vipPurchase = vipPurchaseResult.data;
       const vipLevelData = vipLevelResult.data;
 
+      console.log('VIP Purchase query result:', {
+        found: !!vipPurchase,
+        purchaseId: vipPurchase?.id,
+        error: vipPurchaseResult.error
+      });
+
       if (!vipPurchase) {
+        console.log('No VIP purchase found - showing completion screen');
         // VIP purchase not found or already completed - show completion screen
         const totalProductsCount = vipLevelData?.products_count || 25;
         setProgress({
