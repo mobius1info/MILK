@@ -141,6 +141,12 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
         throw new Error(`Category ${categoryId} not found`);
       }
 
+      console.log('Loading products for VIP modal:', {
+        categoryName: categoryId,
+        categoryId: categoryData.id,
+        totalProductsCount
+      });
+
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select('*')
@@ -151,12 +157,21 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
 
       if (productsError) throw productsError;
 
+      console.log('Products loaded in VIP modal:', {
+        count: productsData?.length || 0,
+        firstProduct: productsData?.[0]?.name
+      });
+
       const normalizedProducts = (productsData || []).map(p => ({
         ...p,
         price: Number(p.price),
         commission_percentage: Number(p.commission_percentage),
         quantity_multiplier: Number(p.quantity_multiplier)
       }));
+
+      if (normalizedProducts.length === 0) {
+        throw new Error(`No products found for category ${categoryId}`);
+      }
 
       setAllProducts(normalizedProducts);
 

@@ -175,6 +175,12 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
         throw new Error(`Category ${category.category} not found`);
       }
 
+      console.log('Loading products for category:', {
+        categoryName: category.category,
+        categoryId: categoryData.id,
+        totalProductsCount
+      });
+
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select('*')
@@ -185,12 +191,21 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
 
       if (productsError) throw productsError;
 
+      console.log('Products loaded:', {
+        count: productsData?.length || 0,
+        firstProduct: productsData?.[0]?.name
+      });
+
       const normalizedProducts = (productsData || []).map(p => ({
         ...p,
         price: Number(p.price),
         commission_percentage: Number(p.commission_percentage),
         quantity_multiplier: Number(p.quantity_multiplier || 1)
       }));
+
+      if (normalizedProducts.length === 0) {
+        throw new Error(`No products found for category ${category.category}`);
+      }
 
       setAllProducts(normalizedProducts);
 
