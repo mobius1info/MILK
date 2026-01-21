@@ -234,6 +234,8 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
 
       if (purchasedError) throw purchasedError;
 
+      alert(`DEBUG: Found ${purchasedProducts?.length || 0} purchased products records in DB`);
+
       const purchasedMap = new Map(
         (purchasedProducts || []).map(p => [p.product_id, {
           count: p.quantity_count,
@@ -271,6 +273,14 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
         vipPurchaseId: vipPurchase.id
       });
 
+      alert(`DEBUG Progress:
+totalPurchased: ${totalPurchased}
+totalProductsCount: ${totalProductsCount}
+totalCommission: ${totalCommission}
+currentIndex: ${currentIndex}
+products.length: ${normalizedProducts.length}
+purchasedProducts: ${purchasedProducts?.length || 0}`);
+
       setProgress({
         current_product_index: currentIndex,
         products_purchased: totalPurchased,
@@ -279,6 +289,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
       });
 
       if (totalPurchased >= totalProductsCount && totalPurchased > 0) {
+        alert('DEBUG: Showing completion because totalPurchased >= totalProductsCount');
         setProduct(null);
       } else if (normalizedProducts && normalizedProducts[currentIndex]) {
         setProduct(normalizedProducts[currentIndex]);
