@@ -28,6 +28,13 @@ interface ProductProgress {
   total_products_count: number;
 }
 
+interface ComboSettings {
+  is_enabled: boolean;
+  combo_product_position: number;
+  combo_deposit_multiplier: number;
+  combo_multiplier: number;
+}
+
 export default function VIPProductModal({ vipLevel, categoryId, onClose, onProductPurchased, onAllComplete }: VIPProductModalProps) {
   const [product, setProduct] = useState<Product | null>(null);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -37,6 +44,7 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
     total_commission_earned: 0,
     total_products_count: 0
   });
+  const [comboSettings, setComboSettings] = useState<ComboSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
   const [message, setMessage] = useState('');
@@ -63,7 +71,7 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const [vipPurchaseResult, vipLevelResult] = await Promise.all([
+      const [vipPurchaseResult, vipLevelResult, comboSettingsResult] = await Promise.all([
         supabase
           .from('vip_purchases')
           .select('*')
@@ -78,8 +86,23 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
           .select('products_count')
           .eq('level', vipLevel)
           .eq('category', categoryId)
+          .maybeSingle(),
+        supabase
+          .from('vip_combo_settings')
+          .select('is_enabled, combo_product_position, combo_deposit_multiplier, combo_multiplier')
+          .eq('user_id', user.id)
           .maybeSingle()
       ]);
+
+      const comboData = comboSettingsResult.data;
+      if (comboData) {
+        setComboSettings({
+          is_enabled: comboData.is_enabled,
+          combo_product_position: comboData.combo_product_position,
+          combo_deposit_multiplier: comboData.combo_deposit_multiplier,
+          combo_multiplier: comboData.combo_multiplier
+        });
+      }
 
       const vipPurchase = vipPurchaseResult.data;
       const vipLevelData = vipLevelResult.data;
@@ -299,7 +322,17 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
   }
 
   const baseCommission = product ? (product.price * product.commission_percentage / 100) : 0;
-  const potentialCommission = baseCommission;
+
+  // Check if this is the combo product
+  const isComboProduct = comboSettings?.is_enabled &&
+    (progress.current_product_index + 1) === comboSettings.combo_product_position;
+
+  // Calculate combo commission if applicable
+  const comboCommission = isComboProduct && comboSettings
+    ? baseCommission * comboSettings.combo_multiplier
+    : 0;
+
+  const potentialCommission = isComboProduct ? comboCommission : baseCommission;
   const totalAmount = product ? product.price : 0;
 
   if (loading) {
@@ -410,6 +443,11 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
           <div>
             <div className="flex items-center gap-3 mb-4">
               <h3 className="text-xl sm:text-2xl font-bold">{product.name}</h3>
+              {isComboProduct && (
+                <span className="px-3 py-1 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-full text-sm font-bold shadow-lg animate-pulse">
+                  COMBO
+                </span>
+              )}
               {product.quantity_multiplier > 1 && (
                 <span className="px-3 py-1 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full text-sm font-bold shadow-lg animate-pulse">
                   x{product.quantity_multiplier}
@@ -417,25 +455,73 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
               )}
             </div>
 
-            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 space-y-4 border-2 border-blue-200">
-              <div className="flex items-center justify-between pb-3 border-b border-blue-200">
+            <div className={`rounded-xl p-6 space-y-4 border-2 ${
+              isComboProduct
+                ? 'bg-gradient-to-br from-red-50 to-pink-50 border-red-300'
+                : 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200'
+            }`}>
+              <div className={`flex items-center justify-between pb-3 border-b ${
+                isComboProduct ? 'border-red-200' : 'border-blue-200'
+              }`}>
                 <span className="text-gray-700 font-medium">Product Price:</span>
-                <span className="text-2xl font-bold text-blue-600">${product.price.toFixed(2)}</span>
+                <span className={`text-2xl font-bold ${
+                  isComboProduct ? 'text-red-600' : 'text-blue-600'
+                }`}>${product.price.toFixed(2)}</span>
               </div>
 
-              <div className="flex items-center justify-between pb-3 border-b border-blue-200">
-                <span className="text-gray-700 font-medium">Your Commission:</span>
-                <span className="text-2xl font-bold text-green-600">{product.commission_percentage.toFixed(2)}%</span>
-              </div>
+              {isComboProduct ? (
+                <>
+                  <div className="flex items-center justify-between pb-3 border-b border-red-200">
+                    <span className="text-gray-700 font-medium">Base Commission:</span>
+                    <span className="text-lg font-bold text-gray-500 line-through">
+                      ${baseCommission.toFixed(2)}
+                    </span>
+                  </div>
 
-              <div className="flex items-center justify-between pb-3 border-b border-blue-200">
-                <span className="text-gray-700 font-medium">Commission Amount:</span>
-                <span className="text-2xl font-bold text-green-600">+${potentialCommission.toFixed(2)}</span>
-              </div>
+                  <div className="flex items-center justify-between pb-3 border-b border-red-200">
+                    <span className="text-gray-700 font-medium">COMBO Multiplier:</span>
+                    <span className="text-2xl font-bold text-red-600">
+                      x{comboSettings?.combo_multiplier || 1}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between pb-3 border-b border-red-200">
+                    <span className="text-gray-700 font-medium">Your COMBO Earnings:</span>
+                    <span className="text-3xl font-bold text-green-600 animate-pulse">
+                      +${potentialCommission.toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-red-500 to-pink-500 rounded-lg p-4 mt-3">
+                    <p className="text-white font-bold text-center text-lg">
+                      🔥 HUGE EARNINGS! 🔥
+                    </p>
+                    <p className="text-white text-center text-sm mt-1">
+                      You will earn {comboSettings?.combo_multiplier}x more on this product!
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between pb-3 border-b border-blue-200">
+                    <span className="text-gray-700 font-medium">Your Commission:</span>
+                    <span className="text-2xl font-bold text-green-600">{product.commission_percentage.toFixed(2)}%</span>
+                  </div>
+
+                  <div className="flex items-center justify-between pb-3 border-b border-blue-200">
+                    <span className="text-gray-700 font-medium">Commission Amount:</span>
+                    <span className="text-2xl font-bold text-green-600">+${potentialCommission.toFixed(2)}</span>
+                  </div>
+                </>
+              )}
 
               <div className="flex items-center justify-between pt-2">
                 <span className="text-lg font-bold text-gray-900">Total:</span>
-                <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <span className={`text-3xl font-bold bg-gradient-to-r ${
+                  isComboProduct
+                    ? 'from-red-600 to-pink-600'
+                    : 'from-blue-600 to-purple-600'
+                } bg-clip-text text-transparent`}>
                   ${totalAmount.toFixed(2)}
                 </span>
               </div>
@@ -450,41 +536,82 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
             </div>
           </div>
 
-          <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg p-3 sm:p-4 border border-blue-200">
-            <div className="flex items-start gap-2 sm:gap-3">
-              <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-blue-900 mb-2 text-sm sm:text-base">How it Works</div>
-                <ul className="text-xs sm:text-sm text-blue-800 space-y-1 sm:space-y-1.5">
-                  <li>• Product price: ${product.price.toFixed(2)}</li>
-                  <li>• Your commission equals: ${potentialCommission.toFixed(2)}</li>
-                  <li>• Commission will be automatically credited to your balance</li>
-                  <li>• Each product has its own commission percentage</li>
-                </ul>
+          {isComboProduct ? (
+            <div className="bg-gradient-to-r from-red-50 to-pink-50 rounded-lg p-3 sm:p-4 border border-red-300">
+              <div className="flex items-start gap-2 sm:gap-3">
+                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-red-900 mb-2 text-sm sm:text-base">COMBO - How it Works</div>
+                  <ul className="text-xs sm:text-sm text-red-800 space-y-1 sm:space-y-1.5">
+                    <li>• This is your COMBO product!</li>
+                    <li>• Base commission: ${baseCommission.toFixed(2)}</li>
+                    <li>• COMBO multiplier: x{comboSettings?.combo_multiplier}</li>
+                    <li>• Your earnings: ${potentialCommission.toFixed(2)}</li>
+                    <li>• Commission will be automatically credited to your balance</li>
+                  </ul>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg p-3 sm:p-4 border border-blue-200">
+              <div className="flex items-start gap-2 sm:gap-3">
+                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-blue-900 mb-2 text-sm sm:text-base">How it Works</div>
+                  <ul className="text-xs sm:text-sm text-blue-800 space-y-1 sm:space-y-1.5">
+                    <li>• Product price: ${product.price.toFixed(2)}</li>
+                    <li>• Your commission equals: ${potentialCommission.toFixed(2)}</li>
+                    <li>• Commission will be automatically credited to your balance</li>
+                    <li>• Each product has its own commission percentage</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
 
-          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-3 sm:p-4 border border-yellow-200">
-            <div className="flex items-start gap-2 sm:gap-3">
-              <Star className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-orange-900 mb-1 text-sm sm:text-base">Earn More Commission!</div>
-                <p className="text-xs sm:text-sm text-orange-800">
-                  Deposit funds to unlock more tasks with increased commission,
-                  or upgrade to a different VIP level to get different commission percentages.
-                </p>
+          {isComboProduct ? (
+            <div className="bg-gradient-to-r from-red-100 to-pink-100 rounded-lg p-3 sm:p-4 border border-red-300">
+              <div className="flex items-start gap-2 sm:gap-3">
+                <Star className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-red-900 mb-1 text-sm sm:text-base">COMBO Product!</div>
+                  <p className="text-xs sm:text-sm text-red-800">
+                    This is your COMBO product with {comboSettings?.combo_multiplier}x earnings multiplier!
+                    Take advantage of this massive earnings opportunity now!
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-3 sm:p-4 border border-yellow-200">
+              <div className="flex items-start gap-2 sm:gap-3">
+                <Star className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-orange-900 mb-1 text-sm sm:text-base">Earn More Commission!</div>
+                  <p className="text-xs sm:text-sm text-orange-800">
+                    Deposit funds to unlock more tasks with increased commission,
+                    or upgrade to a different VIP level to get different commission percentages.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <button
             onClick={purchaseProduct}
             disabled={purchasing}
-            className="w-full py-4 sm:py-5 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white rounded-xl font-bold text-lg sm:text-xl flex items-center justify-center gap-2 sm:gap-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+            className={`w-full py-4 sm:py-5 rounded-xl font-bold text-lg sm:text-xl flex items-center justify-center gap-2 sm:gap-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl ${
+              isComboProduct
+                ? 'bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white animate-pulse'
+                : 'bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white'
+            }`}
           >
             <ShoppingBag className="w-6 h-6 sm:w-7 sm:h-7" />
-            {purchasing ? 'Submitting order...' : 'SUBMIT ORDER'}
+            {purchasing ? 'Submitting order...' : (
+              isComboProduct
+                ? `BUY AND GET $${potentialCommission.toFixed(2)}!`
+                : 'SUBMIT ORDER'
+            )}
           </button>
         </div>
       </div>
