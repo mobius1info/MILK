@@ -522,13 +522,6 @@ export default function ProductManagement() {
                   alt={product.name}
                   className="w-full h-48 object-cover"
                 />
-                {(product as any).quantity_multiplier > 1 && (
-                  <div className="absolute top-2 left-2">
-                    <span className="px-2 py-1 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full text-xs font-bold shadow-lg">
-                      x{(product as any).quantity_multiplier}
-                    </span>
-                  </div>
-                )}
               </div>
               <div className="p-4">
                 <div className="flex items-start justify-between mb-2">
@@ -539,13 +532,6 @@ export default function ProductManagement() {
                   <span className="text-[#f5b04c] font-bold text-lg">${parseFloat(product.price.toString()).toFixed(2)}</span>
                   <span className="text-xs text-gray-500 capitalize px-2 py-1 bg-gray-100 rounded">{product.category}</span>
                 </div>
-                {(product as any).quantity_multiplier > 1 && (
-                  <div className="mb-3">
-                    <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded font-medium">
-                      Counts as {(product as any).quantity_multiplier} pcs
-                    </span>
-                  </div>
-                )}
                 <div className="flex space-x-2">
                   <button
                     onClick={() => handleEdit(product)}
