@@ -198,14 +198,26 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
     try {
       console.log('Loading progress for VIP:', vipPurchase);
 
+      // Get category UUID from category name
+      const { data: categoryData } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('name', vipPurchase.category_id)
+        .maybeSingle();
+
+      if (!categoryData) {
+        console.error('Category not found:', vipPurchase.category_id);
+        return;
+      }
+
       const [productsRes, purchasesRes, combosRes] = await Promise.all([
         supabase
           .from('products')
           .select('id, name, price, quantity_multiplier')
-          .eq('category', vipPurchase.category_id)
-          .eq('vip_level', vipPurchase.vip_level)
+          .eq('category_id', categoryData.id)
           .eq('is_active', true)
-          .order('created_at', { ascending: true }),
+          .order('name', { ascending: true })
+          .limit(vipPurchase.total_products),
         supabase
           .from('product_purchases')
           .select('product_id, quantity, status')
