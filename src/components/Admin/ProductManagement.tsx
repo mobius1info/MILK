@@ -46,7 +46,6 @@ export default function ProductManagement() {
     rating: '0',
     reviews: '0',
     vip_level: '0',
-    commission_percentage: '0',
     quantity_multiplier: '1',
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -164,7 +163,6 @@ export default function ProductManagement() {
         description: formData.description,
         price: parseFloat(formData.price),
         category_id: formData.category,
-        commission_percentage: parseFloat(formData.commission_percentage),
         quantity_multiplier: parseInt(formData.quantity_multiplier),
         image_url: imageUrl,
       };
@@ -194,7 +192,6 @@ export default function ProductManagement() {
         rating: '0',
         reviews: '0',
         vip_level: '0',
-        commission_percentage: '0',
         quantity_multiplier: '1',
       });
       setImageFile(null);
@@ -221,7 +218,6 @@ export default function ProductManagement() {
       rating: '0',
       reviews: '0',
       vip_level: '0',
-      commission_percentage: (product.commission_percentage || 0).toString(),
       quantity_multiplier: ((product as any).quantity_multiplier || 1).toString(),
     });
     setShowForm(true);
@@ -354,7 +350,6 @@ export default function ProductManagement() {
                   rating: '0',
                   reviews: '0',
                   vip_level: '0',
-                  commission_percentage: '0',
                   quantity_multiplier: '1',
                 });
               }}
@@ -465,46 +460,29 @@ export default function ProductManagement() {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Commission Percentage (%)
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="100"
-                  value={formData.commission_percentage}
-                  onChange={(e) => setFormData({ ...formData, commission_percentage: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
-                  placeholder="Enter commission percentage (0-100)"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Quantity Multiplier
-                </label>
-                <select
-                  value={formData.quantity_multiplier}
-                  onChange={(e) => setFormData({ ...formData, quantity_multiplier: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
-                >
-                  <option value="1">x1 (normal)</option>
-                  <option value="2">x2 (counts as 2 products)</option>
-                  <option value="3">x3 (counts as 3 products)</option>
-                  <option value="4">x4 (counts as 4 products)</option>
-                  <option value="5">x5 (counts as 5 products)</option>
-                </select>
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Quantity Multiplier
+              </label>
+              <select
+                value={formData.quantity_multiplier}
+                onChange={(e) => setFormData({ ...formData, quantity_multiplier: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
+              >
+                <option value="1">x1 (normal)</option>
+                <option value="2">x2 (counts as 2 products)</option>
+                <option value="3">x3 (counts as 3 products)</option>
+                <option value="4">x4 (counts as 4 products)</option>
+                <option value="5">x5 (counts as 5 products)</option>
+              </select>
             </div>
 
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-xs text-blue-800">
-                <strong>Commission:</strong> Set the commission percentage for the product (e.g., 5 = 5%).
-                <br />
                 <strong>Multiplier:</strong> A product with x2 multiplier counts as 2 units when calculating progress.
                 Use for more expensive products to help clients complete tasks faster.
+                <br />
+                <strong>Commission:</strong> Commission percentage is set at the VIP level in the "Per Task" field.
               </p>
             </div>
 
@@ -586,16 +564,13 @@ export default function ProductManagement() {
                   <span className="text-[#f5b04c] font-bold text-lg">${parseFloat(product.price.toString()).toFixed(2)}</span>
                   <span className="text-xs text-gray-500 capitalize px-2 py-1 bg-gray-100 rounded">{product.category}</span>
                 </div>
-                <div className="mb-3 flex gap-2 flex-wrap">
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-medium">
-                    Commission: {product.commission_percentage || 0}%
-                  </span>
-                  {(product as any).quantity_multiplier > 1 && (
+                {(product as any).quantity_multiplier > 1 && (
+                  <div className="mb-3">
                     <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded font-medium">
                       Counts as {(product as any).quantity_multiplier} pcs
                     </span>
-                  )}
-                </div>
+                  </div>
+                )}
                 <div className="flex space-x-2">
                   <button
                     onClick={() => handleEdit(product)}
