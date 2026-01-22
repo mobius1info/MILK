@@ -87,6 +87,7 @@ export default function VIPPurchase({ onNavigateToDeposit }: VIPPurchaseProps) {
         .from('vip_levels')
         .select('id, level, name, price, commission_percentage, description, category, category_image_url, products_count, is_active')
         .eq('is_active', true)
+        .gt('level', 0)
         .order('level');
 
       if (error) throw error;

@@ -65,6 +65,7 @@ export default function OrderHistory({ userId, onNavigateToDeposit }: OrderHisto
         .from('vip_levels')
         .select('*')
         .eq('is_active', true)
+        .gt('level', 0)
         .order('level');
 
       if (error) throw error;
