@@ -410,8 +410,12 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
       }
 
       if (result.success) {
-        setDynamicPrice(result.product_price);
-        setDynamicCommission(result.commission);
+        if (result.product_price != null) {
+          setDynamicPrice(result.product_price);
+        }
+        if (result.commission != null) {
+          setDynamicCommission(result.commission);
+        }
         setMessage(result.message);
 
         // If all products completed, show total commission earned
@@ -470,7 +474,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
   // COMBO price = VIP price * (Deposit % / 100)
   const comboPrice = vipPrice * (activeComboDepositPercent / 100);
 
-  const displayPrice = dynamicPrice !== null
+  const displayPrice = dynamicPrice != null
     ? dynamicPrice
     : isNextCombo
       ? comboPrice
@@ -479,7 +483,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
   // Commission per product = (VIP Price × VIP Commission %) ÷ Products Count
   const totalProductsCount = progress.total_products_count || 25;
   const baseCommission = (vipPrice * (category.commission_percentage || 15) / 100) / totalProductsCount;
-  const potentialCommission = dynamicCommission !== null
+  const potentialCommission = dynamicCommission != null
     ? dynamicCommission
     : isNextCombo
       ? baseCommission * activeComboMultiplier
