@@ -141,11 +141,42 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
       console.log('VIP Purchase query result:', {
         found: !!vipPurchase,
         purchaseId: vipPurchase?.id,
-        error: vipPurchaseResult.error
+        status: vipPurchase?.status,
+        isCompleted: vipPurchase?.is_completed,
+        error: vipPurchaseResult.error,
+        query: {
+          user_id: user.id,
+          category_id: category.category,
+          vip_level: category.level,
+          status: 'approved',
+          is_completed: false
+        }
       });
 
       if (!vipPurchase) {
-        console.log('No VIP purchase found - showing completion screen');
+        console.error('❌ No active VIP purchase found!', {
+          categoryName: category.category,
+          level: category.level,
+          userId: user.id
+        });
+
+        // Debug: Show ALL vip_purchases for this user
+        const { data: allPurchases } = await supabase
+          .from('vip_purchases')
+          .select('id, category_id, vip_level, status, is_completed, created_at')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        console.error('All VIP purchases for this user:', allPurchases);
+
+        // Also show what we're looking for
+        console.error('Looking for:', {
+          category_id: category.category,
+          vip_level: category.level,
+          status: 'approved',
+          is_completed: false
+        });
+
         // VIP purchase not found or already completed - show completion screen
         const totalProductsCount = vipLevelData?.products_count || 25;
         setProgress({
