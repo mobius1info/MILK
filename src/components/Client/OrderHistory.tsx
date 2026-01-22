@@ -160,6 +160,7 @@ export default function OrderHistory({ userId, onNavigateToDeposit }: OrderHisto
         .from('vip_purchases')
         .select('*')
         .eq('user_id', userId)
+        .gt('amount_paid', 0)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
