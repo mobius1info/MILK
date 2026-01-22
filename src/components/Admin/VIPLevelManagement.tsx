@@ -7,7 +7,6 @@ interface VIPLevel {
   id: string;
   level: number;
   name: string;
-  commission: number;
   commission_percentage: number;
   price: number;
   description: string;
@@ -35,7 +34,6 @@ export default function VIPLevelManagement() {
   const [formData, setFormData] = useState({
     level: 0,
     name: '',
-    commission: 0,
     commission_percentage: 15,
     price: 0,
     description: '',
@@ -64,7 +62,6 @@ export default function VIPLevelManagement() {
       console.log('[Admin] Raw VIP levels from DB:', data);
       const levels = (data || []).map(level => ({
         ...level,
-        commission: parseFloat(level.commission) || 0,
         commission_percentage: parseFloat(level.commission_percentage) || 15,
         price: parseFloat(level.price) || 0
       }));
@@ -87,7 +84,6 @@ export default function VIPLevelManagement() {
     const newFormData = {
       level: level.level,
       name: level.name,
-      commission: Number(level.commission),
       commission_percentage: Number(level.commission_percentage) || 15,
       price: Number(level.price),
       description: level.description,
@@ -109,7 +105,6 @@ export default function VIPLevelManagement() {
     setFormData({
       level: 0,
       name: '',
-      commission: 0,
       commission_percentage: 15,
       price: 0,
       description: '',
@@ -150,7 +145,6 @@ export default function VIPLevelManagement() {
 
       const levelData = {
         name: formData.name,
-        commission: formData.commission,
         commission_percentage: formData.commission_percentage,
         price: Number(formData.price),
         description: formData.description,
@@ -289,7 +283,6 @@ export default function VIPLevelManagement() {
               setFormData({
                 level: vipLevels.length + 1,
                 name: `VIP ${vipLevels.length + 1}`,
-                commission: 0,
                 commission_percentage: 15,
                 price: 0,
                 description: '',
