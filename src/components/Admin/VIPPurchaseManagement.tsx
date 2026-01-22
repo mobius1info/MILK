@@ -116,18 +116,23 @@ export default function VIPPurchaseManagement() {
           .select('product_id, quantity')
           .eq('vip_purchase_id', item.id);
 
-        console.log(`[Admin] VIP Purchase ${item.id} progress:`, {
-          vip_purchase_id: item.id,
-          user_id: item.user_id,
-          category: item.category_id,
-          level: item.vip_level,
-          purchasedProducts,
-          purchaseError,
-          count: purchasedProducts?.length || 0
-        });
+        // Count unique products with at least 1 quantity (same logic as client)
+        const uniqueProductIds = new Set(
+          (purchasedProducts || [])
+            .filter(p => p.quantity > 0)
+            .map(p => p.product_id)
+        );
+        const completedCount = uniqueProductIds.size;
 
-        // Count actual completed products (products with at least 1 quantity)
-        const completedCount = (purchasedProducts || []).filter(p => p.quantity > 0).length;
+        console.log(`[Admin Progress] VIP ${item.id}:`, {
+          email: item.profiles?.email,
+          total_records: purchasedProducts?.length || 0,
+          unique_products: completedCount,
+          products: purchasedProducts?.map(p => ({
+            product_id: p.product_id.substring(0, 8),
+            quantity: p.quantity
+          }))
+        });
 
         return {
           ...item,
