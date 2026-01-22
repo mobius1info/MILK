@@ -434,15 +434,15 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
           setNotification({
             isOpen: true,
             type: 'success',
-            title: 'Success!',
-            message: `All products in this category completed!\n\nTotal profit earned: $${totalCommission.toFixed(2)}`
+            title: `Total Profit: $${totalCommission.toFixed(2)}`,
+            message: `All products in this category completed!`
           });
         } else {
           setNotification({
             isOpen: true,
             type: 'success',
-            title: result.is_ninth_product ? 'COMBO product purchased!' : 'Success!',
-            message: result.message
+            title: `You earned $${result.commission.toFixed(2)}!`,
+            message: `Profit credited to your balance`
           });
         }
       }
@@ -612,29 +612,6 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
         </div>
 
         <div className="overflow-y-auto p-3 sm:p-6 space-y-2.5 sm:space-y-4 max-h-[50vh] sm:flex-1">
-          {vipComboSettings.filter(c => !c.is_completed).length > 0 && (
-            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-400 rounded-lg p-2.5 sm:p-3 mb-3">
-              <div className="flex items-start gap-2">
-                <Star className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <div className="font-bold text-gray-900 text-sm sm:text-base mb-1">
-                    COMBO Products Available ({vipComboSettings.filter(c => !c.is_completed).length})
-                  </div>
-                  <div className="text-xs sm:text-sm text-gray-700">
-                    Positions: {vipComboSettings.map(c => (
-                      <span key={c.id} className={c.is_completed ? 'line-through text-gray-400' : 'font-bold text-yellow-700'}>
-                        #{c.combo_position} (x{c.combo_multiplier})
-                      </span>
-                    )).reduce((prev, curr, i) => [prev, i > 0 && ', ', curr] as any, [] as any)}
-                  </div>
-                  <div className="text-xs text-gray-600 mt-1">
-                    Higher commission on these positions!
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
           {message && (
             <div className={`rounded-lg p-2.5 sm:p-3 flex items-start gap-2 ${
               message.includes('deposit')
@@ -664,26 +641,21 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
           <div className="bg-white border border-gray-200 rounded-lg p-2.5 sm:p-4 shadow-sm">
             <div className="flex items-start justify-between mb-2 sm:mb-3">
               <h3 className="text-base sm:text-xl font-bold text-gray-900 line-clamp-2 flex-1">{product.name}</h3>
-              {isNextCombo && (
-                <span className="ml-2 px-2 py-0.5 sm:px-3 sm:py-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-full text-xs font-bold shadow-lg flex-shrink-0">
-                  COMBO
-                </span>
-              )}
             </div>
             <div className="grid grid-cols-2 gap-2 sm:gap-4">
-              <div className={`rounded-lg p-2.5 sm:p-3 ${isNextCombo ? 'bg-orange-50 border-2 border-orange-300' : 'bg-blue-50'}`}>
+              <div className="rounded-lg p-2.5 sm:p-3 bg-blue-50">
                 <div className="text-xs text-gray-600 mb-1">
-                  {isNextCombo ? 'COMBO Price' : 'Price'}
+                  Price
                 </div>
-                <div className={`text-lg sm:text-2xl font-bold ${isNextCombo ? 'text-orange-600' : 'text-blue-600'}`}>
+                <div className="text-lg sm:text-2xl font-bold text-blue-600">
                   ${displayPrice.toFixed(2)}
                 </div>
               </div>
-              <div className={`rounded-lg p-2.5 sm:p-3 ${isNextCombo ? 'bg-yellow-50 border-2 border-yellow-300' : 'bg-green-50'}`}>
+              <div className="rounded-lg p-2.5 sm:p-3 bg-green-50">
                 <div className="text-xs text-gray-600 mb-1">
                   Profit
                 </div>
-                <div className={`text-lg sm:text-2xl font-bold ${isNextCombo ? 'text-yellow-600' : 'text-green-600'}`}>
+                <div className="text-lg sm:text-2xl font-bold text-green-600">
                   ${potentialCommission.toFixed(2)}
                 </div>
               </div>
@@ -703,20 +675,6 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
               </div>
             </div>
           </div>
-
-          {isNextCombo && (
-            <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-lg p-2 sm:p-3.5 border border-orange-300 shadow-sm">
-              <div className="flex items-start gap-1.5 sm:gap-2">
-                <Star className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-orange-600 flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <div className="font-semibold text-orange-900 mb-0.5 text-xs sm:text-sm">COMBO - {activeComboMultiplier}x Commission!</div>
-                  <p className="text-xs text-orange-800 leading-snug sm:leading-relaxed">
-                    Balance ${displayPrice.toFixed(2)} required. Earn ${potentialCommission.toFixed(2)}!
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="flex-shrink-0 p-3 sm:p-5 bg-gray-50 border-t space-y-2.5 sm:space-y-3">
@@ -771,10 +729,10 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
                 <>
                   <ShoppingBag className="w-5 h-5 flex-shrink-0" />
                   <span className="hidden sm:inline">
-                    {isNextCombo ? `COMBO: Buy for $${displayPrice.toFixed(2)} and get $${potentialCommission.toFixed(2)}` : `Buy and get $${potentialCommission.toFixed(2)}`}
+                    Buy and get $${potentialCommission.toFixed(2)}
                   </span>
                   <span className="sm:hidden truncate">
-                    {isNextCombo ? `COMBO $${displayPrice.toFixed(2)} → +$${potentialCommission.toFixed(2)}` : `Buy & Get +$${potentialCommission.toFixed(2)}`}
+                    Buy & Get +$${potentialCommission.toFixed(2)}
                   </span>
                 </>
               )}
