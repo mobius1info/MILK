@@ -371,7 +371,8 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
 
       const { data, error } = await supabase.rpc('process_product_purchase', {
         p_user_id: user.id,
-        p_vip_purchase_id: vipPurchaseData.id
+        p_vip_purchase_id: vipPurchaseData.id,
+        p_product_id: product.id
       });
 
       if (error) throw error;
@@ -607,7 +608,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
         </div>
 
         <div className="overflow-y-auto p-3 sm:p-6 space-y-2.5 sm:space-y-4 max-h-[50vh] sm:flex-1">
-          {vipComboSettings.length > 0 && (
+          {vipComboSettings.filter(c => !c.is_completed).length > 0 && (
             <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-400 rounded-lg p-2.5 sm:p-3 mb-3">
               <div className="flex items-start gap-2">
                 <Star className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />

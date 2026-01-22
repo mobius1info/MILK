@@ -255,7 +255,8 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
 
       const { data, error } = await supabase.rpc('process_product_purchase', {
         p_user_id: user.id,
-        p_vip_purchase_id: vipPurchaseData.id
+        p_vip_purchase_id: vipPurchaseData.id,
+        p_product_id: product.id
       });
 
       if (error) throw error;
