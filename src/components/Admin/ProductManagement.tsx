@@ -46,7 +46,6 @@ export default function ProductManagement() {
     rating: '0',
     reviews: '0',
     vip_level: '0',
-    quantity_multiplier: '1',
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -163,7 +162,6 @@ export default function ProductManagement() {
         description: formData.description,
         price: parseFloat(formData.price),
         category_id: formData.category,
-        quantity_multiplier: parseInt(formData.quantity_multiplier),
         image_url: imageUrl,
       };
 
@@ -192,7 +190,6 @@ export default function ProductManagement() {
         rating: '0',
         reviews: '0',
         vip_level: '0',
-        quantity_multiplier: '1',
       });
       setImageFile(null);
       fetchProducts();
@@ -218,7 +215,6 @@ export default function ProductManagement() {
       rating: '0',
       reviews: '0',
       vip_level: '0',
-      quantity_multiplier: ((product as any).quantity_multiplier || 1).toString(),
     });
     setShowForm(true);
   };
@@ -350,7 +346,6 @@ export default function ProductManagement() {
                   rating: '0',
                   reviews: '0',
                   vip_level: '0',
-                  quantity_multiplier: '1',
                 });
               }}
               className="flex items-center justify-center space-x-2 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all whitespace-nowrap"
@@ -460,28 +455,8 @@ export default function ProductManagement() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Quantity Multiplier
-              </label>
-              <select
-                value={formData.quantity_multiplier}
-                onChange={(e) => setFormData({ ...formData, quantity_multiplier: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
-              >
-                <option value="1">x1 (normal)</option>
-                <option value="2">x2 (counts as 2 products)</option>
-                <option value="3">x3 (counts as 3 products)</option>
-                <option value="4">x4 (counts as 4 products)</option>
-                <option value="5">x5 (counts as 5 products)</option>
-              </select>
-            </div>
-
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-xs text-blue-800">
-                <strong>Multiplier:</strong> A product with x2 multiplier counts as 2 units when calculating progress.
-                Use for more expensive products to help clients complete tasks faster.
-                <br />
                 <strong>Commission:</strong> Commission percentage is set at the VIP level in the "Per Task" field.
               </p>
             </div>
