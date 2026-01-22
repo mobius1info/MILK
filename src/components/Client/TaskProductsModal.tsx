@@ -263,14 +263,14 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
 
       const { data: purchasedProducts, error: purchasedError } = await supabase
         .from('product_purchases')
-        .select('product_id, quantity_count, commission_earned')
+        .select('product_id, quantity, commission_earned')
         .eq('vip_purchase_id', vipPurchase.id);
 
       if (purchasedError) throw purchasedError;
 
       const purchasedMap = new Map(
         (purchasedProducts || []).map(p => [p.product_id, {
-          count: p.quantity_count,
+          count: p.quantity,
           commission: Number(p.commission_earned)
         }])
       );

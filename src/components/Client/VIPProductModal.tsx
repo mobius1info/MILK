@@ -177,7 +177,7 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
 
       const { data: purchasedProducts, error: purchasedError } = await supabase
         .from('product_purchases')
-        .select('product_id, quantity_count, commission_earned')
+        .select('product_id, quantity, commission_earned')
         .eq('vip_purchase_id', vipPurchase.id)
         .order('created_at');
 
@@ -188,7 +188,7 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
       let totalCommission = 0;
 
       (purchasedProducts || []).forEach(pp => {
-        totalQuantityPurchased += pp.quantity_count || 1;
+        totalQuantityPurchased += pp.quantity || 1;
         purchasedProductIds.add(pp.product_id);
         totalCommission += Number((pp as any).commission_earned || 0);
       });
