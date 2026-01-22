@@ -42,29 +42,28 @@ export default function DemoAccessManagement() {
     try {
       setGranting(true);
 
-      const { data: vipBonusLevel, error: levelError } = await supabase
+      const { data: vipDemoLevel, error: levelError } = await supabase
         .from('vip_levels')
-        .select('id')
+        .select('id, name')
+        .eq('name', 'VIP Demo')
         .eq('is_active', true)
-        .order('level')
-        .limit(1)
         .maybeSingle();
 
       if (levelError) throw levelError;
 
-      if (!vipBonusLevel) {
+      if (!vipDemoLevel) {
         setNotification({
           isOpen: true,
           type: 'error',
-          title: 'No VIP BONUS Available',
-          message: 'No active VIP BONUS level found. Please create one first.'
+          title: 'No VIP Demo Available',
+          message: 'VIP Demo level not found. Please create it first.'
         });
         return;
       }
 
       const { data, error } = await supabase.rpc('grant_demo_access', {
         user_email: userEmail.trim().toLowerCase(),
-        vip_level_id: vipBonusLevel.id
+        vip_level_id: vipDemoLevel.id
       });
 
       if (error) throw error;
@@ -74,7 +73,7 @@ export default function DemoAccessManagement() {
           isOpen: true,
           type: 'success',
           title: 'Demo Access Granted',
-          message: data.message || 'User can now access VIP BONUS tasks'
+          message: data.message || 'User can now access VIP Demo tasks'
         });
         setUserEmail('');
       } else {
@@ -133,7 +132,7 @@ export default function DemoAccessManagement() {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <p className="mt-2 text-sm text-gray-500">
-            User will receive access to the first available VIP BONUS level
+            User will receive access to VIP Demo level with 25 products
           </p>
         </div>
 
