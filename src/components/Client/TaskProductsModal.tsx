@@ -729,10 +729,10 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
                 <>
                   <ShoppingBag className="w-5 h-5 flex-shrink-0" />
                   <span className="hidden sm:inline">
-                    Buy and get $${potentialCommission.toFixed(2)}
+                    Buy and get ${potentialCommission.toFixed(2)}
                   </span>
                   <span className="sm:hidden truncate">
-                    Buy & Get +$${potentialCommission.toFixed(2)}
+                    Buy & Get +${potentialCommission.toFixed(2)}
                   </span>
                 </>
               )}
