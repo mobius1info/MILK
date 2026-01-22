@@ -110,10 +110,19 @@ export default function VIPPurchaseManagement() {
           .eq('category', item.category_id)
           .maybeSingle();
 
+        // Get real progress from product_purchases
+        const { data: purchasedProducts } = await supabase
+          .from('product_purchases')
+          .select('product_id, quantity')
+          .eq('vip_purchase_id', item.id);
+
+        // Count actual completed products (products with at least 1 quantity)
+        const completedCount = (purchasedProducts || []).filter(p => p.quantity > 0).length;
+
         return {
           ...item,
           total_products: vipLevelData?.products_count || 25,
-          completed_products_count: item.completed_products_count || 0,
+          completed_products_count: completedCount,
           profiles: Array.isArray(item.profiles) && item.profiles.length > 0
             ? {
                 email: item.profiles[0].email || '',
