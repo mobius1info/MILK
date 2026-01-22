@@ -275,9 +275,19 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
         }])
       );
 
+      // Calculate total commission from ALL purchases (not just current products list)
+      let totalCommission = 0;
+      let uniqueProductsPurchased = 0;
+
+      for (const purchase of (purchasedProducts || [])) {
+        totalCommission += Number(purchase.commission_earned);
+        if (purchase.quantity > 0) {
+          uniqueProductsPurchased++;
+        }
+      }
+
       let currentIndex = 0;
       let totalPurchased = 0;
-      let totalCommission = 0;
 
       for (let i = 0; i < normalizedProducts.length; i++) {
         const prod = normalizedProducts[i];
@@ -289,7 +299,6 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
         }
 
         totalPurchased++;
-        totalCommission += purchased.commission;
 
         if (i === normalizedProducts.length - 1) {
           currentIndex = normalizedProducts.length;
