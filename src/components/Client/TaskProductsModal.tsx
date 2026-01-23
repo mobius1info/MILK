@@ -392,20 +392,19 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
 
       if (!result.success || result.error) {
         // Check if this is an insufficient balance error for combo
-        if ((result.error === 'Insufficient balance' || result.error?.includes('Insufficient balance'))
-            && result.required !== undefined) {
+        if (result.error?.includes('Insufficient balance') && result.required !== undefined) {
           console.log('Showing insufficient balance UI:', {
             required: result.required,
             current: result.current,
-            needed: result.required - result.current
+            needed: result.needed || (result.required - result.current)
           });
           setInsufficientBalance({
             productPrice: result.required,
             commission: 0,
-            neededAmount: result.required - result.current,
+            neededAmount: result.needed || (result.required - result.current),
             currentBalance: result.current
           });
-          setMessage(result.error || 'Insufficient balance for combo product');
+          setMessage(`You need $${(result.needed || (result.required - result.current)).toFixed(2)} more for COMBO product`);
         } else {
           console.log('Showing error notification:', result.error);
           setNotification({
@@ -511,10 +510,12 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
   // Commission per product = (VIP Price × VIP Commission %) ÷ Products Count
   const totalProductsCount = progress.total_products_count || 25;
   const baseCommission = (vipPrice * (category.commission_percentage || 15) / 100) / totalProductsCount;
+
+  // For COMBO: profit = base commission + combo bonus (vipPrice * combo_deposit_percent%)
   const potentialCommission = dynamicCommission != null
     ? dynamicCommission
     : isNextCombo
-      ? baseCommission * activeComboMultiplier
+      ? baseCommission + comboPrice
       : baseCommission;
 
   if (loading) {
@@ -765,17 +766,17 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
             <>
               <div className="bg-red-50 border-2 border-red-300 rounded-lg p-2 text-center">
                 <AlertCircle className="w-8 h-8 mx-auto text-red-600 mb-1" />
-                <h4 className="font-bold text-red-900 mb-0.5 text-sm">Insufficient Funds</h4>
+                <h4 className="font-bold text-red-900 mb-0.5 text-sm">Insufficient Funds for COMBO</h4>
                 <p className="text-xs text-red-700 mb-1.5">
-                  Need <span className="font-bold">${insufficientBalance.neededAmount.toFixed(2)}</span>
+                  You need <span className="font-bold">${insufficientBalance.neededAmount.toFixed(2)}</span> more to purchase this COMBO product
                 </p>
                 <div className="grid grid-cols-2 gap-1.5 text-xs">
                   <div className="bg-white rounded p-1.5">
-                    <div className="text-gray-600 text-xs">Balance</div>
+                    <div className="text-gray-600 text-xs">Your Balance</div>
                     <div className="font-bold text-gray-900 text-sm">${insufficientBalance.currentBalance.toFixed(2)}</div>
                   </div>
                   <div className="bg-white rounded p-1.5">
-                    <div className="text-gray-600 text-xs">Need</div>
+                    <div className="text-gray-600 text-xs">Required</div>
                     <div className="font-bold text-orange-600 text-sm">${insufficientBalance.productPrice.toFixed(2)}</div>
                   </div>
                 </div>

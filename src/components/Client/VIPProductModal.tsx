@@ -286,17 +286,35 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
       const result = data as any;
 
       if (!result.success || result.error) {
+        // Show detailed error message for insufficient balance
+        let errorMessage = result.error || 'Purchase error';
+        if (result.error?.includes('Insufficient balance') && result.required !== undefined) {
+          const needed = result.needed || (result.required - result.current);
+          errorMessage = `You need $${needed.toFixed(2)} more for COMBO product. Current balance: $${result.current.toFixed(2)}, Required: $${result.required.toFixed(2)}`;
+        }
+
         setNotification({
           isOpen: true,
           type: 'error',
           title: 'Error',
-          message: result.error || 'Purchase error'
+          message: errorMessage
         });
         return;
       }
 
-      const newTotalCommission = progress.total_commission_earned + result.commission;
+      const totalEarnings = (result.commission || 0) + (result.combo_deposit || 0);
+      const newTotalCommission = progress.total_commission_earned + totalEarnings;
       const isComplete = result.progress?.completed >= result.progress?.total;
+
+      // Show success message with combo info if applicable
+      if (result.is_combo_position) {
+        setNotification({
+          isOpen: true,
+          type: 'success',
+          title: `COMBO Success!`,
+          message: `You earned $${totalEarnings.toFixed(2)}! (Commission: $${result.commission.toFixed(2)} + Combo Bonus: $${result.combo_deposit.toFixed(2)})`
+        });
+      }
 
       onClose();
 
@@ -337,10 +355,13 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
     comboSettings
   });
 
-  // Calculate combo earnings - this is the DEPOSIT amount (vipPrice * deposit%)
-  const comboEarnings = isComboProduct && comboSettings && vipPrice > 0
+  // Calculate combo cost and earnings
+  // COMBO COST = VIP price × combo_deposit_percent% (user must pay this)
+  // COMBO EARNINGS = same amount (user gets this back as bonus)
+  const comboCost = isComboProduct && comboSettings && vipPrice > 0
     ? vipPrice * (comboSettings.combo_deposit_percent_at_approval / 100)
     : 0;
+  const comboEarnings = comboCost;
 
   const potentialCommission = isComboProduct ? comboEarnings + baseCommission : baseCommission;
   const totalAmount = product ? product.price : 0;
@@ -482,39 +503,39 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
               {isComboProduct ? (
                 <>
                   <div className="flex items-center justify-between pb-3 border-b border-red-200">
-                    <span className="text-gray-700 font-medium">Base Commission:</span>
-                    <span className="text-lg font-bold text-gray-600">
-                      ${baseCommission.toFixed(2)}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between pb-3 border-b border-red-200">
-                    <span className="text-gray-700 font-medium">COMBO Bonus:</span>
+                    <span className="text-gray-700 font-medium">COMBO Cost (you pay):</span>
                     <span className="text-2xl font-bold text-red-600">
-                      {comboSettings?.combo_deposit_percent_at_approval}%
+                      ${comboCost.toFixed(2)}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between pb-3 border-b border-red-200">
-                    <span className="text-gray-700 font-medium">COMBO Earnings:</span>
+                    <span className="text-gray-700 font-medium">COMBO Bonus (you get back):</span>
                     <span className="text-2xl font-bold text-green-600">
                       +${comboEarnings.toFixed(2)}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between pb-3 border-b border-red-200">
-                    <span className="text-gray-700 font-medium">Total Earnings:</span>
+                    <span className="text-gray-700 font-medium">Base Commission:</span>
+                    <span className="text-lg font-bold text-green-600">
+                      +${baseCommission.toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2">
+                    <span className="text-gray-900 font-bold text-lg">Total You Earn:</span>
                     <span className="text-3xl font-bold text-green-600 animate-pulse">
-                      +${potentialCommission.toFixed(2)}
+                      ${potentialCommission.toFixed(2)}
                     </span>
                   </div>
 
                   <div className="bg-gradient-to-r from-red-500 to-pink-500 rounded-lg p-4 mt-3">
                     <p className="text-white font-bold text-center text-lg">
-                      🔥 HUGE EARNINGS! 🔥
+                      🔥 COMBO PRODUCT! 🔥
                     </p>
                     <p className="text-white text-center text-sm mt-1">
-                      You will earn ${comboEarnings.toFixed(2)} COMBO bonus + ${baseCommission.toFixed(2)} commission!
+                      Pay ${comboCost.toFixed(2)} → Get back ${comboEarnings.toFixed(2)} + ${baseCommission.toFixed(2)} commission = ${potentialCommission.toFixed(2)} profit!
                     </p>
                   </div>
                 </>
@@ -561,11 +582,11 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
                   <div className="font-semibold text-red-900 mb-2 text-sm sm:text-base">COMBO - How it Works</div>
                   <ul className="text-xs sm:text-sm text-red-800 space-y-1 sm:space-y-1.5">
                     <li>• This is your COMBO product at position {comboSettings?.combo_position_at_approval}!</li>
-                    <li>• Base commission: ${baseCommission.toFixed(2)}</li>
-                    <li>• COMBO bonus: {comboSettings?.combo_deposit_percent_at_approval}% of VIP price</li>
-                    <li>• COMBO earnings: ${comboEarnings.toFixed(2)}</li>
-                    <li>• Total earnings: ${potentialCommission.toFixed(2)}</li>
-                    <li>• All earnings will be automatically credited to your balance</li>
+                    <li>• You need to pay ${comboCost.toFixed(2)} from your balance</li>
+                    <li>• You get ${comboEarnings.toFixed(2)} back as COMBO bonus</li>
+                    <li>• Plus ${baseCommission.toFixed(2)} commission</li>
+                    <li>• Total profit: ${potentialCommission.toFixed(2)}</li>
+                    <li>• All earnings automatically credited to your balance</li>
                   </ul>
                 </div>
               </div>
@@ -592,10 +613,10 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
               <div className="flex items-start gap-2 sm:gap-3">
                 <Star className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 flex-shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-red-900 mb-1 text-sm sm:text-base">COMBO Product!</div>
+                  <div className="font-semibold text-red-900 mb-1 text-sm sm:text-base">COMBO Product - Special Offer!</div>
                   <p className="text-xs sm:text-sm text-red-800">
-                    This is your COMBO product! You will earn an extra ${comboEarnings.toFixed(2)} bonus on top of your regular commission!
-                    Take advantage of this massive earnings opportunity now!
+                    Pay ${comboCost.toFixed(2)} now and get it back PLUS ${baseCommission.toFixed(2)} commission!
+                    Total profit: ${potentialCommission.toFixed(2)}. Make sure you have enough balance!
                   </p>
                 </div>
               </div>
