@@ -453,7 +453,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
           });
         } else {
           const successMessage = result.is_combo_position
-            ? `COMBO! Earned $${totalEarnings.toFixed(2)} with ${Math.round(result.combo_multiplier || 1)}x bonus!`
+            ? `COMBO! Earned $${totalEarnings.toFixed(2)} with ${Math.round(result.combo_multiplier || 1)}x profit!`
             : `Profit credited to your balance`;
 
           setNotification({
@@ -692,7 +692,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
                   <span className="font-bold text-gray-600">${baseCommission.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-600">COMBO Bonus:</span>
+                  <span className="text-gray-600">COMBO Profit:</span>
                   <span className="font-bold text-red-600">{Math.round(activeComboMultiplier)}x</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
@@ -710,7 +710,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
                     🔥 HUGE EARNINGS! 🔥
                   </p>
                   <p className="text-white text-center text-xs mt-0.5">
-                    Combo product with {Math.round(activeComboMultiplier)}x bonus!
+                    Combo product with {Math.round(activeComboMultiplier)}x profit!
                   </p>
                 </div>
               </div>
@@ -744,7 +744,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
                   <div className="font-semibold text-red-900 mb-1 text-xs">COMBO Product!</div>
                   <ul className="text-xs text-red-800 space-y-0.5 leading-relaxed">
                     <li>• This is your COMBO product at position {nextProductNumber}!</li>
-                    <li>• COMBO bonus: {Math.round(activeComboMultiplier)}x multiplier</li>
+                    <li>• COMBO profit: {Math.round(activeComboMultiplier)}x multiplier</li>
                     <li>• You must have ${comboRequiredBalance.toFixed(2)} in balance</li>
                     <li>• Total profit: ${potentialCommission.toFixed(2)}</li>
                   </ul>
