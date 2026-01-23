@@ -684,6 +684,10 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
             {isNextCombo ? (
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-600">Price:</span>
+                  <span className="font-bold text-blue-600">${comboRequiredBalance.toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
                   <span className="text-gray-600">Base Commission:</span>
                   <span className="font-bold text-gray-600">${baseCommission.toFixed(2)}</span>
                 </div>
