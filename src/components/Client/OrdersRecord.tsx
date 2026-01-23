@@ -25,7 +25,7 @@ interface VIPPurchase {
   created_at: string;
   approved_at: string | null;
   is_completed: boolean;
-  completed_products_count: number;
+  products_completed: number;
 }
 
 interface VIPLevel {

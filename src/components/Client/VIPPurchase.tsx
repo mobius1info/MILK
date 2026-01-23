@@ -22,7 +22,7 @@ interface VIPPurchaseRequest {
   vip_level: number;
   category_id: string;
   status: string;
-  completed_products_count: number;
+  products_completed: number;
   is_completed: boolean;
   created_at: string;
 }

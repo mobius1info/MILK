@@ -15,7 +15,7 @@ interface VIPPurchase {
   vip_level: number;
   category_id: string;
   status: string;
-  completed_products_count: number;
+  products_completed: number;
   is_completed: boolean;
 }
 
@@ -249,14 +249,14 @@ export default function VIPCategories() {
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs text-gray-600">Progress</span>
                       <span className="text-xs font-semibold text-gray-700">
-                        {currentPurchase.completed_products_count || 0}/{vipLevel.products_count}
+                        {currentPurchase.products_completed || 0}/{vipLevel.products_count}
                       </span>
                     </div>
                     <div className="w-full bg-gray-300 rounded-full h-2">
                       <div
                         className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all"
                         style={{
-                          width: `${((currentPurchase.completed_products_count || 0) / vipLevel.products_count) * 100}%`
+                          width: `${((currentPurchase.products_completed || 0) / vipLevel.products_count) * 100}%`
                         }}
                       ></div>
                     </div>

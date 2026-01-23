@@ -12,7 +12,7 @@ interface VIPPurchaseRequest {
   created_at: string;
   approved_at: string | null;
   approved_by: string | null;
-  completed_products_count: number;
+  products_completed: number;
   total_products: number;
   vip_price: number;
   combo_enabled_at_approval: boolean | null;
@@ -86,7 +86,7 @@ export default function VIPPurchaseManagement() {
           created_at,
           approved_at,
           approved_by,
-          completed_products_count,
+          products_completed,
           vip_price,
           combo_enabled_at_approval,
           combo_position_at_approval,
@@ -137,7 +137,7 @@ export default function VIPPurchaseManagement() {
         return {
           ...item,
           total_products: vipLevelData?.products_count || 25,
-          completed_products_count: completedCount,
+          products_completed: completedCount,
           profiles: Array.isArray(item.profiles) && item.profiles.length > 0
             ? {
                 email: item.profiles[0].email || '',
@@ -410,7 +410,7 @@ export default function VIPPurchaseManagement() {
                           <Clock className="w-5 h-5 text-blue-600" />
                           <span className="font-bold text-gray-900">Progress:</span>
                           <span className="text-blue-700 font-semibold">
-                            {request.completed_products_count} / {request.total_products} products
+                            {request.products_completed} / {request.total_products} products
                           </span>
                         </div>
                         <div className="text-sm text-gray-600">
@@ -420,7 +420,7 @@ export default function VIPPurchaseManagement() {
                       <div className="mt-2 bg-gray-200 rounded-full h-2">
                         <div
                           className="bg-blue-600 h-2 rounded-full transition-all"
-                          style={{ width: `${(request.completed_products_count / request.total_products) * 100}%` }}
+                          style={{ width: `${(request.products_completed / request.total_products) * 100}%` }}
                         />
                       </div>
                     </div>

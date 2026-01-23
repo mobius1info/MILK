@@ -103,7 +103,7 @@ export default function ActiveTasks({ onNavigateToDeposit }: ActiveTasksProps = 
           status,
           created_at,
           is_completed,
-          completed_products_count
+          products_completed
         `)
         .eq('user_id', user.id)
         .eq('status', 'approved')
@@ -121,7 +121,7 @@ export default function ActiveTasks({ onNavigateToDeposit }: ActiveTasksProps = 
           status,
           created_at,
           is_completed,
-          completed_products_count
+          products_completed
         `)
         .eq('user_id', user.id)
         .eq('is_completed', true)

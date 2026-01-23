@@ -17,7 +17,7 @@ interface VIPPurchase {
   status: string;
   created_at: string;
   approved_at: string | null;
-  completed_products_count: number;
+  products_completed: number;
   total_products: number;
   vip_price: number;
   combo_enabled_at_approval: boolean | null;
@@ -112,7 +112,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
             status,
             created_at,
             approved_at,
-            completed_products_count,
+            products_completed,
             vip_price,
             is_completed,
             combo_enabled_at_approval,
@@ -159,7 +159,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
         return {
           ...vip,
           total_products: vipLevelData?.products_count || 25,
-          completed_products_count: vip.completed_products_count || 0
+          products_completed: vip.products_completed || 0
         };
       }));
 
@@ -169,7 +169,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
       const activeVips = vipPurchasesWithTotals?.filter(v =>
         v.status === 'approved' &&
         !v.is_completed &&
-        v.completed_products_count < v.total_products
+        v.products_completed < v.total_products
       ) || [];
 
       if (activeVips.length > 0) {
@@ -327,7 +327,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
 
   const approvedVips = vipPurchases.filter(v =>
     v.status === 'approved' &&
-    v.completed_products_count < v.total_products
+    v.products_completed < v.total_products
   );
 
   const deposits = transactions.filter(t => t.type === 'deposit');
@@ -530,12 +530,12 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
                           VIP {activeVip.vip_level} - {activeVip.category_id}
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
-                          Progress: {activeVip.completed_products_count}/{activeVip.total_products} products
+                          Progress: {activeVip.products_completed}/{activeVip.total_products} products
                         </p>
                       </div>
                       <div className="text-right">
                         <div className="text-3xl font-bold text-blue-600">
-                          {Math.round((activeVip.completed_products_count / activeVip.total_products) * 100)}%
+                          {Math.round((activeVip.products_completed / activeVip.total_products) * 100)}%
                         </div>
                         <p className="text-xs text-gray-500">Complete</p>
                       </div>
@@ -623,7 +623,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
 
                     <div className="max-h-96 overflow-y-auto">
                       {activeVipProgress.map((progress) => {
-                        const isCurrentProduct = progress.product_index === activeVip.completed_products_count + 1;
+                        const isCurrentProduct = progress.product_index === activeVip.products_completed + 1;
                         const isCompleted = progress.completed;
                         const comboAtPosition = vipCombos.find(c => c.combo_position === progress.product_index);
 
@@ -740,7 +740,7 @@ export default function ClientDetailsModal({ clientId, clientEmail, onClose }: C
                             {(status === 'approved' || status === 'completed') && (
                               <div className="text-right">
                                 <p className="text-2xl font-bold text-blue-600">
-                                  {vip.completed_products_count || 0}/{vip.total_products}
+                                  {vip.products_completed || 0}/{vip.total_products}
                                 </p>
                                 <p className="text-xs text-gray-500">Products completed</p>
                               </div>
