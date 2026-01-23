@@ -418,7 +418,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
       }
 
       if (result.success) {
-        const totalEarnings = (result.commission || 0) + (result.combo_deposit || 0);
+        const totalEarnings = result.commission || 0;
 
         if (result.product_price != null) {
           setDynamicPrice(result.product_price);
@@ -437,11 +437,12 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
           console.log('Completion Summary:', {
             previousEarnings: progress.total_commission_earned,
             thisCommission: result.commission,
-            comboBonus: result.combo_deposit,
             totalEarnings,
             totalCommission,
             productsPurchased: result.progress.completed,
-            totalProducts: result.progress.total
+            totalProducts: result.progress.total,
+            isCombo: result.is_combo_position,
+            comboMultiplier: result.combo_multiplier
           });
 
           setNotification({
@@ -452,7 +453,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
           });
         } else {
           const successMessage = result.is_combo_position
-            ? `Commission $${result.commission.toFixed(2)} + Combo Bonus $${result.combo_deposit.toFixed(2)} = $${totalEarnings.toFixed(2)}!`
+            ? `COMBO! Earned $${totalEarnings.toFixed(2)} with ${Math.round(result.combo_multiplier || 1)}x bonus!`
             : `Profit credited to your balance`;
 
           setNotification({
@@ -488,34 +489,35 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
   const activeComboMultiplier = nextComboSetting?.combo_multiplier ?? comboSettings.multiplier;
   const activeComboDepositPercent = nextComboSetting?.combo_deposit_percent ?? comboSettings.depositPercent;
 
-  // COMBO price = VIP price * (Deposit % / 100)
-  const comboPrice = vipPrice * (activeComboDepositPercent / 100);
+  // COMBO required balance = VIP price * (Deposit % / 100)
+  const comboRequiredBalance = vipPrice * (activeComboDepositPercent / 100);
 
   console.log('TaskProductsModal - Combo Check:', {
     nextProductNumber,
     isNextCombo,
     nextComboSetting,
     vipComboSettings,
+    activeComboMultiplier,
     activeComboDepositPercent,
-    comboPrice,
+    comboRequiredBalance,
     vipPrice
   });
 
   const displayPrice = dynamicPrice != null
     ? dynamicPrice
     : isNextCombo
-      ? comboPrice
+      ? comboRequiredBalance
       : product?.price || 0;
 
   // Commission per product = (VIP Price × VIP Commission %) ÷ Products Count
   const totalProductsCount = progress.total_products_count || 25;
   const baseCommission = (vipPrice * (category.commission_percentage || 15) / 100) / totalProductsCount;
 
-  // For COMBO: profit = base commission + combo bonus (vipPrice * combo_deposit_percent%)
+  // For COMBO: commission = base commission × combo_multiplier
   const potentialCommission = dynamicCommission != null
     ? dynamicCommission
     : isNextCombo
-      ? baseCommission + comboPrice
+      ? baseCommission * activeComboMultiplier
       : baseCommission;
 
   if (loading) {
@@ -687,11 +689,11 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-gray-600">COMBO Bonus:</span>
-                  <span className="font-bold text-red-600">{activeComboDepositPercent}%</span>
+                  <span className="font-bold text-red-600">{Math.round(activeComboMultiplier)}x</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-gray-600">COMBO Earnings:</span>
-                  <span className="font-bold text-green-600">+${comboPrice.toFixed(2)}</span>
+                  <span className="font-bold text-green-600">+${potentialCommission.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between pt-1.5 border-t border-red-200">
                   <span className="font-bold text-gray-900">Total Profit:</span>
@@ -704,7 +706,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
                     🔥 HUGE EARNINGS! 🔥
                   </p>
                   <p className="text-white text-center text-xs mt-0.5">
-                    Combo product with ${comboPrice.toFixed(2)} bonus!
+                    Combo product with {Math.round(activeComboMultiplier)}x bonus!
                   </p>
                 </div>
               </div>
