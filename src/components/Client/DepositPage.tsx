@@ -60,9 +60,10 @@ export default function DepositPage({ userId, onBack, onSuccess }: DepositPagePr
   };
 
   const handleSubmit = async () => {
-    // Check if Card Payment or Western Union methods are selected first
+    // Check if Card Payment, Bank Transfer or Western Union methods are selected first
     if (selectedMethod && (
       selectedMethod.name.toLowerCase().includes('card payment') ||
+      selectedMethod.name.toLowerCase().includes('bank transfer') ||
       selectedMethod.name.toLowerCase().includes('western union') ||
       selectedMethod.name.toLowerCase().includes('moneygram') ||
       selectedMethod.name.toLowerCase().includes('ria') ||
@@ -128,7 +129,7 @@ export default function DepositPage({ userId, onBack, onSuccess }: DepositPagePr
           type: 'deposit',
           amount: depositAmount,
           status: 'pending',
-          payment_method_id: selectedMethod.id,
+          description: `Deposit via ${selectedMethod.name}`,
         },
       ]);
 
@@ -242,6 +243,7 @@ export default function DepositPage({ userId, onBack, onSuccess }: DepositPagePr
                 </h2>
 
                 {!(selectedMethod.name.toLowerCase().includes('card payment') ||
+                  selectedMethod.name.toLowerCase().includes('bank transfer') ||
                   selectedMethod.name.toLowerCase().includes('western union') ||
                   selectedMethod.name.toLowerCase().includes('moneygram') ||
                   selectedMethod.name.toLowerCase().includes('ria') ||
