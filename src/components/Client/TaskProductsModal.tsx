@@ -390,22 +390,22 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
 
       console.log('Product purchase result:', result);
 
-      if (result.error) {
+      if (!result.success || result.error) {
         // Check if this is an insufficient balance error for combo
-        if ((result.error === 'Insufficient balance' || result.error.includes('Insufficient balance'))
-            && result.required_amount !== undefined) {
+        if ((result.error === 'Insufficient balance' || result.error?.includes('Insufficient balance'))
+            && result.required !== undefined) {
           console.log('Showing insufficient balance UI:', {
-            required: result.required_amount,
-            current: result.current_balance,
-            needed: result.required_amount - result.current_balance
+            required: result.required,
+            current: result.current,
+            needed: result.required - result.current
           });
           setInsufficientBalance({
-            productPrice: result.required_amount,
+            productPrice: result.required,
             commission: 0,
-            neededAmount: result.required_amount - result.current_balance,
-            currentBalance: result.current_balance
+            neededAmount: result.required - result.current,
+            currentBalance: result.current
           });
-          setMessage(result.message || 'Insufficient balance for combo product');
+          setMessage(result.error || 'Insufficient balance for combo product');
         } else {
           console.log('Showing error notification:', result.error);
           setNotification({
@@ -419,25 +419,30 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
       }
 
       if (result.success) {
+        const totalEarnings = (result.commission || 0) + (result.combo_deposit || 0);
+
         if (result.product_price != null) {
           setDynamicPrice(result.product_price);
         }
-        if (result.commission != null) {
-          setDynamicCommission(result.commission);
+        if (totalEarnings > 0) {
+          setDynamicCommission(totalEarnings);
         }
-        setMessage(result.message);
 
-        // If all products completed, show total commission earned
-        if (result.is_completed) {
+        // Check if all products completed
+        const isCompleted = result.progress?.completed >= result.progress?.total;
+
+        if (isCompleted) {
           // Calculate total commission from current progress + this commission
-          const totalCommission = progress.total_commission_earned + result.commission;
+          const totalCommission = progress.total_commission_earned + totalEarnings;
 
           console.log('Completion Summary:', {
             previousEarnings: progress.total_commission_earned,
             thisCommission: result.commission,
+            comboBonus: result.combo_deposit,
+            totalEarnings,
             totalCommission,
-            productsPurchased: result.products_purchased,
-            totalProducts: result.total_products
+            productsPurchased: result.progress.completed,
+            totalProducts: result.progress.total
           });
 
           setNotification({
@@ -447,11 +452,15 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
             message: `All products in this category completed!`
           });
         } else {
+          const successMessage = result.is_combo_position
+            ? `Commission $${result.commission.toFixed(2)} + Combo Bonus $${result.combo_deposit.toFixed(2)} = $${totalEarnings.toFixed(2)}!`
+            : `Profit credited to your balance`;
+
           setNotification({
             isOpen: true,
             type: 'success',
-            title: `You earned $${result.commission.toFixed(2)}!`,
-            message: `Profit credited to your balance`
+            title: `You earned $${totalEarnings.toFixed(2)}!`,
+            message: successMessage
           });
         }
       }
@@ -482,6 +491,16 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
 
   // COMBO price = VIP price * (Deposit % / 100)
   const comboPrice = vipPrice * (activeComboDepositPercent / 100);
+
+  console.log('TaskProductsModal - Combo Check:', {
+    nextProductNumber,
+    isNextCombo,
+    nextComboSetting,
+    vipComboSettings,
+    activeComboDepositPercent,
+    comboPrice,
+    vipPrice
+  });
 
   const displayPrice = dynamicPrice != null
     ? dynamicPrice
@@ -599,7 +618,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
                   <ShoppingBag className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">Product</span> {nextProductNumber}/{progress.total_products_count}
                   {isNextCombo && (
-                    <span className="ml-1 px-1.5 py-0.5 bg-yellow-500 text-yellow-900 rounded-full text-xs font-bold animate-pulse">
+                    <span className="ml-1 px-1.5 py-0.5 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-full text-xs font-bold animate-pulse shadow-lg">
                       COMBO
                     </span>
                   )}
@@ -646,41 +665,99 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
             />
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-2.5 shadow-sm">
-            <h3 className="text-sm font-bold text-gray-900 line-clamp-2 mb-2">{product.name}</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="rounded-lg p-2 bg-blue-50">
-                <div className="text-xs text-gray-600 mb-0.5">
-                  Price
-                </div>
-                <div className="text-lg font-bold text-blue-600">
-                  ${displayPrice.toFixed(2)}
-                </div>
-              </div>
-              <div className="rounded-lg p-2 bg-green-50">
-                <div className="text-xs text-gray-600 mb-0.5">
-                  Profit
-                </div>
-                <div className="text-lg font-bold text-green-600">
-                  ${potentialCommission.toFixed(2)}
-                </div>
-              </div>
+          <div className={`border rounded-lg p-2.5 shadow-sm ${
+            isNextCombo
+              ? 'bg-gradient-to-br from-red-50 to-pink-50 border-red-300'
+              : 'bg-white border-gray-200'
+          }`}>
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-sm font-bold text-gray-900 line-clamp-2 flex-1">{product.name}</h3>
+              {isNextCombo && (
+                <span className="px-2 py-0.5 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-full text-xs font-bold shadow-lg animate-pulse">
+                  COMBO
+                </span>
+              )}
             </div>
+            {isNextCombo ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-600">Base Commission:</span>
+                  <span className="font-bold text-gray-600">${baseCommission.toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-600">COMBO Bonus:</span>
+                  <span className="font-bold text-red-600">{activeComboDepositPercent}%</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-600">COMBO Earnings:</span>
+                  <span className="font-bold text-green-600">+${comboPrice.toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between pt-1.5 border-t border-red-200">
+                  <span className="font-bold text-gray-900">Total Profit:</span>
+                  <span className="text-xl font-bold text-green-600 animate-pulse">
+                    ${potentialCommission.toFixed(2)}
+                  </span>
+                </div>
+                <div className="bg-gradient-to-r from-red-500 to-pink-500 rounded-lg p-2 mt-2">
+                  <p className="text-white font-bold text-center text-xs">
+                    🔥 HUGE EARNINGS! 🔥
+                  </p>
+                  <p className="text-white text-center text-xs mt-0.5">
+                    Combo product with ${comboPrice.toFixed(2)} bonus!
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-lg p-2 bg-blue-50">
+                  <div className="text-xs text-gray-600 mb-0.5">
+                    Price
+                  </div>
+                  <div className="text-lg font-bold text-blue-600">
+                    ${displayPrice.toFixed(2)}
+                  </div>
+                </div>
+                <div className="rounded-lg p-2 bg-green-50">
+                  <div className="text-xs text-gray-600 mb-0.5">
+                    Profit
+                  </div>
+                  <div className="text-lg font-bold text-green-600">
+                    ${potentialCommission.toFixed(2)}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-2 border border-blue-200 shadow-sm">
-            <div className="flex items-start gap-2">
-              <TrendingUp className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <div className="font-semibold text-blue-900 mb-1 text-xs">How it Works</div>
-                <ul className="text-xs text-blue-800 space-y-0.5 leading-relaxed">
-                  <li>• Click the purchase button to receive commission</li>
-                  <li>• Commission is automatically credited to your balance</li>
-                  <li>• Browse products in order until completion</li>
-                </ul>
+          {isNextCombo ? (
+            <div className="bg-gradient-to-br from-red-50 to-pink-50 rounded-lg p-2 border border-red-300 shadow-sm">
+              <div className="flex items-start gap-2">
+                <Star className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <div className="font-semibold text-red-900 mb-1 text-xs">COMBO Product!</div>
+                  <ul className="text-xs text-red-800 space-y-0.5 leading-relaxed">
+                    <li>• This is your COMBO product at position {nextProductNumber}!</li>
+                    <li>• You earn extra ${comboPrice.toFixed(2)} bonus on this product</li>
+                    <li>• Total profit: ${potentialCommission.toFixed(2)}</li>
+                  </ul>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-2 border border-blue-200 shadow-sm">
+              <div className="flex items-start gap-2">
+                <TrendingUp className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <div className="font-semibold text-blue-900 mb-1 text-xs">How it Works</div>
+                  <ul className="text-xs text-blue-800 space-y-0.5 leading-relaxed">
+                    <li>• Click the purchase button to receive commission</li>
+                    <li>• Commission is automatically credited to your balance</li>
+                    <li>• Browse products in order until completion</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex-shrink-0 p-3 bg-gray-50 border-t space-y-2">
@@ -722,7 +799,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
               disabled={purchasing}
               className={`w-full py-3 hover:opacity-90 text-white rounded-lg font-bold text-base flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg ${
                 isNextCombo
-                  ? 'bg-gradient-to-r from-yellow-500 to-orange-600 animate-pulse'
+                  ? 'bg-gradient-to-r from-red-600 to-pink-600 animate-pulse'
                   : 'bg-gradient-to-r from-[#f5b04c] to-[#2a5f64]'
               }`}
             >
@@ -734,7 +811,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
               ) : (
                 <>
                   <ShoppingBag className="w-4 h-4 flex-shrink-0" />
-                  <span>Buy and get ${potentialCommission.toFixed(2)}</span>
+                  <span>{isNextCombo ? `BUY AND GET $${potentialCommission.toFixed(2)}!` : `Buy and get $${potentialCommission.toFixed(2)}`}</span>
                 </>
               )}
             </button>
