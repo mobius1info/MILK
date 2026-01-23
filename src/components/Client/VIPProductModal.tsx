@@ -29,10 +29,10 @@ interface ProductProgress {
 }
 
 interface ComboSettings {
-  is_enabled: boolean;
-  combo_product_position: number;
-  combo_deposit_multiplier: number;
-  combo_multiplier: number;
+  combo_enabled_at_approval: boolean;
+  combo_position_at_approval: number;
+  combo_deposit_percent_at_approval: number;
+  combo_multiplier_at_approval: number;
 }
 
 export default function VIPProductModal({ vipLevel, categoryId, onClose, onProductPurchased, onAllComplete }: VIPProductModalProps) {
@@ -45,6 +45,7 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
     total_products_count: 0
   });
   const [comboSettings, setComboSettings] = useState<ComboSettings | null>(null);
+  const [vipPrice, setVipPrice] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
   const [message, setMessage] = useState('');
@@ -71,10 +72,10 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const [vipPurchaseResult, vipLevelResult, comboSettingsResult] = await Promise.all([
+      const [vipPurchaseResult, vipLevelResult] = await Promise.all([
         supabase
           .from('vip_purchases')
-          .select('*')
+          .select('*, combo_enabled_at_approval, combo_position_at_approval, combo_deposit_percent_at_approval, combo_multiplier_at_approval')
           .eq('user_id', user.id)
           .eq('category_id', categoryId)
           .eq('vip_level', vipLevel)
@@ -86,25 +87,23 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
           .select('products_count')
           .eq('level', vipLevel)
           .eq('category', categoryId)
-          .maybeSingle(),
-        supabase
-          .from('vip_combo_settings')
-          .select('is_enabled, combo_product_position, combo_deposit_multiplier, combo_multiplier')
-          .eq('user_id', user.id)
           .maybeSingle()
       ]);
 
-      const comboData = comboSettingsResult.data;
-      if (comboData) {
-        setComboSettings({
-          is_enabled: comboData.is_enabled,
-          combo_product_position: comboData.combo_product_position,
-          combo_deposit_multiplier: comboData.combo_deposit_multiplier,
-          combo_multiplier: comboData.combo_multiplier
-        });
-      }
-
       const vipPurchase = vipPurchaseResult.data;
+
+      // Load combo settings from vip_purchase snapshot
+      if (vipPurchase) {
+        setVipPrice(Number(vipPurchase.amount_paid || 0));
+        if (vipPurchase.combo_enabled_at_approval) {
+          setComboSettings({
+            combo_enabled_at_approval: vipPurchase.combo_enabled_at_approval,
+            combo_position_at_approval: vipPurchase.combo_position_at_approval,
+            combo_deposit_percent_at_approval: vipPurchase.combo_deposit_percent_at_approval,
+            combo_multiplier_at_approval: vipPurchase.combo_multiplier_at_approval
+          });
+        }
+      }
       const vipLevelData = vipLevelResult.data;
       const totalProductsCount = vipLevelData?.products_count || 25;
 
@@ -286,7 +285,7 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
 
       const result = data as any;
 
-      if (result.error) {
+      if (!result.success || result.error) {
         setNotification({
           isOpen: true,
           type: 'error',
@@ -297,7 +296,7 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
       }
 
       const newTotalCommission = progress.total_commission_earned + result.commission;
-      const isComplete = result.is_completed;
+      const isComplete = result.progress?.completed >= result.progress?.total;
 
       onClose();
 
@@ -324,15 +323,26 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
   const baseCommission = product ? (product.price * product.commission_percentage / 100) : 0;
 
   // Check if this is the combo product
-  const isComboProduct = comboSettings?.is_enabled &&
-    (progress.current_product_index + 1) === comboSettings.combo_product_position;
+  // Current position is products_purchased + 1 (next product to purchase)
+  const currentPosition = progress.products_purchased + 1;
+  const isComboProduct = comboSettings?.combo_enabled_at_approval === true &&
+    currentPosition === comboSettings.combo_position_at_approval;
 
-  // Calculate combo commission if applicable
-  const comboCommission = isComboProduct && comboSettings
-    ? baseCommission * comboSettings.combo_multiplier
+  console.log('VIPProductModal - Combo Check:', {
+    currentPosition,
+    comboPosition: comboSettings?.combo_position_at_approval,
+    comboEnabled: comboSettings?.combo_enabled_at_approval,
+    isComboProduct,
+    vipPrice,
+    comboSettings
+  });
+
+  // Calculate combo earnings - this is the DEPOSIT amount (vipPrice * deposit%)
+  const comboEarnings = isComboProduct && comboSettings && vipPrice > 0
+    ? vipPrice * (comboSettings.combo_deposit_percent_at_approval / 100)
     : 0;
 
-  const potentialCommission = isComboProduct ? comboCommission : baseCommission;
+  const potentialCommission = isComboProduct ? comboEarnings + baseCommission : baseCommission;
   const totalAmount = product ? product.price : 0;
 
   if (loading) {
@@ -473,20 +483,27 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
                 <>
                   <div className="flex items-center justify-between pb-3 border-b border-red-200">
                     <span className="text-gray-700 font-medium">Base Commission:</span>
-                    <span className="text-lg font-bold text-gray-500 line-through">
+                    <span className="text-lg font-bold text-gray-600">
                       ${baseCommission.toFixed(2)}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between pb-3 border-b border-red-200">
-                    <span className="text-gray-700 font-medium">COMBO Multiplier:</span>
+                    <span className="text-gray-700 font-medium">COMBO Bonus:</span>
                     <span className="text-2xl font-bold text-red-600">
-                      x{comboSettings?.combo_multiplier || 1}
+                      {comboSettings?.combo_deposit_percent_at_approval}%
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between pb-3 border-b border-red-200">
-                    <span className="text-gray-700 font-medium">Your COMBO Earnings:</span>
+                    <span className="text-gray-700 font-medium">COMBO Earnings:</span>
+                    <span className="text-2xl font-bold text-green-600">
+                      +${comboEarnings.toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between pb-3 border-b border-red-200">
+                    <span className="text-gray-700 font-medium">Total Earnings:</span>
                     <span className="text-3xl font-bold text-green-600 animate-pulse">
                       +${potentialCommission.toFixed(2)}
                     </span>
@@ -497,7 +514,7 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
                       🔥 HUGE EARNINGS! 🔥
                     </p>
                     <p className="text-white text-center text-sm mt-1">
-                      You will earn {comboSettings?.combo_multiplier}x more on this product!
+                      You will earn ${comboEarnings.toFixed(2)} COMBO bonus + ${baseCommission.toFixed(2)} commission!
                     </p>
                   </div>
                 </>
@@ -543,11 +560,12 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-red-900 mb-2 text-sm sm:text-base">COMBO - How it Works</div>
                   <ul className="text-xs sm:text-sm text-red-800 space-y-1 sm:space-y-1.5">
-                    <li>• This is your COMBO product!</li>
+                    <li>• This is your COMBO product at position {comboSettings?.combo_position_at_approval}!</li>
                     <li>• Base commission: ${baseCommission.toFixed(2)}</li>
-                    <li>• COMBO multiplier: x{comboSettings?.combo_multiplier}</li>
-                    <li>• Your earnings: ${potentialCommission.toFixed(2)}</li>
-                    <li>• Commission will be automatically credited to your balance</li>
+                    <li>• COMBO bonus: {comboSettings?.combo_deposit_percent_at_approval}% of VIP price</li>
+                    <li>• COMBO earnings: ${comboEarnings.toFixed(2)}</li>
+                    <li>• Total earnings: ${potentialCommission.toFixed(2)}</li>
+                    <li>• All earnings will be automatically credited to your balance</li>
                   </ul>
                 </div>
               </div>
@@ -576,7 +594,7 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-red-900 mb-1 text-sm sm:text-base">COMBO Product!</div>
                   <p className="text-xs sm:text-sm text-red-800">
-                    This is your COMBO product with {comboSettings?.combo_multiplier}x earnings multiplier!
+                    This is your COMBO product! You will earn an extra ${comboEarnings.toFixed(2)} bonus on top of your regular commission!
                     Take advantage of this massive earnings opportunity now!
                   </p>
                 </div>
