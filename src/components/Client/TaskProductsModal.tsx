@@ -740,7 +740,8 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
                   <div className="font-semibold text-red-900 mb-1 text-xs">COMBO Product!</div>
                   <ul className="text-xs text-red-800 space-y-0.5 leading-relaxed">
                     <li>• This is your COMBO product at position {nextProductNumber}!</li>
-                    <li>• You earn extra ${comboPrice.toFixed(2)} bonus on this product</li>
+                    <li>• COMBO bonus: {Math.round(activeComboMultiplier)}x multiplier</li>
+                    <li>• You must have ${comboRequiredBalance.toFixed(2)} in balance</li>
                     <li>• Total profit: ${potentialCommission.toFixed(2)}</li>
                   </ul>
                 </div>
