@@ -688,22 +688,8 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
                   <span className="font-bold text-blue-600">${comboRequiredBalance.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-600">Base Commission:</span>
-                  <span className="font-bold text-gray-600">${baseCommission.toFixed(2)}</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-600">COMBO Profit:</span>
-                  <span className="font-bold text-red-600">{Math.round(activeComboMultiplier)}x</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
                   <span className="text-gray-600">COMBO Earnings:</span>
                   <span className="font-bold text-green-600">+${potentialCommission.toFixed(2)}</span>
-                </div>
-                <div className="flex items-center justify-between pt-1.5 border-t border-red-200">
-                  <span className="font-bold text-gray-900">Total Profit:</span>
-                  <span className="text-xl font-bold text-green-600 animate-pulse">
-                    ${potentialCommission.toFixed(2)}
-                  </span>
                 </div>
                 <div className="bg-gradient-to-r from-red-500 to-pink-500 rounded-lg p-2 mt-2">
                   <p className="text-white font-bold text-center text-xs">
@@ -744,7 +730,6 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
                   <div className="font-semibold text-red-900 mb-1 text-xs">COMBO Product!</div>
                   <ul className="text-xs text-red-800 space-y-0.5 leading-relaxed">
                     <li>• This is your COMBO product at position {nextProductNumber}!</li>
-                    <li>• COMBO profit: {Math.round(activeComboMultiplier)}x multiplier</li>
                     <li>• You must have ${comboRequiredBalance.toFixed(2)} in balance</li>
                     <li>• Total profit: ${potentialCommission.toFixed(2)}</li>
                   </ul>
