@@ -302,7 +302,7 @@ export default function ProductManagement() {
               <h3 className={`font-semibold capitalize ${selectedCategory === stat.category ? 'text-gray-800' : 'text-gray-700'}`}>
                 {stat.category}
               </h3>
-              <p className="text-xs text-gray-500 mt-1">Avg: ${stat.avgPrice.toFixed(2)}</p>
+              <p className="text-xs text-gray-500 mt-1">Avg: ${stat.avgPrice.toFixed(0)}</p>
             </button>
           ))}
         </div>
@@ -529,7 +529,7 @@ export default function ProductManagement() {
                 </div>
                 <p className="text-gray-600 text-sm mb-2 line-clamp-2">{product.description}</p>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[#f5b04c] font-bold text-lg">${parseFloat(product.price.toString()).toFixed(2)}</span>
+                  <span className="text-[#f5b04c] font-bold text-lg">${parseFloat(product.price.toString()).toFixed(0)}</span>
                   <span className="text-xs text-gray-500 capitalize px-2 py-1 bg-gray-100 rounded">{product.category}</span>
                 </div>
                 <div className="flex space-x-2">

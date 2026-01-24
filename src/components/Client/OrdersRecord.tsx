@@ -344,7 +344,7 @@ export default function OrdersRecord({ userId }: OrdersRecordProps) {
                                         <div className="bg-white rounded p-2">
                                           <p className="text-xs text-gray-600">Price</p>
                                           <p className="font-bold text-blue-600 text-sm">
-                                            ${Number(product.product_price).toFixed(2)}
+                                            ${Number(product.product_price).toFixed(0)}
                                           </p>
                                         </div>
                                         <div className="bg-white rounded p-2">

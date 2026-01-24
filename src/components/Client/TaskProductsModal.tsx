@@ -707,7 +707,7 @@ export default function TaskProductsModal({ category, comboEnabled, vipCompletio
                     Price
                   </div>
                   <div className="text-lg font-bold text-blue-600">
-                    ${displayPrice.toFixed(2)}
+                    ${displayPrice.toFixed(0)}
                   </div>
                 </div>
                 <div className="rounded-lg p-2 bg-green-50">

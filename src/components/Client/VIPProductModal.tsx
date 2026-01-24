@@ -500,7 +500,7 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
                 <span className="text-gray-700 font-medium">Product Price:</span>
                 <span className={`text-2xl font-bold ${
                   isComboProduct ? 'text-red-600' : 'text-blue-600'
-                }`}>${product.price.toFixed(2)}</span>
+                }`}>${product.price.toFixed(0)}</span>
               </div>
 
               {isComboProduct ? (
@@ -563,7 +563,7 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
                     ? 'from-red-600 to-pink-600'
                     : 'from-blue-600 to-purple-600'
                 } bg-clip-text text-transparent`}>
-                  ${totalAmount.toFixed(2)}
+                  ${totalAmount.toFixed(0)}
                 </span>
               </div>
 
@@ -601,7 +601,7 @@ export default function VIPProductModal({ vipLevel, categoryId, onClose, onProdu
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-blue-900 mb-2 text-sm sm:text-base">How it Works</div>
                   <ul className="text-xs sm:text-sm text-blue-800 space-y-1 sm:space-y-1.5">
-                    <li>• Product price: ${product.price.toFixed(2)}</li>
+                    <li>• Product price: ${product.price.toFixed(0)}</li>
                     <li>• Your commission equals: ${potentialCommission.toFixed(2)}</li>
                     <li>• Commission will be automatically credited to your balance</li>
                     <li>• Each product has its own commission percentage</li>

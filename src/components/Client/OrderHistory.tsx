@@ -557,7 +557,7 @@ export default function OrderHistory({ userId, onNavigateToDeposit }: OrderHisto
                             <p className="text-xs text-gray-600 mb-2 line-clamp-2">{product.description}</p>
                             <div className="flex items-center justify-between">
                               <span className="text-lg font-bold text-[#f5b04c]">
-                                ${product.price.toFixed(2)}
+                                ${product.price.toFixed(0)}
                               </span>
                               <span className="text-xs text-gray-500">
                                 ⭐ {product.rating} ({product.reviews})
