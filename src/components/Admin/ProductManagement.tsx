@@ -77,6 +77,7 @@ export default function ProductManagement() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
+      console.log('Fetching products...');
       const { data, error } = await supabase
         .from('products')
         .select(`
@@ -87,13 +88,17 @@ export default function ProductManagement() {
 
       if (error) throw error;
 
+      const timestamp = Date.now();
       const productsData = (data || []).map(p => ({
         ...p,
         category: p.category?.name || 'Unknown',
-        // Add cache busting parameter
-        image_url: p.image_url ? `${p.image_url}${p.image_url.includes('?') ? '&' : '?'}t=${Date.now()}` : p.image_url
+        // Store original URL
+        original_image_url: p.image_url,
+        // Add cache busting parameter for display
+        image_url: p.image_url ? `${p.image_url}${p.image_url.includes('?') ? '&' : '?'}t=${timestamp}` : p.image_url
       }));
 
+      console.log('Products loaded:', productsData.length);
       setProducts(productsData as any);
 
       const uniqueCategories = Array.from(new Set(productsData.map(p => p.category)));
@@ -141,49 +146,55 @@ export default function ProductManagement() {
         description: formData.description,
         price: parseFloat(formData.price),
         category_id: formData.category,
-        image_url: formData.image_url,
+        image_url: formData.image_url.trim(),
       };
 
-      if (editingProduct) {
-        const { error } = await supabase
+      console.log('Saving product:', productData);
+
+      const isEditing = !!editingProduct;
+
+      if (isEditing) {
+        const { data, error } = await supabase
           .from('products')
           .update(productData)
-          .eq('id', editingProduct.id);
+          .eq('id', editingProduct.id)
+          .select();
 
         if (error) throw error;
+        console.log('Product updated:', data);
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('products')
-          .insert([productData]);
+          .insert([productData])
+          .select();
 
         if (error) throw error;
+        console.log('Product created:', data);
       }
 
-      // Force refresh products first
+      // Close form first
+      setShowForm(false);
+      setEditingProduct(null);
+      setFormData({
+        name: '',
+        description: '',
+        price: '',
+        category: '',
+        rating: '0',
+        reviews: '0',
+        vip_level: '0',
+        image_url: '',
+      });
+
+      // Force refresh products
       await fetchProducts();
 
       setNotification({
         isOpen: true,
         type: 'success',
         title: 'Success',
-        message: editingProduct ? 'Product updated successfully' : 'Product added successfully',
+        message: isEditing ? 'Product updated successfully' : 'Product added successfully',
       });
-
-      // Close form and reset state
-      setTimeout(() => {
-        setShowForm(false);
-        setEditingProduct(null);
-        setFormData({
-          name: '',
-          description: '',
-          price: '',
-          category: '',
-          rating: '0',
-          reviews: '0',
-          vip_level: '0',
-          image_url: '',
-        });
-      }, 100);
     } catch (error: any) {
       setNotification({
         isOpen: true,
@@ -206,7 +217,8 @@ export default function ProductManagement() {
       rating: '0',
       reviews: '0',
       vip_level: '0',
-      image_url: product.image_url || '',
+      // Use original URL without cache-busting parameter
+      image_url: (product as any).original_image_url || product.image_url || '',
     });
     setShowForm(true);
   };
