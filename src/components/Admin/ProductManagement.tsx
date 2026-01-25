@@ -156,6 +156,13 @@ export default function ProductManagement() {
         if (error) throw error;
       }
 
+      setNotification({
+        isOpen: true,
+        type: 'success',
+        title: 'Success',
+        message: editingProduct ? 'Product updated successfully' : 'Product added successfully',
+      });
+
       setShowForm(false);
       setEditingProduct(null);
       setFormData({
@@ -168,7 +175,9 @@ export default function ProductManagement() {
         vip_level: '0',
         image_url: '',
       });
-      fetchProducts();
+
+      // Force refresh products
+      await fetchProducts();
     } catch (error: any) {
       setNotification({
         isOpen: true,
@@ -453,18 +462,21 @@ export default function ProductManagement() {
               />
               {formData.image_url && (
                 <div className="mt-2">
+                  <p className="text-xs text-gray-600 mb-1">Preview:</p>
                   <img
+                    key={formData.image_url}
                     src={formData.image_url}
                     alt="Preview"
-                    className="w-32 h-32 object-cover rounded border"
+                    className="w-32 h-32 object-cover rounded border bg-gray-100"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
+                      const target = e.target as HTMLImageElement;
+                      target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999"%3EError%3C/text%3E%3C/svg%3E';
                     }}
                   />
                 </div>
               )}
               <p className="mt-1 text-xs text-gray-500">
-                Enter a direct URL to the product image
+                Enter a direct URL to the product image (e.g., from Unsplash or Pexels)
               </p>
             </div>
 
@@ -504,9 +516,10 @@ export default function ProductManagement() {
             <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
               <div className="relative">
                 <img
+                  key={`${product.id}-${product.image_url}`}
                   src={product.image_url}
                   alt={product.name}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-48 object-cover bg-gray-100"
                 />
               </div>
               <div className="p-4">
