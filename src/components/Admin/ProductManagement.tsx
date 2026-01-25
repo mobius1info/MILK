@@ -75,6 +75,7 @@ export default function ProductManagement() {
   };
 
   const fetchProducts = async () => {
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('products')
@@ -88,7 +89,9 @@ export default function ProductManagement() {
 
       const productsData = (data || []).map(p => ({
         ...p,
-        category: p.category?.name || 'Unknown'
+        category: p.category?.name || 'Unknown',
+        // Add cache busting parameter
+        image_url: p.image_url ? `${p.image_url}${p.image_url.includes('?') ? '&' : '?'}t=${Date.now()}` : p.image_url
       }));
 
       setProducts(productsData as any);
@@ -156,6 +159,9 @@ export default function ProductManagement() {
         if (error) throw error;
       }
 
+      // Force refresh products first
+      await fetchProducts();
+
       setNotification({
         isOpen: true,
         type: 'success',
@@ -163,21 +169,21 @@ export default function ProductManagement() {
         message: editingProduct ? 'Product updated successfully' : 'Product added successfully',
       });
 
-      setShowForm(false);
-      setEditingProduct(null);
-      setFormData({
-        name: '',
-        description: '',
-        price: '',
-        category: '',
-        rating: '0',
-        reviews: '0',
-        vip_level: '0',
-        image_url: '',
-      });
-
-      // Force refresh products
-      await fetchProducts();
+      // Close form and reset state
+      setTimeout(() => {
+        setShowForm(false);
+        setEditingProduct(null);
+        setFormData({
+          name: '',
+          description: '',
+          price: '',
+          category: '',
+          rating: '0',
+          reviews: '0',
+          vip_level: '0',
+          image_url: '',
+        });
+      }, 100);
     } catch (error: any) {
       setNotification({
         isOpen: true,
@@ -514,12 +520,17 @@ export default function ProductManagement() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredProducts.map((product) => (
             <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="relative">
+              <div className="relative bg-gray-100">
                 <img
                   key={`${product.id}-${product.image_url}`}
                   src={product.image_url}
                   alt={product.name}
-                  className="w-full h-48 object-cover bg-gray-100"
+                  className="w-full h-48 object-cover"
+                  loading="eager"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
                 />
               </div>
               <div className="p-4">
