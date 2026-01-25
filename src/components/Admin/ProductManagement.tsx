@@ -46,8 +46,8 @@ export default function ProductManagement() {
     rating: '0',
     reviews: '0',
     vip_level: '0',
+    image_url: '',
   });
-  const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -128,41 +128,17 @@ export default function ProductManagement() {
     setFilteredProducts(filtered);
   };
 
-  const uploadImage = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = `${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('product-images')
-      .upload(filePath, file);
-
-    if (uploadError) throw uploadError;
-
-    const { data } = supabase.storage
-      .from('product-images')
-      .getPublicUrl(filePath);
-
-    return data.publicUrl;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploading(true);
 
     try {
-      let imageUrl = editingProduct?.image_url || '';
-
-      if (imageFile) {
-        imageUrl = await uploadImage(imageFile);
-      }
-
       const productData = {
         name: formData.name,
         description: formData.description,
         price: parseFloat(formData.price),
         category_id: formData.category,
-        image_url: imageUrl,
+        image_url: formData.image_url,
       };
 
       if (editingProduct) {
@@ -190,8 +166,8 @@ export default function ProductManagement() {
         rating: '0',
         reviews: '0',
         vip_level: '0',
+        image_url: '',
       });
-      setImageFile(null);
       fetchProducts();
     } catch (error: any) {
       setNotification({
@@ -215,6 +191,7 @@ export default function ProductManagement() {
       rating: '0',
       reviews: '0',
       vip_level: '0',
+      image_url: product.image_url || '',
     });
     setShowForm(true);
   };
@@ -346,6 +323,7 @@ export default function ProductManagement() {
                   rating: '0',
                   reviews: '0',
                   vip_level: '0',
+                  image_url: '',
                 });
               }}
               className="flex items-center justify-center space-x-2 bg-gradient-to-r from-[#f5b04c] to-[#2a5f64] text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all whitespace-nowrap"
@@ -463,23 +441,31 @@ export default function ProductManagement() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Product Image
+                Image URL
               </label>
-              <div className="flex items-center space-x-4">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#f5b04c] file:text-white hover:file:bg-[#e5a03c]"
-                />
-                {editingProduct && !imageFile && (
+              <input
+                type="url"
+                required
+                value={formData.image_url}
+                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                placeholder="https://example.com/image.jpg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f5b04c]"
+              />
+              {formData.image_url && (
+                <div className="mt-2">
                   <img
-                    src={editingProduct.image_url}
-                    alt="Current"
-                    className="w-16 h-16 object-cover rounded"
+                    src={formData.image_url}
+                    alt="Preview"
+                    className="w-32 h-32 object-cover rounded border"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
                   />
-                )}
-              </div>
+                </div>
+              )}
+              <p className="mt-1 text-xs text-gray-500">
+                Enter a direct URL to the product image
+              </p>
             </div>
 
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
